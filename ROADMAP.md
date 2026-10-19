@@ -1,3 +1,6 @@
+> ✅ v3.7.4 Kage Bunshin : livrée. v3.7.4 Kage Bunshin (fait)
+> ✅ v3.7.3 Roue fluide : livrée. v3.7.3 Roue fluide (fait)
+> ✅ v3.7.2 Animation Update : livrée. v3.7.2 Animation Update (fait)
 > ✅ v3.7.1 Équilibrage du chakra : livrée. v3.7.1 Équilibrage du chakra (fait)
 > ✅ v3.7 Visual & Character Update : livrée. v3.7 Visual & Character — UI encre, animations cohérentes, accessoires équipables (fait)
 > ✅ v3.6 Modes Rework Update : livrée. Sharingan 8 paliers, Jinchūriki par queue, 5 éléments, ultimes en duo.

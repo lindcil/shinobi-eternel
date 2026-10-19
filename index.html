@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v3.7.1 Équilibrage du chakra</title>
+<title>Shinobi Éternel II — v3.7.4 Kage Bunshin</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '3.7.1';
+  const VERSION = '3.7.4';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -6927,8 +6927,10 @@ const Net = {
     ctx.save(); ctx.fillStyle = 'rgba(10,6,18,0.62)'; ctx.beginPath(); ctx.arc(cx, cy, R0 + 34 * sc, 0, TAU); ctx.fill();
     ctx.strokeStyle = rgba(mc, 0.8); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, R0 + 34 * sc, 0, TAU); ctx.stroke();
     const keys = [0, 1, 2, 3].map((i) => keyLabel(u, i));
+    if (SE3.wheelRoll) SE3.wheelRoll(ctx, u, w, n, off, act, keys, cx, cy, R0, sc, circleSkill); else {
     for (let k = 4; k < n; k++) { const id = w[(off + k) % n]; const a = Math.PI * 0.22 + ((k - 4) * Math.PI * 0.56) / Math.max(1, n - 5); circleSkill(ctx, u, id, cx + Math.cos(a) * R0, cy + Math.sin(a) * R0, 14 * sc, null, false); }
     for (let k = 0; k < 4; k++) { const a = -Math.PI * 0.92 + (k * (Math.PI * 0.84)) / 3; circleSkill(ctx, u, act[k], cx + Math.cos(a) * R0, cy + Math.sin(a) * R0 - (1 - anim) * 6, 23 * sc, keys[k], true); }
+    }
     ctx.textAlign = 'center';
     if (md) {
       const D = SE3.stageDef(md); const cap = SE3.stageCap(u, md), max = SE3.stageCount(md);
@@ -6936,7 +6938,7 @@ const Net = {
       ctx.fillStyle = '#f2ead8'; ctx.font = `700 ${9 * sc}px "Zen Kaku Gothic New", sans-serif`; const dn = D.n.length > 20 ? D.n.slice(0, 19) + '…' : D.n; ctx.fillText(dn, cx, cy + 7 * sc);
       for (let s = 1; s <= max; s++) { ctx.fillStyle = s <= md.stage ? mc : s <= cap ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.arc(cx + (s - (max + 1) / 2) * 12 * sc, cy + 19 * sc, 4 * sc, 0, TAU); ctx.fill(); }
       const en = md.type === 'bijuu' ? md.en / 100 : u.ch / u.maxCh; ctx.strokeStyle = mc; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx, cy, R0 + 30 * sc, Math.PI * 0.15, Math.PI * 0.15 + Math.PI * 0.7 * clamp(en, 0, 1)); ctx.stroke();
-    } else { ctx.fillStyle = '#a69db8'; ctx.font = `700 ${10 * sc}px "Zen Kaku Gothic New", sans-serif`; ctx.fillText('Roue', cx, cy - 4 * sc); ctx.fillText((n ? off + 1 : 0) + ' / ' + n, cx, cy + 10 * sc); }
+    } else { ctx.fillStyle = '#a69db8'; ctx.font = `700 ${10 * sc}px "Zen Kaku Gothic New", sans-serif`; ctx.fillText('Roue', cx, cy - 4 * sc); ctx.fillText((n ? off + 1 : 0) + ' / ' + n, cx, cy + 10 * sc); if (SE3.wheelDots) SE3.wheelDots(ctx, u, n, cx, cy + 22 * sc, sc); }
     const ax = cx, ay = cy + R0 + 8 * sc; ctx.fillStyle = '#241a2c'; ctx.beginPath(); ctx.arc(ax, ay, 12 * sc, 0, TAU); ctx.fill(); ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.fillStyle = '#ffd27a'; ctx.font = `800 ${14 * sc}px sans-serif`; ctx.fillText('⟳', ax, ay + 5 * sc);
     const kl = u.ctrl && (u.ctrl.primary || u.ctrl.kind); const rk = kl === 'kb2' ? '+ / −' : kl && kl.startsWith('pad') ? 'Back' : IS_TOUCH ? 'Glisse' : 'R / Q · molette';
@@ -9050,6 +9052,189 @@ const Net = {
   };
   SE3.NOTES.unshift({ v: '3.7.1 — Équilibrage du chakra', d: '20 octobre 2026', tag: 'Le chakra devient une ressource à gérer.', s: [
     ['Chakra', ['Régénération passive du chakra réduite à 45 % de sa valeur.', 'La charge (C · LT · bouton Chakra) fonctionne toujours mais est environ 15 % plus lente.', 'Toutes les techniques coûtent environ 22 % de chakra en plus.']]
+  ] });
+})();
+/* v3.7.2 — Animation Update : 12 principes, sensation « ZZZ » */
+(function () {
+  const SE372 = (window.SE372 = { n: { stop: 0, smear: 0 } });
+  const ATK = { atk1: 1, atk2: 1, atk3: 1, atk4: 1, slash1: 1, slash2: 1, slash3: 1 };
+  const bump = (x, a, b) => { const k = clamp((x - a) / (b - a), 0, 1); return Math.sin(k * Math.PI); };
+  const back = (k) => { const c = 2.2; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); }; // overshoot
+  // phase d'une attaque : 0 anticipation, 1 frappe (frames actives), 2 suivi
+  function phase(u) { const t = clamp(u.poseT || 0, 0, 1); return t < 0.3 ? 0 : t < 0.55 ? 1 : 2; }
+  SE372.phase = phase;
+  const baseNP = ninjaPose;
+  ninjaPose = function (u) {
+    const P = baseNP.apply(this, arguments); const t = clamp(u.poseT || 0, 0, 1), pose = u.pose; const r = u.rig || {};
+    if (ATK[pose]) {
+      const ant = bump(t, 0, 0.34), hit = bump(t, 0.28, 0.62), fol = seg01(t, 0.55, 1);
+      // anticipation : on recule, on se ramasse (lent) — frappe : extension + dépassement (vif) — suivi : retour amorti
+      P.crouch += 4 * ant + 1.5 * hit; P.lean += -0.2 * ant + 0.22 * hit * (1 - fol * 0.5);
+      P.fH[0] += -9 * ant + 7 * hit; P.bH[0] += -4 * ant + 4 * hit; P.fF[0] += 4 * hit; P.bF[0] -= 3 * hit;
+      if (pose === 'atk3') { P.fF[1] -= 6 * hit; }
+      P.rate = t < 0.3 ? 16 : t < 0.55 ? 70 : 22; // slow-in / snap / slow-out
+    } else if (pose === 'dash') { P.lean = 0.78; P.crouch += 4; P.fH = [-26, -28]; P.bH = [-30, -24]; P.rate = 60; }
+    else if (pose === 'hurt') { P.crouch += 4; P.lean *= 1.35; P.fH[1] += 6; P.rate = 70; }
+    else if (pose === 'guard') { P.crouch += 2 + Math.sin(u.t * 3) * 0.6; P.lean = 0.12; P.fH = [15, -42]; P.bH = [12, -40]; }
+    else if (pose === 'charge') { const q = Math.sin(u.t * 38); P.crouch += 2 + q * 0.7; P.fH[1] += q; P.bH[1] -= q; }
+    else if (pose === 'seal' || pose === 'cast') { const w = bump(t, 0, 0.6); P.crouch += 3 * w; P.lean -= 0.08 * w; if (t > 0.6) { const k = back(seg01(t, 0.6, 0.85)); P.lean += 0.12 * k; P.fH[0] += 10 * k; } }
+    else if (pose === 'throw') { const a = bump(t, 0, 0.4); P.crouch += 3 * a; P.lean -= 0.1 * a; }
+    else if (pose === 'run' || (pose === 'idle' && Math.hypot(u.vx, u.vy) > 30)) { P.bob *= 1.6; P.lean += 0.05; }
+    else if (pose === 'idle') { P.crouch += (Math.sin(u.t * 2.2) * 0.5 + 0.5) * 0.8; }
+    if (u.z > 6 && !ATK[pose] && pose !== 'air' && pose !== 'down') { const up = (u.vz || 0) > 0; P.fF = up ? [7, -4] : [9, -9]; P.bF = up ? [-9, -2] : [-6, -11]; P.fH = up ? [10, -46] : [14, -34]; P.bH = up ? [-10, -44] : [-14, -32]; }
+    P.head = clamp(P.head || 0, -0.25, 0.25);
+    return P;
+  };
+  // squash & stretch + mémorisation de trajectoire de la main (arcs / smear)
+  const baseRU = rigUpdate;
+  rigUpdate = function (u, dt) {
+    const r = baseRU.apply(this, arguments); const g = u.rig; if (!g || !(u.body == null || u.body === 'ninja')) return r;
+    const pose = u.pose, t = clamp(u.poseT || 0, 0, 1);
+    let tgt = 0;
+    if (ATK[pose]) tgt = t < 0.3 ? 0.35 * bump(t, 0, 0.3) : t < 0.55 ? -0.5 * bump(t, 0.3, 0.55) : 0;
+    else if (pose === 'dash') tgt = -0.7; else if (pose === 'hurt') tgt = 0.45;
+    else if (pose === 'seal' || pose === 'cast') tgt = t < 0.6 ? 0.25 : -0.3 * bump(t, 0.6, 0.9);
+    else if (u.z > 6) tgt = (u.vz || 0) > 120 ? -0.45 : (u.vz || 0) < -120 ? -0.25 : 0.1;
+    else if (pose === 'idle') tgt = Math.sin(u.t * 2.2) * 0.05;
+    if (tgt) g.sq = lerp(g.sq || 0, tgt, 1 - Math.exp(-dt * 30));
+    // historique de la main avant (monde) pour les arcs de mouvement
+    const P = g.pp; if (P) { const s = u.size, f = u.face, sq = g.sq || 0, sx = (1 + 0.14 * sq) * (1 - 0.62 * (g.turn || 0)), sy = 1 - 0.16 * sq;
+      const swing = ATK[pose] && t > 0.22 && t < 0.75; const hand = u.sword && P.sword != null ? [P.fH[0] + Math.cos(P.sword) * 30, P.fH[1] + Math.sin(P.sword) * 30] : (pose === 'atk3' ? P.fF : pose === 'atk2' ? P.bH : P.fH);
+      g.trail = g.trail || []; if (swing) g.trail.push({ x: u.x + f * s * sx * hand[0], y: u.y - u.z + s * sy * hand[1], t: G.t }); while (g.trail.length && (G.t - g.trail[0].t > 0.09 || g.trail.length > 10)) g.trail.shift(); if (!swing && g.trail.length) g.trail.shift();
+      // action secondaire : à l'impact l'écharpe et le bandeau partent en arrière (chevauchement)
+      if (ATK[pose] && t > 0.3 && t < 0.4 && g.scarf) for (const q of g.scarf.pts) q.px += f * 3; }
+    return r;
+  };
+  // smear : arc effilé + traînée de dash, dessinés derrière le corps
+  const baseDN = drawNinja;
+  drawNinja = function (ctx, gl, u) {
+    const g = u.rig;
+    if (g && g.trail && g.trail.length > 2) { const tr = g.trail; const c = u.buffs && u.buffs.elemblade && EL[u.elemMain] ? EL[u.elemMain].c : (u.isPlayer ? '#fff4d6' : '#ffd0d0');
+      ctx.save(); ctx.lineCap = 'round'; for (let i = 1; i < tr.length; i++) { const k = i / tr.length; ctx.strokeStyle = c; ctx.globalAlpha = 0.15 + 0.6 * k; ctx.lineWidth = (2 + 9 * k) * u.size; ctx.beginPath(); ctx.moveTo(tr[i - 1].x, tr[i - 1].y); ctx.lineTo(tr[i].x, tr[i].y); ctx.stroke(); } ctx.restore(); SE372.n.smear++; }
+    if (u.pose === 'dash' && g) { const s = u.size, y = u.y - u.z; ctx.save(); ctx.globalAlpha = 0.35; ctx.strokeStyle = u.look ? u.look.outfit : '#fff'; ctx.lineCap = 'round';
+      for (let i = 0; i < 4; i++) { const yy = y - s * (10 + i * 11); ctx.lineWidth = (6 - i) * s; ctx.beginPath(); ctx.moveTo(u.x - u.face * s * 6, yy); ctx.lineTo(u.x - u.face * s * (34 + i * 9), yy + s * 2); ctx.stroke(); } ctx.restore(); }
+    return baseDN.apply(this, arguments);
+  };
+  // impact : hit-stop gradué, punch caméra, écrasement de la cible
+  const baseDD = dealDamage;
+  dealDamage = function (src, tgt, base, o) {
+    const hp0 = tgt && tgt.hp; const r = baseDD.apply(this, arguments);
+    if (o && o.melee && src && tgt && tgt.hp < hp0 && (src.isPlayer || tgt.isPlayer)) {
+      const idx = (src.act && src.act.idx) || 1, fin = idx >= (src.maxCombo || 4);
+      G.hitStop = Math.max(G.hitStop || 0, fin ? 0.09 : 0.04 + idx * 0.008); Cam.punch = Math.max(Cam.punch || 0, fin ? 0.06 : 0.025); Cam.add(fin ? 0.22 : 0.08);
+      if (tgt.rig) tgt.rig.sq = fin ? 0.9 : 0.55; SE372.n.stop++; SE372.lastStop = performance.now();
+      if (FX.ring) FX.ring(tgt.x, tgt.y - 30 * (tgt.size || 1), '#ffffff', 4, fin ? 46 : 26, 0.12, fin ? 5 : 3);
+    }
+    return r;
+  };
+  SE3.NOTES.unshift({ v: '3.7.2 — Animation Update', d: '20 octobre 2026', tag: 'Les 12 principes de l’animation, avec du punch.', s: [
+    ['Combat', ['Combo M1 : anticipation marquée (recul, ramassé), frappe ultra-rapide avec dépassement, suivi amorti — même timing de jeu, mêmes frames actives, tampon d’entrée intact.', 'Arcs de mouvement (smear) qui suivent la main, le pied ou la lame.', 'Impact : gel d’image gradué selon le coup du combo, coup de zoom caméra, cible écrasée.']],
+    ['Corps', ['Écrasement / étirement sur tout le corps : attaques, dash (étiré, traînées de vitesse), saut (étiré à l’envol, groupé en l’air), atterrissage, coups reçus, incantation (ramassé puis détente).', 'Garde, charge du chakra, course et respiration plus vivantes ; écharpe et bandeau suivent le mouvement avec retard (chevauchement).', 'La tête reste alignée sur le corps, les mains restent cohérentes.']]
+  ] });
+})();
+/* v3.7.3 — Roue fluide */
+(function () {
+  let circleSkill = null; const DUR = 300, FLIP = 260; const now = () => performance.now();
+  const eio = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+  const SE373 = (window.SE373 = { n: { roll: 0, flip: 0 } });
+  // angle (continu) d'une position p sur la roue : 0..3 actifs (arc haut), 4..n-1 réserve (arc bas), boucle fermée
+  function ang(p, n) { if (p < 4) return -Math.PI * 0.92 + (p * Math.PI * 0.84) / 3; const m = Math.max(1, n - 5); return Math.PI * 0.22 + ((p - 4) * Math.PI * 0.56) / m; }
+  function geo(p, n) { // p continu dans [0, n)
+    const N = Math.max(1, n); p = ((p % N) + N) % N; const i = Math.floor(p), fr = p - i, j = (i + 1) % N;
+    let a0 = ang(i, N), a1 = j === 0 ? ang(0, N) + Math.PI * 2 : ang(j, N); if (N <= 4 && j === 0) a1 = ang(0, N) + Math.PI * 2;
+    const r0 = i < 4 ? 23 : 14, r1 = j < 4 ? 23 : 14; const e = fr; return { a: a0 + (a1 - a0) * e, R: r0 + (r1 - r0) * e, act: p < 3.5 || p > N - 0.5 };
+  }
+  function st(u) { if (!u._w373) u._w373 = { vis: u.wOff || 0, from: u.wOff || 0, to: u.wOff || 0, t0: 0, last: u.wOff || 0, sig: null, flip: null, prev: null, hiT: 0, dir: 0 }; return u._w373; }
+  function update(u, w, n, off) {
+    const S = st(u); const sig = w.join('|'); const T = now();
+    if (S.sig !== null && sig !== S.sig) { S.flip = { t0: T, w: S.lw, n: S.ln, vis: S.vis }; S.vis = S.from = S.to = S.last = off; S.t0 = 0; S.hiT = T + FLIP; S.prev = null; SE373.n.flip++; }
+    S.sig = sig; S.lw = w.slice(); S.ln = n;
+    if (n > 1 && off !== S.last) { let d = off - S.last; d = ((d % n) + n) % n; if (d > n / 2) d -= n; // plus court chemin
+      const k = S.t0 ? clamp((T - S.t0) / (SE373.dur || DUR), 0, 1) : 1; const cur = S.from + (S.to - S.from) * eio(k);
+      if (k >= 1) S.prev = SE3.activeIds(u).slice(); // file : on repart de la position visuelle actuelle, sans à-coup
+      S.from = cur; S.to = S.to + d; S.t0 = T; S.dir = Math.sign(d); S.last = off; SE373.n.roll++; }
+    const k = S.t0 ? clamp((T - S.t0) / (SE373.dur || DUR), 0, 1) : 1; S.vis = S.from + (S.to - S.from) * eio(k); S.k = k;
+    if (k >= 1 && S.t0) { S.from = S.to = off; S.vis = off; S.t0 = 0; S.hiT = T; } // fin propre, jamais d'état intermédiaire
+    return S;
+  }
+  function drawSet(ctx, u, w, n, vis, keys, cx, cy, R0, sc) {
+    const items = [];
+    for (let j = 0; j < n; j++) { const g = geo(j - vis, n); items.push({ id: w[j], g, p: (((j - vis) % n) + n) % n }); }
+    items.sort((a, b) => a.g.R - b.g.R);
+    for (const it of items) { const g = it.g, rp = Math.round(it.p); const key = Math.abs(it.p - rp) < 0.12 && rp < 4 ? keys[rp] : null;
+      circleSkill(ctx, u, it.id, cx + Math.cos(g.a) * R0, cy + Math.sin(g.a) * R0, g.R * sc, key, g.R > 18.5); }
+  }
+  SE3.wheelRoll = function (ctx, u, w, n, off, act, keys, cx, cy, R0, sc, CS) { circleSkill = CS;
+    const S = update(u, w, n, off); const T = now();
+    if (S.flip && T - S.flip.t0 < FLIP) { // changement de filtre : retournement (carte qui pivote)
+      const k = (T - S.flip.t0) / FLIP; const first = k < 0.5; const scx = Math.max(0.02, Math.abs(Math.cos(k * Math.PI)));
+      ctx.save(); ctx.translate(cx, cy); ctx.scale(scx, 1); ctx.translate(-cx, -cy); ctx.globalAlpha = 0.4 + 0.6 * scx;
+      if (first) drawSet(ctx, u, S.flip.w, S.flip.n, S.flip.vis, keys, cx, cy, R0, sc); else drawSet(ctx, u, w, n, off, keys, cx, cy, R0, sc);
+      ctx.restore(); return; }
+    S.flip = null;
+    drawSet(ctx, u, w, n, S.vis, keys, cx, cy, R0, sc);
+    // flèche de direction pendant la rotation
+    if (S.t0 && S.dir) { const a0 = -Math.PI / 2 + 0.55 * S.dir, a1 = -Math.PI / 2 - 0.55 * S.dir, Rr = R0 + 40 * sc; ctx.save(); ctx.strokeStyle = '#ffd27a'; ctx.fillStyle = '#ffd27a'; ctx.globalAlpha = 0.9 * Math.sin(S.k * Math.PI) + 0.1; ctx.lineWidth = 3 * sc;
+      ctx.beginPath(); ctx.arc(cx, cy, Rr, Math.min(a0, a1), Math.max(a0, a1)); ctx.stroke(); const hx = cx + Math.cos(a1) * Rr, hy = cy + Math.sin(a1) * Rr, ta = a1 - S.dir * Math.PI / 2;
+      ctx.beginPath(); ctx.moveTo(hx + Math.cos(ta) * 9 * sc, hy + Math.sin(ta) * 9 * sc); ctx.lineTo(hx + Math.cos(ta + 2.4) * 7 * sc, hy + Math.sin(ta + 2.4) * 7 * sc); ctx.lineTo(hx + Math.cos(ta - 2.4) * 7 * sc, hy + Math.sin(ta - 2.4) * 7 * sc); ctx.fill(); ctx.restore(); }
+    // surbrillance brève des emplacements nouvellement actifs
+    const hk = (T - S.hiT) / 450; if (!S.t0 && hk >= 0 && hk < 1) { const prev = S.prev || []; ctx.save(); for (let k = 0; k < 4; k++) { if (!act[k] || prev.includes(act[k]) && S.prev) continue; const a = ang(k, n); ctx.strokeStyle = '#ffffff'; ctx.globalAlpha = 1 - hk; ctx.lineWidth = 3 * sc; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * R0, cy + Math.sin(a) * R0, (26 + hk * 10) * sc, 0, TAU); ctx.stroke(); } ctx.restore(); }
+  };
+  SE3.wheelDots = function (ctx, u, n, x, y, sc) { if (n < 2 || n > 16) return; const S = st(u); const vis = ((S.vis % n) + n) % n; const g = 7 * sc;
+    for (let i = 0; i < n; i++) { let d = Math.abs(i - vis); d = Math.min(d, n - d); ctx.fillStyle = d < 0.5 ? '#ffd27a' : 'rgba(255,255,255,' + (d < 3.5 ? 0.45 : 0.18) + ')'; ctx.beginPath(); ctx.arc(x + (i - (n - 1) / 2) * g, y, (d < 0.5 ? 2.6 : 1.8) * sc, 0, TAU); ctx.fill(); } };
+  SE3.NOTES.unshift({ v: '3.7.3 — Roue fluide', d: '20 octobre 2026', tag: 'La roue des techniques tourne pour de vrai.', s: [
+    ['Roue', ['Rotation animée (300 ms, adoucie) : les emplacements roulent le long de la roue, les techniques sortantes descendent dans la réserve, les entrantes montent ; recharges et chiffres suivent leur emplacement.', 'Flèche de direction, brève surbrillance des nouvelles techniques actives, indicateur de position (points).', 'Entrées rapides (R/Q, molette, glissé, ⟳) mises en file sans à-coup ; changement de filtre (T) avec retournement.']]
+  ] });
+})();
+/* v3.7.4 — Kage Bunshin : correctif du plantage + refonte */
+(function () {
+  const CAP = 5, GCAP = 20, LIFE = 12, CLONE_T = { clones: 1, bois_clones: 1, nar_clones: 1 };
+  const SE374 = (window.SE374 = { n: { refused: 0, swap: 0, boom: 0, mimic: 0 } });
+  const root = (u) => { let o = u, i = 0; while (o && o.isClone && o.owner && i++ < 8) o = o.owner; return o; };
+  const mine = (o) => G.units.filter((v) => v.isClone && !v.dead && v.owner === o);
+  const isSummonT = (id) => { const T = TECH[id]; return !T || T.kind === 'summon' || CLONE_T[id]; };
+  const baseSS = spawnSummon;
+  spawnSummon = function (owner, what, x, y, dur) {
+    if (what === 'clone') {
+      // cause du plantage : un clone héritait de la technique de clonage et se clonait lui-même (croissance exponentielle)
+      if (!owner || owner.isClone) { SE374.n.refused++; return null; }
+      const own = mine(owner); if (own.length >= CAP) { const old = own.sort((a, b) => (a.lifeT || 0) - (b.lifeT || 0))[0]; if (old) poof(old); }
+      if (G.units.filter((v) => v.isClone && !v.dead).length >= GCAP) { SE374.n.refused++; return null; }
+      dur = Math.min(dur || LIFE, LIFE);
+    }
+    const u = baseSS.call(this, owner, what, x, y, dur);
+    if (u && what === 'clone') {
+      u.slots = (u.slots || []).filter((id) => id && !isSummonT(id)); u._nw = null; u.wheelExtra = []; u.secret = null; u.uniq = null; u.ms33 = null;
+      u._lite = 1; u.lifeT = Math.min(u.lifeT || LIFE, LIFE);
+    }
+    return u;
+  };
+  function poof(c) { if (!c || c.dead) return; FX.smoke(c.x, c.y, 10, '#e8e4f0', 8, 16, 90); c.lifeT = 0; c.hp = 0; try { killUnit(c, null); } catch (e) { c.dead = true; } }
+  function boom(u, cl) { for (const c of cl) { FX.ring(c.x, c.y - 20, '#ffd27a', 8, 120, 0.35, 8); for (const v of enemiesOf(u)) if (dist(c.x, c.y, v.x, v.y) < 120 + v.r) dealDamage(u, v, 60 * (u.atk || 1), { el: 'neutre', kb: 520, kbA: Math.atan2(v.y - c.y, v.x - c.x), tech: 'bunshin_boom' }); poof(c); }
+    Cam.add(0.35); G.hitStop = Math.max(G.hitStop || 0, 0.05); Audio.play('boom', 1, u.x); FX.text(u.x, u.y - 90, 'Bunshin Daibakuha !', '#ffd27a', 18, true); SE374.n.boom++; }
+  function swap(u, cl, ang) { const ax = u.x + Math.cos(ang) * 300, ay = u.y + Math.sin(ang) * 300; const c = cl.sort((a, b) => dist(a.x, a.y, ax, ay) - dist(b.x, b.y, ax, ay))[0];
+    const x = u.x, y = u.y; FX.smoke(x, y, 10, '#e8e4f0', 8, 16, 90); u.x = c.x; u.y = c.y; c.x = x; c.y = y; u.iframe = Math.max(u.iframe || 0, 0.25); FX.smoke(u.x, u.y, 10, '#e8e4f0', 8, 16, 90); Audio.play('poof'); FX.text(u.x, u.y - 80, 'Échange', '#e8e4f0', 14); SE374.n.swap++; }
+  const baseTC = tryCast;
+  tryCast = function (u, id, ang, tgt) {
+    if (u && u.isClone && isSummonT(id)) return false;
+    if (u && !u.isClone && CLONE_T[id]) { const cl = mine(u); if (cl.length && !(u.cds && u.cds[id] > 0) && !(u.act && !u.act.cancelable)) {
+      const a = ang != null ? ang : u.aim || 0;
+      if (u.charging) boom(u, cl); else if (cl.length >= CAP || u._kbT && G.t - u._kbT < 6) swap(u, cl, a); else { u._kbT = G.t; return baseTC.apply(this, arguments); }
+      if (u.cds) u.cds[id] = 1.2; return true; }
+      if (cl.length === 0) u._kbT = G.t; }
+    return baseTC.apply(this, arguments);
+  };
+  // les clones imitent les coups au corps à corps de leur invocateur
+  const baseSM = startMelee;
+  startMelee = function (u) { const r = baseSM.apply(this, arguments);
+    if (u && !u.isClone && u.act && u.act.type === 'melee') for (const c of mine(u)) { if (c.act || dist(c.x, c.y, u.x, u.y) > 520) continue; const e = typeof nearest === 'function' ? nearest(c, c.x, c.y, 260) : null; c.aim = e ? Math.atan2(e.y - c.y, e.x - c.x) : u.aim; try { baseSM(c); SE374.n.mimic++; } catch (err) {} }
+    return r; };
+  // rendu allégé : pas d'images rémanentes ni d'arcs pour les clones
+  const baseUU = updateUnit;
+  updateUnit = function (u, dt) { const r = baseUU.apply(this, arguments); if (u && u._lite) { if (u._ghosts) u._ghosts.length = 0; if (u.rig && u.rig.trail) u.rig.trail.length = 0; } return r; };
+  SE3.NOTES.unshift({ v: '3.7.4 — Kage Bunshin', d: '20 octobre 2026', tag: 'Plantage corrigé, clones repensés.', s: [
+    ['Correctif', ['Plantage du Multiclonage (Naruto) et des clones : les clones héritaient de la technique de clonage et se clonaient eux-mêmes à l’infini. Un clone ne peut plus créer de clone.']],
+    ['Clones', ['5 clones max par ninja (le plus ancien disparaît), 20 au total, durée de vie 12 s, rendu allégé.', 'Les clones imitent vos coups au corps à corps.', 'Relancer la technique quand des clones sont là : échange de place avec le clone le plus proche de la visée. En chargeant le chakra (C · LT · bouton Chakra) : tous les clones explosent (Bunshin Daibakuha).']]
   ] });
 })();
 

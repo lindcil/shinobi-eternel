@@ -1,3 +1,17 @@
+- Correctif : plantage des clones (clonage récursif exponentiel) — un clone ne peut plus se cloner
+- 5 clones max par ninja, 20 au total, durée 12 s, rendu allégé
+- Les clones imitent vos coups M1 ; relancer = échange de place ; C + relancer = explosion des clones
+
+- Rotation animée de la roue (300 ms, adoucie), emplacements qui roulent, recharges qui suivent
+- Flèche de direction, surbrillance des nouvelles techniques, points de position
+- Entrées rapides en file sans à-coup ; filtre (T) avec retournement
+
+- Combo M1 : anticipation, frappe vive avec dépassement, suivi amorti (timing et hitbox inchangés)
+- Arcs de mouvement (smear) main/pied/lame, traînées de dash
+- Hit-stop gradué, punch caméra, cible écrasée à l'impact
+- Squash & stretch : attaques, dash, saut, atterrissage, coups reçus, incantation
+- Garde, charge, course, respiration plus vivantes ; écharpe/bandeau en chevauchement
+
 - Régénération passive du chakra réduite à 45 %
 - Charge du chakra (C · LT · bouton Chakra) ~15 % plus lente
 - Coût en chakra de toutes les techniques +22 %
