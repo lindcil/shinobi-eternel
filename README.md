@@ -14,16 +14,19 @@ Jeu d'action ninja inspiré de *Naruto*, entièrement dans **un seul fichier `in
 - Interface encre & parchemin, 16 accessoires visibles sur le personnage
 
 ## Contrôles (clavier / souris)
-| Action | Touche |
-|---|---|
-| Se déplacer | Z Q S D / W A S D |
-| Viser | Souris |
-| Coup (combo M1) | J / clic gauche |
-| Dash / esquive | K / Espace |
-| Techniques | U, I, … (roue : R pour tourner) |
-| **Charger le chakra** | **C (maintenir)** · LT · bouton Chakra |
-| Apprivoiser / Invoquer (monde ouvert) | G / V |
-| Pause | Échap |
+| Action | Clavier | Manette |
+|---|---|---|
+| Se déplacer | W A S D (Z Q S D en AZERTY) / flèches | Stick gauche |
+| Viser | Souris (sinon auto) | Stick droit |
+| Attaque / combo M1 | J ou clic gauche | A |
+| Esquive · Substitution | K ou clic droit | B |
+| Techniques 1 à 4 | U I O P ou 1-4 | X, Y, LB, RB |
+| Technique secrète | Espace | RT |
+| Pupille | E | R3 |
+| Bête à queues | F | L3 |
+| **Charger le chakra (maintenir)** | **C** | LT |
+| Apprivoiser / Invoquer (monde ouvert) | G / V | — |
+| Pause | Échap | Start |
 
 Manette et écran tactile sont pris en charge (boutons à l'écran). Les touches sont configurables dans **Options**.
 
