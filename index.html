@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.4 Creative Modes</title>
+<title>Shinobi Éternel II — v4.5 Constellations & Animation Polish</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1593,12 +1593,15 @@ function drawNinja(ctx, gl, u) {
   const hipY = -24 + P.bob + P.crouch, hip = [P.lean * 8 + P.hipX, hipY];
   const neck = [hip[0] + P.lean * 16, hipY - 22 + P.crouch * 0.3];
   const head = [neck[0] + P.lean * 4 + P.head * 1.5, neck[1] - 10 + Math.abs(P.head) * 2];
-  const legF = ik(hip[0] + 2, hip[1], P.fF[0], P.fF[1] - 1, 13, 13, -1);
-  const legB = ik(hip[0] - 2, hip[1], P.bF[0], P.bF[1] - 1, 13, 13, -1);
+  const legF = ik(hip[0] + 2, hip[1], P.fF[0], P.fF[1] - 1, 13.6, 13.2, -1);
+  const legB = ik(hip[0] - 2, hip[1], P.bF[0], P.bF[1] - 1, 13.6, 13.2, -1);
+  const bend = clamp(P.lean, -0.6, 0.8), waist = [lerp(hip[0], neck[0], 0.45) + bend * 3.2, lerp(hip[1], neck[1], 0.45)];
+  const hs = (r.hs45 = r.hs45 || { v: 0, w: 0, px: u.x }); { const dt = 1 / 60, ax = clamp((u.x - hs.px) * f * -0.04, -0.5, 0.5); hs.px = u.x; hs.w += (ax - hs.v) * 0.18 - hs.w * 0.12; hs.v = clamp(hs.v + hs.w, -0.45, 0.45); }
   const shF = [neck[0] + 2, neck[1] + 3], shB = [neck[0] - 2, neck[1] + 3];
-  const armF = ik(shF[0], shF[1], P.fH[0], P.fH[1], 11, 11, 1);
-  const armB = ik(shB[0], shB[1], P.bH[0], P.bH[1], 11, 11, 1);
-  const limb = (j, a, w, c) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(j[0], j[1]); ctx.lineTo(j[2], j[3]); ctx.stroke(); };
+  const armF = ik(shF[0], shF[1], P.fH[0], P.fH[1], 11.4, 11, 1);
+  const armB = ik(shB[0], shB[1], P.bH[0], P.bH[1], 11.4, 11, 1);
+  const limb = (j, a, w, c) => { ctx.strokeStyle = c; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = w * 1.12; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(j[0], j[1]); ctx.stroke(); ctx.lineWidth = w * 0.86; ctx.beginPath(); ctx.moveTo(j[0], j[1]); ctx.lineTo(j[2], j[3]); ctx.stroke(); ctx.fillStyle = c; ctx.beginPath(); ctx.arc(j[0], j[1], w * 0.52, 0, TAU); ctx.fill(); };
+  const hand = (j, rr, c) => { const a = Math.atan2(j[3] - j[1], j[2] - j[0]); ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(j[2] + Math.cos(a) * 0.8, j[3] + Math.sin(a) * 0.8, rr * 1.15, rr * 0.9, a, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.arc(j[2] + Math.cos(a - 1.3) * rr, j[3] + Math.sin(a - 1.3) * rr, rr * 0.45, 0, TAU); ctx.fill(); };
   const sword = (hx, hy, ang, back) => {
     const L2 = 34; const cx = Math.cos(ang), cy = Math.sin(ang);
     ctx.strokeStyle = OUT; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(hx - cx * 6, hy - cy * 6); ctx.lineTo(hx + cx * L2, hy + cy * L2); ctx.stroke();
@@ -1614,22 +1617,24 @@ function drawNinja(ctx, gl, u) {
     limb(armB, shB, 4.2 + ow, O ? OUT : dark(L.skinArm ? skin : outfit));
     limb(legB, hip, 5.5 + ow, O ? OUT : dark(outfit));
     ctx.fillStyle = O ? OUT : outfit; ctx.beginPath();
-    ctx.moveTo(hip[0] - 5 - ow / 2, hip[1] + 2); ctx.lineTo(hip[0] + 5 + ow / 2, hip[1] + 2);
-    ctx.lineTo(neck[0] + 7.5 + ow / 2, neck[1] + 1); ctx.quadraticCurveTo(neck[0], neck[1] - 2 - ow / 2, neck[0] - 7.5 - ow / 2, neck[1] + 1); ctx.closePath(); ctx.fill();
+    ctx.moveTo(hip[0] - 5.5 - ow / 2, hip[1] + 2); ctx.lineTo(hip[0] + 5.5 + ow / 2, hip[1] + 2);
+    ctx.quadraticCurveTo(waist[0] + 4.6 + ow / 2, waist[1], neck[0] + 8.2 + ow / 2, neck[1] + 2); ctx.quadraticCurveTo(neck[0], neck[1] - 2.5 - ow / 2, neck[0] - 8.2 - ow / 2, neck[1] + 2); ctx.quadraticCurveTo(waist[0] - 4.6 - ow / 2, waist[1], hip[0] - 5.5 - ow / 2, hip[1] + 2); ctx.closePath(); ctx.fill();
     if (O) { ctx.strokeStyle = OUT; ctx.lineWidth = 3; ctx.stroke(); }
     limb(legF, hip, 5.5 + ow, O ? OUT : outfit);
     if (!O) {
       ctx.fillStyle = outfit2; ctx.beginPath(); ctx.moveTo(neck[0] - 1, neck[1] + 1); ctx.lineTo(neck[0] + 7, neck[1] + 1); ctx.lineTo(hip[0] + 5, hip[1]); ctx.lineTo(hip[0] + 1, hip[1]); ctx.fill();
       ctx.fillStyle = flash ? '#fff' : (L.belt || '#1a1418'); ctx.fillRect(hip[0] - 5.5, hip[1] - 2, 11, 3);
       ctx.fillStyle = flash ? '#fff' : (L.scarf === 'prism' ? '#ffffff' : L.scarf); ctx.fillRect(hip[0] - 1, hip[1] - 2, 2.5, 3);
-      ctx.fillStyle = flash ? '#fff' : '#1c1820'; ctx.beginPath(); ctx.ellipse(legF[2] + 2, legF[3], 3.6, 2, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(legB[2] + 2, legB[3], 3.6, 2, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = flash ? '#fff' : '#1c1820'; for (const lg of [legF, legB]) { const fa = clamp(Math.atan2(lg[3] - lg[1], lg[2] - lg[0]) - Math.PI / 2, -0.6, 0.6); ctx.beginPath(); ctx.ellipse(lg[2] + 2.2, lg[3] + 0.2, 4, 2.1, fa * 0.6, 0, TAU); ctx.fill(); }
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(waist[0] - 3, waist[1]); ctx.quadraticCurveTo(waist[0] + 1, waist[1] + 1.5, waist[0] + 4, waist[1]); ctx.stroke();
       ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(legF[0] - 2, legF[1]); ctx.lineTo(legF[0] + 2, legF[1]); ctx.stroke();
     }
-    ctx.fillStyle = O ? OUT : skin; ctx.beginPath(); ctx.arc(head[0], head[1], 8.5 + ow / 2, 0, TAU); ctx.fill();
-    if (!O) drawHair(ctx, head[0], head[1], L, hair, u);
+    ctx.strokeStyle = O ? OUT : skin; ctx.lineWidth = 4.2 + ow; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(neck[0], neck[1] + 1); ctx.lineTo(lerp(neck[0], head[0], 0.7), lerp(neck[1], head[1], 0.7)); ctx.stroke();
+    ctx.fillStyle = O ? OUT : skin; ctx.beginPath(); ctx.ellipse(head[0], head[1], 8.2 + ow / 2, 8.9 + ow / 2, (P.head || 0) * 0.5, 0, TAU); ctx.fill();
+    if (!O) { ctx.save(); ctx.translate(head[0], head[1] + 4); ctx.transform(1, 0, hs.v, 1, 0, 0); ctx.translate(-head[0], -head[1] - 4); drawHair(ctx, head[0], head[1], L, hair, u); ctx.restore(); }
     if (u.sword && swordOut && !O) sword(armF[2], armF[3], P.sword, false);
     limb(armF, shF, 4.2 + ow, O ? OUT : (L.skinArm ? skin : outfit));
-    if (!O) { ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(armF[2], armF[3], 2.6, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.arc(armB[2], armB[3], 2.4, 0, TAU); ctx.fill(); }
+    if (!O) { hand(armF, 2.5, skin); hand(armB, 2.3, dark(skin)); }
   }
   const ex = head[0] + 4.2, ey = head[1] - 0.5;
   if (L.mask) { ctx.fillStyle = flash ? '#fff' : (L.maskC || '#2a2a34'); ctx.beginPath(); ctx.arc(head[0] + 1, head[1] + 1, 8.2, 0.05, Math.PI - 0.3); ctx.fill(); }
@@ -6488,7 +6493,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.4';
+  const VERSION = '4.5';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -9721,6 +9726,8 @@ const Net = {
     const c0 = P_[0]; // halo central
     const g = ctx.createRadialGradient(c0.x, c0.y, 0, c0.x, c0.y, 280); g.addColorStop(0, E + '55'); g.addColorStop(1, 'transparent'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     ctx.strokeStyle = '#ffd27a22'; for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.ellipse(c0.x, c0.y, i * Math.min(W, H) * 0.126 * ease, i * Math.min(W, H) * 0.108 * ease, 0, 0, TAU); ctx.stroke(); }
+    if (t.deco) { const W0 = cv.clientWidth, H0 = cv.clientHeight, dcx = W0 * 0.52, dcy = H0 * 0.46, ds = Math.min(W0 * 0.9, H0) * 0.098; ctx.save(); ctx.globalAlpha = 0.28 * ease; ctx.strokeStyle = E; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.shadowColor = E; ctx.shadowBlur = 18;
+      for (const L of t.deco) { ctx.beginPath(); L.forEach(([X, Y], i) => { const x = dcx + X * ds * ease, y = dcy + Y * ds * ease; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); } ctx.restore(); }
     const pos = (q) => ({ x: c0.x + (q.x - c0.x) * ease, y: c0.y + (q.y - c0.y) * ease });
     for (const q of P_) { if (!q.n.req) continue; const pr = P_.find((z) => z.n.id === q.n.req); const a = pos(pr), b = pos(q); const on = stateOf(q.n) === 'on'; ctx.strokeStyle = on ? E : '#8890b866'; ctx.lineWidth = on ? 3 : 1.5; ctx.setLineDash(on ? [] : [4, 6]); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.setLineDash([]);
       if (on) { const f = (T * 0.8) % 1; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, 2.5, 0, TAU); ctx.fill(); } }
@@ -9785,11 +9792,12 @@ const Net = {
   const ELc = (e) => (EL[e] || EL.neutre).c;
   /* =================== Impact frames (12 principes : anticipation, contraste, exagération) =================== */
   let IMP = null, impLast = 0;
-  SE42.impact = function (x, y, c, k = 1) { const n = performance.now(); if (n - impLast < 220) return; impLast = n; IMP = { x, y, c: c || '#ffffff', t: 0, k }; G.hitStop = Math.max(G.hitStop || 0, 0.06 * k); Cam.add(0.35 * k); Cam.punch = Math.max(Cam.punch || 0, 0.06 * k); ev('impact'); };
+  SE42.rf = () => { try { const p = Profile.data; return !p || !p.settings || p.settings.rf45 !== false; } catch (e) { return true; } };
+  SE42.impact = function (x, y, c, k = 1) { if (SE42.rf()) k = Math.min(k, 0.7); const n = performance.now(); if (n - impLast < 220) return; impLast = n; IMP = { x, y, c: c || '#ffffff', t: 0, k }; G.hitStop = Math.max(G.hitStop || 0, 0.06 * k); Cam.add(0.35 * k); Cam.punch = Math.max(Cam.punch || 0, 0.06 * k); ev('impact'); };
   const baseDD = dealDamage;
   dealDamage = function (src, tgt, amt, o) { const hp0 = tgt && tgt.hp; const r = baseDD.apply(this, arguments);
     try { if (src && tgt && (src.isPlayer || tgt.isPlayer) && hp0 != null) { const lost = hp0 - tgt.hp; const T = o && o.tech && TECH[o.tech];
-        if (lost > tgt.maxHp * 0.16 || (T && T.rar >= 5 && lost > 40) || (o && o.imp42)) SE42.impact(tgt.x, tgt.y - 30, o && o.el ? ELc(o.el) : '#fff', lost > tgt.maxHp * 0.3 ? 1.4 : 1); } } catch (e) {}
+        if ((T && (T.ult42 || T.sus42 || /bijuu|bijud|nuke|indra|planetaire/.test(T.id || o.tech || '')) && lost > tgt.maxHp * 0.12) || (o && o.imp42)) SE42.impact(tgt.x, tgt.y - 30, o && o.el ? ELc(o.el) : '#fff', lost > tgt.maxHp * 0.3 ? 1.4 : 1); } } catch (e) {}
     return r; };
   /* =================== Cinématique façon Bijūdama (assombrissement → impact frame → onde de choc) =================== */
   let CINE = null;
@@ -9840,7 +9848,7 @@ const Net = {
     u.ch -= cost; u.cds[A.id] = A.cd * (u.cdMul || 1); u.cds[B.id] = B.cd * (u.cdMul || 1) * 0.7;
     let base, n, k, mod, beh; if (R) { base = R.base; n = R.f.n; k = R.f.k; mod = R.f.mod; beh = R.f.beh; } else { base = (A.dmg || 0) >= (B.dmg || 0) ? A : B; const o = base === A ? B : A; n = 'Fusion : ' + A.n + ' × ' + B.n; k = '合'; mod = { dmg: 1.35, st: Object.assign({}, o.st || {}) }; beh = null; }
     const X = Object.assign({}, base, { _f42: 1, _fn: n }); X.st = Object.assign({}, base.st || {}, mod.st || {}); if (mod.dmg) X.dmg = (X.dmg || 30) * mod.dmg; if (mod.r && X.r) X.r *= mod.r; if (mod.rng && X.rng) X.rng *= mod.rng; if (mod.el) X.el = mod.el; if (mod.cnt) { X.cnt = (X.cnt || 1) + mod.cnt; X.spr = Math.max(X.spr || 0, mod.spr || 0.45); } if (mod.ex) X.ex = Math.max(X.ex || 0, mod.ex);
-    FX.kanji(u.x, u.y, 120 * u.size, k, '#ffd27a', 26, 0.9); FX.ring(u.x, u.y, '#ffd27a', 20, 150, 0.4, 8); SE42.impact(u.x, u.y - 40, '#ffd27a', 0.8); Audio.play('fusion');
+    FX.kanji(u.x, u.y, 120 * u.size, k, '#ffd27a', 26, 0.9); FX.ring(u.x, u.y, '#ffd27a', 20, 150, 0.4, 8); Audio.play('fusion');
     discover(n, k); ev('fusion', n); u.aim = ang;
     runBeh(u, X, beh, ang, tgt); return true; }
   function runBeh(u, X, beh, ang, tgt) { const pw = techPower(u, X); const pt = aimPoint(u, ang, X.rng || 460, tgt); const E = ELc(X.el);
@@ -9907,7 +9915,7 @@ const Net = {
     const BR = Math.max(90, R.R * 2.4) * (R.big > 3 ? 1.6 : 1);
     for (const w of foes(u, x, y, BR)) dealDamage(u, w, T.dmg * 2.4 * pw * k * (w === v ? 1 : 0.6), { el: R.el, st: T.st, kb: 900, kbA: R.ang, tech: T.id, imp42: !!v });
     FX.ring(x, y, R.c, 10, BR, 0.4, 10); FX.ring(x, y, '#ffffff', 10, BR * 0.7, 0.3, 5); FX.glow(x, y, 30, R.c, BR, 0.3); Post.shock(x, y, 1, BR * 1.6); Audio.play('heavy'); if (R.el === 'foudre') for (let i = 0; i < 6; i++) FX.bolt(x, y, 30, x + rand(-BR, BR), y + rand(-BR, BR), rand(10, 80), '#9ad8ff', 0.2, 3);
-    if (v) SE42.impact(x, y, R.c, R.big > 3 ? 1.5 : 1.1); ev('detonate', v ? 'hit' : 'air'); const B = T._beh || []; if (B.includes('burst')) G.delayed.push({ t: 0.3, f: () => burstAt(u, T, x, y, 140, 0.5) }); if (B.includes('echo')) G.delayed.push({ t: 0.35, f: () => burstAt(u, T, x, y, BR * 0.8, 0.55) }); }
+    if (v && R.big > 3) SE42.impact(x, y, R.c, 1.2); ev('detonate', v ? 'hit' : 'air'); const B = T._beh || []; if (B.includes('burst')) G.delayed.push({ t: 0.3, f: () => burstAt(u, T, x, y, 140, 0.5) }); if (B.includes('echo')) G.delayed.push({ t: 0.35, f: () => burstAt(u, T, x, y, BR * 0.8, 0.55) }); }
   /* =================== Choc de techniques (QTE) =================== */
   let clashT = 0;
   function skillClash(u, v, T, x, y) { if (performance.now() - clashT < 6000 || !SE35 || !SE35.runQTE || !(u.isPlayer || v.isPlayer)) return false; clashT = performance.now(); const pl = u.isPlayer ? u : v, op = pl === u ? v : u;
@@ -10064,10 +10072,10 @@ const Net = {
   /* =================== HUD : impact frames et cinématique =================== */
   const baseHUD = drawHUD;
   drawHUD = function (ctx) { const r = baseHUD.apply(this, arguments); try { ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const scr = (x, y) => [(x - Cam.x) * Cam.zoom + VW / 2, (y - Cam.y) * Cam.zoom + VH / 2];
-      if (IMP) { IMP.t += 1; const [sx, sy] = scr(IMP.x, IMP.y); if (IMP.t <= 2) { ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, VW, VH); ctx.globalCompositeOperation = 'source-over'; } else if (IMP.t <= 4) { ctx.fillStyle = IMP.c + '55'; ctx.fillRect(0, 0, VW, VH); }
-        ctx.strokeStyle = IMP.t <= 2 ? '#000' : '#fff'; ctx.lineWidth = 2; for (let i = 0; i < 26; i++) { const a = i / 26 * TAU + IMP.t; const r0 = 60 + Math.random() * 40, r1 = Math.max(VW, VH); ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.moveTo(sx + Math.cos(a) * r0, sy + Math.sin(a) * r0); ctx.lineTo(sx + Math.cos(a) * r1, sy + Math.sin(a) * r1); ctx.stroke(); } ctx.globalAlpha = 1; if (IMP.t > 6) IMP = null; }
+      if (IMP) { IMP.t += 1; const [sx, sy] = scr(IMP.x, IMP.y); const RF = SE42.rf(); if (RF) { const a = Math.max(0, 0.16 - IMP.t * 0.04); ctx.fillStyle = `rgba(10,6,20,${a})`; ctx.fillRect(0, 0, VW, VH); } else if (IMP.t <= 1) { ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, VW, VH); ctx.globalCompositeOperation = 'source-over'; } else if (IMP.t <= 3) { ctx.fillStyle = IMP.c + '33'; ctx.fillRect(0, 0, VW, VH); }
+        ctx.strokeStyle = RF ? 'rgba(255,255,255,0.5)' : IMP.t <= 1 ? '#000' : '#fff'; ctx.lineWidth = RF ? 1.2 : 2; for (let i = 0; i < (RF ? 12 : 20); i++) { const a = i / 26 * TAU + IMP.t; const r0 = 60 + Math.random() * 40, r1 = Math.max(VW, VH); ctx.globalAlpha = RF ? 0.35 : 0.5; ctx.beginPath(); ctx.moveTo(sx + Math.cos(a) * r0, sy + Math.sin(a) * r0); ctx.lineTo(sx + Math.cos(a) * r1, sy + Math.sin(a) * r1); ctx.stroke(); } ctx.globalAlpha = 1; if (IMP.t > (RF ? 4 : 5)) IMP = null; }
       if (CINE) { const [sx, sy] = scr(CINE.x, CINE.y); if (CINE.ph === 'dark') { ctx.fillStyle = `rgba(4,0,10,${Math.min(0.88, CINE.t / 0.45 * 0.88)})`; ctx.fillRect(0, 0, VW, VH); const g = ctx.createRadialGradient(sx, sy, 2, sx, sy, 60 + CINE.t * 180); g.addColorStop(0, CINE.c); g.addColorStop(1, 'transparent'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); }
-        else if (CINE.ph === 'imp') { ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, VW, VH); ctx.globalCompositeOperation = 'source-over'; } else { ctx.fillStyle = `rgba(255,240,255,${Math.max(0, 0.45 - CINE.t * 0.5)})`; ctx.fillRect(0, 0, VW, VH); } }
+        else if (CINE.ph === 'imp' && SE42.rf()) { ctx.fillStyle = 'rgba(8,4,16,0.55)'; ctx.fillRect(0, 0, VW, VH); } else if (CINE.ph === 'imp') { ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, VW, VH); ctx.globalCompositeOperation = 'source-over'; } else { ctx.fillStyle = `rgba(255,240,255,${Math.max(0, 0.45 - CINE.t * 0.5)})`; ctx.fillRect(0, 0, VW, VH); } }
       for (const u of G.players || []) if (u && u._wind) { const [sx, sy] = scr(u.x, u.y - 140 * u.size); const k = u._wind.t / u._wind.dur; ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx, sy, 14, -Math.PI / 2, -Math.PI / 2 + k * TAU); ctx.stroke(); }
       ctx.restore(); } catch (e) {} return r; };
   if (window.SE41 && SE41.rebuild) { SE41.more = SE41.more || []; SE41.more.push((tree) => {
@@ -10328,6 +10336,255 @@ const Net = {
     ['Boss', ['Simulateur de boss : tous les boss, les Bêtes à queues et chaque personnage en version boss, au rang choisi.']],
     ['Labo', ['Toutes les réactions (doubles, triples, quadruples, quintuple, dōjutsu) en un clic, tous les ultimes uniques et en duo.']],
     ['Maîtrise', ['Éditeur de maîtrise et de voies pour le Créatif, sans toucher à la progression normale.']],
+  ] });
+})();
+/* v4.5 — Constellations & Animation Polish : 72 constellations uniques et thématiques, impact frames réservés aux grands moments
+   (option « Réduire les flashs », activée par défaut), écrasement/étirement, smears, anticipation et suivi renforcés, rig plus fin */
+(function () {
+  const SE45 = (window.SE45 = { ev: {} }); const SE41 = window.SE41;
+  const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  const mkR = (seed) => () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const T2 = Math.PI * 2, L = (a, b, k) => a + (b - a) * k;
+  /* =================== 1. Formes de constellation (une par thème, paramétrées par technique) =================== */
+  const poly = (f, n, a, b) => { const o = []; for (let i = 0; i <= n; i++) o.push(f(L(a, b, i / n))); return o; };
+  const SH = {
+    spiral(n, R) { const turns = 1.5 + R() * 0.9, ph = R() * T2, pw = 0.8 + R() * 0.25; const pts = [[0, 0]], par = [-1];
+      for (let i = 1; i < n; i++) { const k = i / (n - 1), th = ph + k * turns * T2; pts.push([Math.cos(th) * 3.4 * Math.pow(k, pw), Math.sin(th) * 3.4 * Math.pow(k, pw)]); par.push(i % 4 === 3 && i > 2 ? i - 2 : i - 1); }
+      return { pts, par, deco: [poly((k) => [Math.cos(ph + k * turns * T2) * 3.4 * Math.pow(k, pw), Math.sin(ph + k * turns * T2) * 3.4 * Math.pow(k, pw)], 90, 0, 1)] }; },
+    fork(n, R) { const m = Math.ceil(n * 0.55), pts = [[0, -3.2]], par = [-1], trunk = [[0, -3.2]]; let x = 0;
+      for (let i = 1; i < m; i++) { x = (i % 2 ? 1 : -1) * (0.5 + R() * 0.9); pts.push([x, -3.2 + i * (6.2 / m)]); par.push(i - 1); trunk.push(pts[i]); }
+      const deco = [trunk]; for (let i = m; i < n; i++) { const j = 1 + ((i - m) % (m - 1)), b = pts[j], sd = b[0] > 0 ? 1 : -1, ln = 1.4 + R() * 1.2; pts.push([b[0] + sd * ln, b[1] + 0.4 + R() * 0.8]); par.push(j); deco.push([b, pts[i]]); }
+      return { pts, par, deco }; },
+    flame(n, R) { const k = 3 + Math.floor(R() * 2), pts = [[0, 3]], par = [-1], last = [], H = [], deco = [];
+      for (let j = 0; j < k; j++) { last.push(0); H.push(0.8 + R() * 0.5); deco.push([[0, 3]]); }
+      for (let i = 1; i < n; i++) { const j = (i - 1) % k, l = Math.floor((i - 1) / k) + 1, bx = (j - (k - 1) / 2) * 1.5; const p = [bx * (1 - l * 0.18) + Math.sin(l * 1.3 + j) * 0.45, 3 - l * 1.55 * H[j]]; pts.push(p); par.push(last[j]); last[j] = i; deco[j].push(p); }
+      deco.forEach((d) => { const t = d[d.length - 1]; d.push([t[0] * 0.8 + 0.3, t[1] - 0.9]); }); return { pts, par, deco }; },
+    ribcage(n, R) { const s = Math.ceil(n / 3), pts = [[0, -3.1]], par = [-1], spine = [[0, -3.1]], deco = [], rib = {}; const w = 1.7 + R() * 0.5;
+      for (let i = 1; i < s; i++) { pts.push([0, -3.1 + i * (5.6 / s)]); par.push(i - 1); spine.push(pts[i]); } deco.push(spine);
+      for (let i = s; i < n; i++) { const q = i - s, j = 1 + (Math.floor(q / 2) % (s - 1)), sd = q % 2 ? 1 : -1, key = j * 2 + (sd > 0 ? 1 : 0), lv = rib[key] = (rib[key] || 0) + 1; const b = pts[j];
+        pts.push([sd * (w * lv * 0.85 + 0.2), b[1] + 0.35 * lv - 0.2]); par.push(lv > 1 ? pts.length - 3 : j); deco.push([b, [sd * w * 0.6, b[1] - 0.35], pts[i]]); }
+      return { pts, par, deco }; },
+    wave(n, R) { const ph = R() * T2, A = 1.2 + R() * 0.6, fr = 1 + R() * 0.5, m = Math.ceil(n * 0.7), pts = [], par = [], deco = [];
+      for (let i = 0; i < m; i++) { const x = -3.9 + (7.8 * i) / (m - 1); pts.push([x, Math.sin(x * fr + ph) * A]); par.push(i - 1); }
+      deco.push(poly((x) => [x, Math.sin(x * fr + ph) * A], 80, -3.9, 3.9)); for (let i = m; i < n; i++) { const j = 1 + ((i - m) * 2) % (m - 1), b = pts[j]; pts.push([b[0] + 0.5, b[1] - 1.5 - R() * 0.5]); par.push(j); deco.push([b, [b[0] + 0.7, b[1] - 1.1], pts[i]]); }
+      return { pts, par, deco }; },
+    tornado(n, R) { const tw = 1.8 + R() * 0.8, pts = [], par = []; for (let i = 0; i < n; i++) { const k = i / (n - 1); pts.push([Math.cos(i * tw) * (0.3 + k * 3.6), 3 - k * 6.2]); par.push(i - 1); }
+      const deco = []; for (let k = 0; k <= 1.001; k += 0.2) deco.push(poly((a) => [Math.cos(a) * (0.3 + k * 3.6), 3 - k * 6.2 + Math.sin(a) * 0.25], 30, 0, T2)); return { pts, par, deco }; },
+    ring(n, R) { const r1 = 2.7 + R() * 0.4, inner = Math.floor(n * 0.3), pts = [[0, 0]], par = [-1], ph = R() * T2;
+      for (let i = 1; i < n; i++) { const isIn = i <= inner, k = isIn ? (i - 1) / inner : (i - 1 - inner) / (n - 1 - inner); const rr = isIn ? r1 * 0.5 : r1; pts.push([Math.cos(ph + k * T2) * rr, Math.sin(ph + k * T2) * rr]); par.push(i === 1 || i === inner + 1 ? (i === 1 ? 0 : 1) : i - 1); }
+      return { pts, par, deco: [poly((a) => [Math.cos(a) * r1, Math.sin(a) * r1], 60, 0, T2), poly((a) => [Math.cos(a) * r1 * 0.5, Math.sin(a) * r1 * 0.5], 40, 0, T2)] }; },
+    burst(n, R, k0) { const k = k0 || 5 + Math.floor(R() * 3), ph = R() * T2, pts = [[0, 0]], par = [-1], last = Array(k).fill(0), deco = [];
+      for (let i = 1; i < n; i++) { const j = (i - 1) % k, l = Math.floor((i - 1) / k) + 1, a = ph + (j / k) * T2 + (k0 ? 0 : l * 0.12); pts.push([Math.cos(a) * (0.5 + l * 1.25), Math.sin(a) * (0.5 + l * 1.25)]); par.push(last[j]); last[j] = i; }
+      for (let j = 0; j < k; j++) { const a = ph + (j / k) * T2; deco.push([[0, 0], [Math.cos(a) * 3.6, Math.sin(a) * 3.6]]); } return { pts, par, deco }; },
+    hexa(n, R) { const o = SH.burst(n, R, 6); o.deco.push(poly((a) => [Math.cos(Math.round(a / (T2 / 6)) * (T2 / 6)) * 3, Math.sin(Math.round(a / (T2 / 6)) * (T2 / 6)) * 3], 6, 0, T2)); o.pts = o.pts.map((p, i) => (i > 6 && i % 2 ? [p[0] + 0.5, p[1] - 0.5] : p)); return o; },
+    mountain(n, R) { const pts = [[0, 2.8]], par = [-1], ridge = []; let lastL = 0, lastR = 0;
+      for (let i = 1; i < n; i++) { const sd = i % 2 ? 1 : -1, l = Math.ceil(i / 2), x = sd * l * (7.6 / n) * 1.0, y = (l % 2 ? -2.6 - R() * 0.6 : -0.6 - R() * 0.6) + l * 0.25; pts.push([x, y]); par.push(sd > 0 ? lastR : lastL); if (sd > 0) lastR = i; else lastL = i; }
+      const srt = pts.slice(1).sort((a, b) => a[0] - b[0]); return { pts, par, deco: [[[-4, 3], ...srt, [4, 3]]] }; },
+    roots(n, R) { const pts = [[0, 3]], par = [-1], deco = []; for (let i = 1; i < n; i++) { const d = Math.floor(Math.log2(i + 1)), idx = i + 1 - (1 << d), w = 1 << d; pts.push([((idx + 0.5) / w - 0.5) * (2.6 + d * 1.6) + (R() - 0.5) * 0.4, 3 - d * 1.75]); par.push(Math.floor((i - 1) / 2)); }
+      deco.push([[0, 3.4], [0, 1.3]], poly((a) => [Math.cos(a) * 3.4, -1.4 + Math.sin(a) * 2], 50, Math.PI * 1.05, Math.PI * 1.95)); return { pts, par, deco }; },
+    crescent(n, R) { const a0 = -2.1 - R() * 0.4, a1 = 2.1 + R() * 0.4, m = Math.ceil(n * 0.65), pts = [], par = [], c = R() * 0.6;
+      for (let i = 0; i < m; i++) { const a = L(a0, a1, i / (m - 1)); pts.push([Math.cos(a) * 3.2 - 0.6, Math.sin(a) * 3.1]); par.push(i - 1); }
+      for (let i = m; i < n; i++) { const j = Math.min(m - 1, 1 + (i - m) * 2), a = L(a0, a1, j / (m - 1)); pts.push([Math.cos(a) * (1.9 + c) + 0.2, Math.sin(a) * 1.9]); par.push(j); }
+      return { pts, par, deco: [poly((a) => [Math.cos(a) * 3.2 - 0.6, Math.sin(a) * 3.1], 50, a0, a1), poly((a) => [Math.cos(a) * (1.9 + c) + 0.2, Math.sin(a) * 1.9], 50, a0 + 0.3, a1 - 0.3)] }; },
+    tomoe(n, R) { const pts = [[0, 0]], par = [-1], deco = [], ph = R() * T2, curl = 0.8 + R() * 0.5; const per = Math.max(2, Math.floor((n - 1) * 0.5 / 3));
+      for (let j = 0; j < 3; j++) { const a = ph + (j * T2) / 3; let prev = 0; const tail = []; for (let l = 0; l < per; l++) { const aa = a + l * curl * 0.5, rr = 1.6 + l * 0.45; pts.push([Math.cos(aa) * rr * 1.2, Math.sin(aa) * rr]); par.push(prev); prev = pts.length - 1; tail.push(pts[prev]); } deco.push(tail); }
+      const rest = n - pts.length; for (let i = 0; i < rest; i++) { const a = ph + (i / rest) * T2 + 0.4; pts.push([Math.cos(a) * 3.8, Math.sin(a) * 3.0]); par.push(i ? pts.length - 2 : 1); }
+      deco.push(poly((a) => [Math.cos(a) * 3.8, Math.sin(a) * 3.0], 60, 0, T2)); return { pts, par, deco }; },
+    hourglass(n, R) { const pts = [[0, 0]], par = [-1], w = 3 + R() * 0.6; let up = 0, dn = 0;
+      for (let i = 1; i < n; i++) { const top = i % 2, l = Math.ceil(i / 2), row = Math.ceil(l / 2), sd = l % 2 ? -1 : 1, y = (top ? -1 : 1) * row * 1.05; pts.push([sd * (row * (w / 3.2) * 0.9) * (0.6 + R() * 0.3), y]); par.push(top ? up : dn); if (top) up = i; else dn = i; }
+      return { pts, par, deco: [[[-w, -3.2], [w, -3.2], [0, 0], [w, 3.2], [-w, 3.2], [0, 0], [-w, -3.2]]] }; },
+    helix(n, R) { const ph = R() * T2, A = 1.3 + R() * 0.5, pts = [], par = []; for (let i = 0; i < n; i++) { const x = -3.8 + (7.4 * i) / (n - 1), s = i % 2 ? 1 : -1; pts.push([x, Math.sin(x * 1.3 + ph) * A * s * 0.9 + (i === n - 1 ? -0.6 : 0)]); par.push(i - 1); }
+      return { pts, par, deco: [poly((x) => [x, Math.sin(x * 1.3 + ph) * A], 80, -3.9, 3.9), poly((x) => [x, -Math.sin(x * 1.3 + ph) * A], 80, -3.9, 3.9)] }; },
+    shuriken(n, R) { const b = 4, ph = R() * T2, pts = [[0, 0]], par = [-1], last = [0, 0, 0, 0], deco = [], cv = 0.35 + R() * 0.3;
+      for (let i = 1; i < n; i++) { const j = (i - 1) % b, l = Math.floor((i - 1) / b) + 1, a = ph + (j * T2) / b + l * cv; pts.push([Math.cos(a) * l * 1.2, Math.sin(a) * l * 1.2]); par.push(last[j]); last[j] = i; }
+      for (let j = 0; j < b; j++) deco.push(poly((k) => { const a = ph + (j * T2) / b + k * 3 * cv; return [Math.cos(a) * k * 3.6, Math.sin(a) * k * 3.6]; }, 20, 0, 1)); return { pts, par, deco }; },
+    lotus(n, R) { const k = 5, ph = -Math.PI / 2 + (R() - 0.5) * 0.4, pts = [[0, 0.6]], par = [-1], last = Array(k).fill(0), deco = [];
+      for (let i = 1; i < n; i++) { const j = (i - 1) % k, l = Math.floor((i - 1) / k) + 1, a = ph + (j - 2) * 0.62; pts.push([Math.cos(a) * l * 1.35 + (l > 1 ? (j - 2) * 0.25 : 0), 0.6 + Math.sin(a) * l * 1.35]); par.push(last[j]); last[j] = i; }
+      for (let j = 0; j < k; j++) { const a = ph + (j - 2) * 0.62; deco.push(poly((t) => [Math.cos(a) * 2 * (1 - Math.cos(t)) + -Math.sin(a) * Math.sin(t) * 0.7, 0.6 + Math.sin(a) * 2 * (1 - Math.cos(t)) + Math.cos(a) * Math.sin(t) * 0.7], 24, 0, T2)); }
+      return { pts, par, deco }; },
+    meteor(n, R) { const m = Math.ceil(n * 0.45), cx = 1.8, cy = -1.3, pts = [[cx, cy]], par = [-1];
+      for (let i = 1; i < m; i++) { const a = (i / (m - 1)) * T2; pts.push([cx + Math.cos(a) * 1.6, cy + Math.sin(a) * 1.6]); par.push(i === 1 ? 0 : i - 1); }
+      for (let i = m; i < n; i++) { const k = (i - m + 1) / (n - m); pts.push([cx - 1.6 - k * 4, cy + 1.6 + k * 2.6 + (i % 2 ? 0.5 : -0.4) * R()]); par.push(i === m ? 0 : i - 1); }
+      return { pts, par, deco: [poly((a) => [cx + Math.cos(a) * 1.6, cy + Math.sin(a) * 1.6], 40, 0, T2), [[cx - 1.2, cy + 1.2], [-4, 3]], [[cx - 0.4, cy + 1.6], [-3.4, 3.3]], [[cx - 1.6, cy + 0.4], [-4.2, 2.4]]] }; },
+    wings(n, R) { const pts = [[0, 0.4]], par = [-1], lift = 0.6 + R() * 0.5; let lw = 0, rw = 0;
+      for (let i = 1; i < n; i++) { const sd = i % 2 ? 1 : -1, l = Math.ceil(i / 2), x = sd * l * (8 / n), y = 0.4 - Math.sin((l / (n / 2)) * Math.PI * 0.9) * 2.6 * lift - (l % 2 ? 0 : -0.5); pts.push([x, y]); par.push(sd > 0 ? rw : lw); if (sd > 0) rw = i; else lw = i; }
+      return { pts, par, deco: [poly((x) => [x, 0.4 - Math.sin((Math.abs(x) / 4) * Math.PI * 0.9) * 2.6 * lift], 60, -4, 4), [[-0.6, 0.6], [0, 3], [0.6, 0.6]]] }; },
+    tails(n, R) { const k = 3 + Math.floor(R() * 3), pts = [[0, 2.6]], par = [-1], last = Array(k).fill(0), deco = [];
+      for (let i = 1; i < n; i++) { const j = (i - 1) % k, l = Math.floor((i - 1) / k) + 1, a = -Math.PI / 2 + (j - (k - 1) / 2) * 0.55, cu = l * 0.22 * (j - (k - 1) / 2 >= 0 ? 1 : -1); pts.push([Math.cos(a + cu) * l * 1.5, 2.6 + Math.sin(a + cu) * l * 1.5]); par.push(last[j]); last[j] = i; }
+      for (let j = 0; j < k; j++) { const a = -Math.PI / 2 + (j - (k - 1) / 2) * 0.55, sg = j - (k - 1) / 2 >= 0 ? 1 : -1; deco.push(poly((l) => [Math.cos(a + l * 0.22 * sg) * l * 1.5, 2.6 + Math.sin(a + l * 0.22 * sg) * l * 1.5], 20, 0, 3.6)); }
+      return { pts, par, deco }; },
+    cloud(n, R) { const C = [[-2.2, 0.6, 1.3], [0, -0.8, 1.6], [2.2, 0.5, 1.3], [0.4, 1.6, 1.1]].map((c) => [c[0] + (R() - 0.5) * 0.5, c[1] + (R() - 0.5) * 0.5, c[2]]), pts = [[C[1][0], C[1][1]]], par = [-1];
+      for (let i = 1; i < n; i++) { const c = C[i % 4], a = i * 2.4; pts.push([c[0] + Math.cos(a) * c[2], c[1] + Math.sin(a) * c[2]]); par.push(i < 4 ? 0 : i - 4); }
+      return { pts, par, deco: C.map((c) => poly((a) => [c[0] + Math.cos(a) * c[2] * 1.15, c[1] + Math.sin(a) * c[2] * 1.15], 30, 0, T2)) }; },
+    arrow(n, R) { const m = Math.ceil(n * 0.5), pts = [[-3.6, 0]], par = [-1], hd = 1.6 + R() * 0.5;
+      for (let i = 1; i < m; i++) { pts.push([-3.6 + (i * 6.4) / (m - 1), 0]); par.push(i - 1); }
+      for (let i = m; i < n; i++) { const q = i - m, head = q < 4, sd = q % 2 ? 1 : -1, l = Math.floor(q / 2) % 2 + 1; pts.push(head ? [2.8 - l * hd * 0.6, sd * l * hd * 0.6] : [-3.6 + l * 0.7, sd * l * 0.9]); par.push(head ? (l > 1 ? pts.length - 3 : m - 1) : 0); }
+      return { pts, par, deco: [[[-3.9, 0], [3.4, 0]], [[3.4, 0], [3.4 - hd * 1.3, -hd * 1.2]], [[3.4, 0], [3.4 - hd * 1.3, hd * 1.2]], [[-3.4, 0], [-2.4, -1.8]], [[-3.4, 0], [-2.4, 1.8]]] }; },
+    chain(n, R) { const pts = [], par = [], A = 0.7 + R() * 0.4; for (let i = 0; i < n; i++) { pts.push([-3.9 + (7.8 * i) / (n - 1), (i % 2 ? A : -A) + (i % 3 === 0 ? 0.6 : 0)]); par.push(i - 1); }
+      return { pts, par, deco: pts.slice(0, -1).map((p, i) => poly((a) => [(p[0] + pts[i + 1][0]) / 2 + Math.cos(a) * 0.6, (p[1] + pts[i + 1][1]) / 2 + Math.sin(a) * 0.35], 16, 0, T2)) }; },
+    grid(n, R) { const pts = [[0, -2.8]], par = [-1]; let row = 1, col = 0; for (let i = 1; i < n; i++) { const w = row + 1; pts.push([(col - (w - 1) / 2) * (1.7 - row * 0.12), -2.8 + row * 1.5]); par.push(row === 1 ? 0 : pts.length - 1 - row); col++; if (col >= w) { row++; col = 0; } }
+      return { pts, par, deco: pts.slice(1).map((p) => poly((a) => [p[0] + Math.cos(a) * 0.35, p[1] - 0.4 + Math.sin(a) * 0.35], 12, 0, T2)) }; },
+  };
+  const FAMFR = { spiral: 'Spirale', fork: 'Éclair fourchu', flame: 'Flamme', ribcage: 'Cage thoracique du Susanoo', wave: 'Vague', tornado: 'Tornade', ring: 'Onde circulaire', burst: 'Explosion', hexa: 'Cristal', mountain: 'Montagne', roots: 'Arbre et racines', crescent: 'Croissant', tomoe: 'Œil à tomoe', hourglass: 'Sablier', helix: 'Dragon', shuriken: 'Shuriken', lotus: 'Lotus', meteor: 'Météore', wings: 'Ailes', tails: 'Queues de Bijū', cloud: 'Nuage', arrow: 'Flèche', chain: 'Chaîne' , grid: 'Armée de clones' };
+  const MAP = [[/sus|armure|ita_yata|ita_totsuka/, 'ribcage'], [/indra|fleches/, 'arrow'], [/rasenshuriken|shuriken|kunai/, 'shuriken'], [/spirale|rasen|planetaire|odama/, 'spiral'], [/chaine/, 'chain'], [/chidori|raikiri|foudre_lame|nagashi|kirin/, 'fork'],
+    [/dragon/, 'helix'], [/amaterasu|kagutsuchi|feu_|katon/, 'flame'], [/vague|eau_/, 'wave'], [/tornade|kamui/, 'tornado'], [/kaiten|shinra|onde/, 'ring'], [/meteore|chibaku/, 'meteor'], [/corbeaux|phenix|dei_c2|hien/, 'wings'],
+    [/dei_|lave|nuke|fumee_ex/, 'burst'], [/fumee|cendres|tsukuyomi_x/, 'cloud'], [/mur|lances|terre/, 'mountain'], [/arbres|bois/, 'roots'], [/ken_|lame/, 'crescent'], [/tsukuyomi|prison|gen_/, 'tomoe'], [/gaa_/, 'hourglass'], [/glace/, 'hexa'],
+    [/tai_|rendan|lotus/, 'lotus'], [/bj_|bijuu|avatar|enma|ninken/, 'tails'], [/clone|lancer|recharge/, 'grid']];
+  const ELFAM = { feu: 'flame', foudre: 'fork', vent: 'tornado', eau: 'wave', terre: 'mountain', glace: 'hexa', bois: 'roots', lave: 'burst', noir: 'flame', gravite: 'meteor', illusion: 'tomoe' };
+  const famOf = (id, el) => { for (const [re, f] of MAP) if (re.test(id)) return f; return ELFAM[el] || 'burst'; };
+  /* =================== Noms et transformations =================== */
+  const VOC = {
+    spiral: ['Rotation', 'Vortex', 'Orbite', 'Spire', 'Remous', 'Toupie', 'Giration', 'Hélice de chakra', 'Noyau tournant', 'Œil du cyclone', 'Révolution', 'Torsion'],
+    fork: ['Foudre', 'Étincelle', 'Arc', 'Décharge', 'Courant', 'Fourche', 'Zébrure', 'Tonnerre', 'Orage', 'Influx', 'Crépitement', 'Pointe'],
+    flame: ['Braise', 'Brasier', 'Flammèche', 'Fournaise', 'Tison', 'Incendie', 'Bûcher', 'Fumerolle', 'Combustion', 'Embrasement', 'Langue de feu', 'Fusion'],
+    ribcage: ['Côte', 'Échine', 'Ossature', 'Squelette', 'Cuirasse', 'Armure spectrale', 'Sternum', 'Clavicule', 'Gardien', 'Avatar', 'Bouclier d’os', 'Colosse'],
+    wave: ['Houle', 'Marée', 'Ressac', 'Écume', 'Crête', 'Abysse', 'Torrent', 'Courant', 'Embrun', 'Lame de fond', 'Déferlante', 'Reflux'],
+    tornado: ['Rafale', 'Bourrasque', 'Spirale d’air', 'Typhon', 'Souffle', 'Entonnoir', 'Siphon', 'Tourbillon', 'Aspiration', 'Faille', 'Distorsion', 'Vide'],
+    ring: ['Onde', 'Cercle', 'Écho', 'Halo', 'Pulsation', 'Répulsion', 'Sphère', 'Périmètre', 'Résonance', 'Barrière', 'Orbe', 'Choc'],
+    burst: ['Détonation', 'Éclat', 'Souffle', 'Shrapnel', 'Fracas', 'Explosion', 'Déflagration', 'Étincelle', 'Onde de choc', 'Mèche', 'Charge', 'Fragment'],
+    hexa: ['Givre', 'Cristal', 'Prisme', 'Facette', 'Gel', 'Stalactite', 'Neige', 'Miroir', 'Frimas', 'Banquise', 'Aiguille', 'Hexagone'],
+    mountain: ['Roc', 'Falaise', 'Pic', 'Rempart', 'Bastion', 'Faille', 'Granit', 'Massif', 'Contrefort', 'Éboulis', 'Sommet', 'Strate'],
+    roots: ['Racine', 'Sève', 'Branche', 'Canopée', 'Écorce', 'Bourgeon', 'Ronce', 'Tronc', 'Pousse', 'Forêt', 'Germe', 'Ramure'],
+    crescent: ['Croissant', 'Lune', 'Tranchant', 'Fil', 'Arc', 'Lame', 'Estoc', 'Fendant', 'Garde', 'Fourreau', 'Clair de lune', 'Taille'],
+    tomoe: ['Tomoe', 'Iris', 'Pupille', 'Regard', 'Illusion', 'Reflet', 'Songe', 'Rêve', 'Hypnose', 'Vision', 'Mirage', 'Prunelle'],
+    hourglass: ['Grain', 'Dune', 'Sablier', 'Poussière', 'Désert', 'Silice', 'Mirage', 'Tempête de sable', 'Gourde', 'Grève', 'Cercueil', 'Marée de sable'],
+    helix: ['Écaille', 'Gueule', 'Croc', 'Anneau', 'Queue', 'Crinière', 'Serpentin', 'Griffe', 'Souffle du dragon', 'Ondulation', 'Corne', 'Ailette'],
+    shuriken: ['Lame', 'Pale', 'Moyeu', 'Tranchant', 'Rotation', 'Lancer', 'Ricochet', 'Fil d’acier', 'Trajectoire', 'Volée', 'Pointe', 'Sifflement'],
+    lotus: ['Pétale', 'Poing', 'Coup de pied', 'Garde', 'Porte', 'Souffle', 'Élan', 'Lotus', 'Tsuki', 'Enchaînement', 'Contre', 'Fleur'],
+    meteor: ['Astre', 'Comète', 'Impact', 'Cratère', 'Gravité', 'Chute', 'Traînée', 'Bolide', 'Orbite', 'Firmament', 'Éclipse', 'Poussière d’étoile'],
+    wings: ['Plume', 'Aile', 'Envol', 'Rémige', 'Serre', 'Piqué', 'Nuée', 'Bec', 'Battement', 'Ascension', 'Vol plané', 'Duvet'],
+    tails: ['Queue', 'Crocs', 'Rugissement', 'Instinct', 'Chakra bestial', 'Fourrure', 'Griffe', 'Manteau', 'Furie', 'Sceau', 'Hôte', 'Bijū'],
+    cloud: ['Volute', 'Nuée', 'Brume', 'Cendre', 'Fumée', 'Voile', 'Brouillard', 'Poussière', 'Écran', 'Panache', 'Suie', 'Nimbe'],
+    arrow: ['Flèche', 'Pointe', 'Empenne', 'Corde', 'Hampe', 'Visée', 'Tir', 'Carquois', 'Trajectoire', 'Arc', 'Salve', 'Tension'],
+    chain: ['Maillon', 'Chaîne', 'Lien', 'Relais', 'Conduction', 'Saut', 'Rebond', 'Circuit', 'Boucle', 'Série', 'Pont', 'Arc'],
+    grid: ['Double', 'Reflet', 'Escouade', 'Légion', 'Bunshin', 'Relais', 'Formation', 'Troupe', 'Ombre', 'Copie', 'Phalange', 'Cohorte'],
+  };
+  const ROLE = { dmg: ['Cœur', 'Densité', 'Force', 'Puissance', 'Intensité'], cd: ['Cadence', 'Rythme', 'Reflux', 'Retour'], spd: ['Élan', 'Course', 'Vélocité', 'Sillage'], size: ['Ampleur', 'Expansion', 'Envergure', 'Vastitude'], cnt: ['Essaim', 'Gerbe', 'Multitude', 'Volée'], cost: ['Économie', 'Sobriété', 'Épure', 'Retenue'], st: ['Marque', 'Empreinte', 'Morsure', 'Stigmate'], life: ['Persistance', 'Rémanence', 'Durée', 'Sillage long'] };
+  const DEEPW = ['Apogée', 'Éveil', 'Paroxysme', 'Zénith', 'Transcendance', 'Culmen', 'Avènement', 'Métamorphose', 'Absolu', 'Mythe', 'Apothéose', 'Vérité'];
+  const de = (w) => (/^[AEIOUÉÈÊHŒaeiouéèêhœ]/.test(w) ? 'd’' + w.toLowerCase() : 'de ' + w.toLowerCase());
+  const STF = { feu: { heat: 25 }, foudre: { shock: 0.7 }, eau: { wet: 40 }, vent: { bleed: 20 }, terre: { slow: 1.2 }, noir: { black: 3 }, glace: { slow: 1.5 }, lave: { heat: 35 }, bois: { root: 0.8 }, gravite: { slow: 1 }, illusion: { slow: 0.8 } };
+  const STN = { heat: 'brûlure', shock: 'paralysie', wet: 'trempe', bleed: 'lacération', slow: 'ralentissement', black: 'flammes noires', root: 'enracinement', knockup: 'projection' };
+  const ELN = { feu: 'Feu', foudre: 'Foudre', eau: 'Eau', vent: 'Vent', terre: 'Terre', noir: 'Flammes noires', glace: 'Glace', lave: 'Lave', bois: 'Bois', gravite: 'Gravité', illusion: 'Illusion' };
+  const pct = (m) => (m >= 1 ? '+' : '−') + Math.round(Math.abs(m - 1) * 100) + ' %';
+  function descFx(f) { const o = []; if (f.beh === 'echo') o.push('se relance une 2e fois (55 %)'); if (f.beh === 'burst') o.push('explosion au point d’impact'); if (f.beh === 'odama') o.push('sphère géante'); if (f.beh === 'rshur') o.push('deux sphères en orbite puis détonation');
+    if (f.dmg) o.push('puissance ' + pct(f.dmg)); if (f.r) o.push('taille ' + pct(f.r)); if (f.rng) o.push('portée ' + pct(f.rng)); if (f.cnt) o.push('+' + f.cnt + ' exemplaire' + (f.cnt > 1 ? 's' : '')); if (f.spd) o.push('vitesse ' + pct(f.spd)); if (f.life) o.push('durée ' + pct(f.life));
+    if (f.cd) o.push('recharge ' + pct(f.cd)); if (f.cost) o.push('coût ' + pct(f.cost)); if (f.el) o.push('élément ' + (ELN[f.el] || f.el)); if (f.st) o.push(Object.keys(f.st).map((k) => STN[k] || k).join(' + '));
+    const s = o.join(', '); return s.charAt(0).toUpperCase() + s.slice(1) + '.'; }
+  const r2 = (x) => Math.round(x * 100) / 100;
+  function minorFx(role, R) { switch (role) { case 'dmg': return { dmg: r2(1.12 + R() * 0.16) }; case 'cd': return { cd: r2(0.72 + R() * 0.12) }; case 'spd': return { spd: r2(1.2 + R() * 0.2), life: r2(1.1 + R() * 0.25) }; case 'size': return { r: r2(1.25 + R() * 0.2), rng: r2(1.1 + R() * 0.2) };
+      case 'cnt': return { cnt: 1 + (R() < 0.3 ? 1 : 0), spr: r2(0.3 + R() * 0.3), dmg: r2(0.86 + R() * 0.08) }; case 'cost': return { cost: r2(0.7 + R() * 0.12) }; case 'life': return { life: r2(1.3 + R() * 0.3) }; default: return null; } }
+  const ELS = Object.keys(STF);
+  function deepFx(kind, R, el) { switch (kind) {
+      case 'echo': return { beh: 'echo', dmg: r2(1.05 + R() * 0.2) }; case 'burst': return { beh: 'burst', r: r2(1.1 + R() * 0.3) };
+      case 'split': return { cnt: 2 + Math.floor(R() * 3), spr: r2(0.4 + R() * 0.4), dmg: r2(0.72 + R() * 0.14) }; case 'giant': return { r: r2(1.7 + R() * 0.8), rng: r2(1.2 + R() * 0.3), dmg: r2(1.35 + R() * 0.45), cost: r2(1.25 + R() * 0.3) };
+      case 'swift': return { spd: r2(1.45 + R() * 0.45), cd: r2(0.6 + R() * 0.15), dmg: r2(0.88 + R() * 0.1) }; case 'linger': { const e = ELS[Math.floor(R() * ELS.length)]; return { life: r2(1.6 + R() * 0.6), st: STF[e], dmg: r2(1.05 + R() * 0.15) }; }
+      case 'element': { let e; do e = ELS[Math.floor(R() * ELS.length)]; while (e === el); return { el: e, st: STF[e], dmg: r2(1.1 + R() * 0.15) }; }
+      case 'stack': { const a = ELS[Math.floor(R() * ELS.length)], b = ELS[Math.floor(R() * ELS.length)]; return { st: Object.assign({}, STF[a], STF[b]), dmg: r2(1.1 + R() * 0.2), cd: r2(0.85 + R() * 0.1) }; }
+      case 'echoBurst': return { beh: R() < 0.5 ? 'echo' : 'burst', cnt: 1, spr: 0.3, dmg: r2(1.15 + R() * 0.2) }; } }
+  const DEEPK = ['echo', 'burst', 'split', 'giant', 'swift', 'linger', 'element', 'stack', 'echoBurst'];
+  const DEEPN = { echo: ['Écho', 'Réplique', 'Rémanence', 'Double frappe'], burst: ['Éclatement', 'Implosion', 'Détonation', 'Résonance'], split: ['Dispersion', 'Éventail', 'Pluie', 'Multiplication'], giant: ['Colosse', 'Titan', 'Démesure', 'Gigantisme'], swift: ['Fulgurance', 'Éclair', 'Instantané', 'Célérité'], linger: ['Malédiction', 'Rémanence', 'Persistance', 'Empreinte'], element: ['Métamorphose', 'Alchimie', 'Mutation', 'Transmutation'], stack: ['Fléau', 'Double marque', 'Calamité', 'Affliction'], echoBurst: ['Réverbération', 'Retour de flamme', 'Contrecoup', 'Ricochet'] };
+  const SPECIALT = { shr_amaterasu: 'Amaterasu (Shisui)', ita_amaterasu: 'Amaterasu (Itachi)', shr_kamui: 'Kamui (Kakashi)', tob_kamui: 'Kamui (Obito)', rin_shinra: 'Shinra Tensei (Rinnegan)', pai_shinra: 'Shinra Tensei (Pain)' };
+  const DEFAULT_NAMES = new Set(['Fondamentaux', 'Intensité', 'Flux continu', 'Multiplication', 'Ampleur', 'Élan', 'Affinité', 'Économie', 'Écho', 'Déchaînement', 'Résonance']);
+  function redesign() {
+    const used = new Set(), fxSig = new Set(), ids = Object.keys(SE41.TREES); SE45.fam = {};
+    ids.forEach((tid, ti) => { const t = SE41.TREES[tid], R = mkR(hash(tid) ^ 0x9e3779b9), fam = famOf(tid, t.el); SE45.fam[tid] = fam; if (SPECIALT[tid]) t.title = SPECIALT[tid];
+      const orig = t.nodes, byId = {}; orig.forEach((n) => (byId[n.id] = n));
+      const order = ['core', 'a1', 'b1', 'c1', 'a2', 'b2', 'c2', 'd1', 'd2', 'd3'].filter((i) => byId[i]).concat(orig.filter((n) => !/^(core|[abcd][123])$/.test(n.id)).map((n) => n.id));
+      const nx = 1 + Math.floor(R() * 3); for (let i = 1; i <= nx; i++) order.push('x' + i);
+      const n = order.length; const g = SH[fam](n, R);
+      // transformation géométrique propre à la technique
+      const rot = fam === 'flame' || fam === 'tails' || fam === 'roots' || fam === 'ribcage' || fam === 'hourglass' ? (R() - 0.5) * 0.25 : (R() - 0.5) * 0.7, mir = R() < 0.5 ? -1 : 1, sc = 0.9 + R() * 0.12;
+      const tf = ([x, y]) => { const c = Math.cos(rot), s = Math.sin(rot); return [(x * c - y * s) * mir * sc, (x * s + y * c) * sc]; };
+      let P = g.pts.map(tf); let deco = (g.deco || []).map((l) => l.map(tf));
+      // relaxation : pas de nœuds superposés
+      for (let it = 0; it < 60; it++) for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { const dx = P[j][0] - P[i][0], dy = P[j][1] - P[i][1], d = Math.hypot(dx, dy) || 0.01; if (d < 1.25) { const k = (1.25 - d) / 2 / d; if (i) { P[i][0] -= dx * k; P[i][1] -= dy * k; } P[j][0] += dx * k; P[j][1] += dy * k; } }
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const [x, y] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      const k = Math.min(1, 8.2 / Math.max(0.1, x1 - x0), 6.2 / Math.max(0.1, y1 - y0)), ox = (x0 + x1) / 2, oy = (y0 + y1) / 2 + 0.15;
+      const fit = ([x, y]) => [r2((x - ox) * k), r2((y - oy) * k)]; P = P.map(fit); deco = deco.map((l) => l.map(fit));
+      // rôles mélangés par arbre (pas de gabarit)
+      const roles = ['dmg', 'cd', 'spd', 'size', 'cnt', 'cost', 'st', 'life'].sort(() => R() - 0.5); const dk = DEEPK.slice().sort(() => R() - 0.5); let ri = 0, di = 0;
+      const voc = VOC[fam].slice().sort(() => R() - 0.5); let vi = (ti * 5) % voc.length;
+      const N = order.map((id, i) => { const o = byId[id] || { id, cost: 1 }; const nn = Object.assign({}, o); const special = o.fx && (o.fx.beh === 'odama' || o.fx.beh === 'rshur' || o.grp === 'elem');
+        const deep = /^d[123]$/.test(id) || o.grp === 'elem' || (id[0] === 'x' && R() < 0.6); nn.deep = deep ? 1 : 0; nn.cost = deep ? 2 : 1; nn.req = i ? order[g.par[i]] : null;
+        if (id === 'core') { nn.n = 'Cœur : ' + t.title; nn.fx = o.fx; }
+        else if (special) { nn.fx = o.fx; if (used.has(o.n)) nn.n = o.n + ' (' + t.title + ')'; }
+        else if (deep) { const kd = dk[di++ % dk.length]; nn.fx = deepFx(kd, R, t.el); nn.kind45 = kd; const w = voc[vi++ % voc.length]; const base = o.n && !DEFAULT_NAMES.has(o.n) && !used.has(o.n) ? o.n : DEEPN[kd][Math.floor(R() * 4)] + ' ' + de(w); nn.n = base; }
+        else { let role = roles[ri++ % roles.length], fx = role === 'st' ? { st: STF[t.el] || { knockup: 0.3 }, dmg: r2(1.04 + R() * 0.08) } : minorFx(role, R); const w = voc[vi++ % voc.length]; nn.fx = fx; nn.n = ROLE[role][Math.floor(R() * ROLE[role].length)] + ' ' + de(w); }
+        let nm = nn.n, q = 2; while (used.has(nm)) nm = nn.n + ' ' + ['II', 'III', 'IV', 'V', 'VI'][q++ - 2]; nn.n = nm; used.add(nm);
+        nn.d = id === 'core' ? o.d : special ? o.d : descFx(nn.fx);
+        const X = P[i][0] / 1.05, Y = P[i][1] / 0.82; nn.a = Math.atan2(Y, X); nn.r = Math.hypot(X, Y); if (id === 'core') nn.r = Math.max(nn.r, 0.0001); nn.core45 = id === 'core';
+        return nn; });
+      // signature des transformations : unique
+      let sig = JSON.stringify(N.filter((z) => z.deep).map((z) => z.fx)); let bump = 0; while (fxSig.has(sig)) { const z = N.find((q) => q.deep && q.fx && q.fx.dmg); if (!z) break; z.fx.dmg = r2(z.fx.dmg + 0.01); z.d = descFx(z.fx); sig = JSON.stringify(N.filter((q) => q.deep).map((q) => q.fx)); if (++bump > 50) break; } fxSig.add(sig);
+      t.nodes = N; t.deco = deco; t.fam = fam; t.famFr = FAMFR[fam]; });
+    SE45.ev.redesign = ids.length; }
+  SE45.verify = function () { const T = SE41.TREES, ids = Object.keys(T), names = {}, lays = {}, fxs = {}, out = { n: ids.length, dupNames: [], dupLayout: [], dupFx: [], badReq: [] };
+    for (const id of ids) { const t = T[id]; const ns = t.nodes.map((n) => n.n).sort().join('|'); const ly = t.nodes.map((n) => (Math.cos(n.a) * n.r).toFixed(2) + ',' + (Math.sin(n.a) * n.r).toFixed(2)).sort().join(' '); const fx = JSON.stringify(t.nodes.filter((n) => n.deep).map((n) => n.fx));
+      if (names[ns]) out.dupNames.push([names[ns], id]); names[ns] = id; if (lays[ly]) out.dupLayout.push([lays[ly], id]); lays[ly] = id; if (fxs[fx]) out.dupFx.push([fxs[fx], id]); fxs[fx] = id;
+      for (const n of t.nodes) if (n.req && !t.nodes.find((m) => m.id === n.req)) out.badReq.push(id + ':' + n.id); }
+    const allN = []; for (const id of ids) for (const n of T[id].nodes) allN.push(n.n); out.globalDupNames = allN.length - new Set(allN).size; out.nodes = allN.length; out.fams = new Set(ids.map((i) => T[i].fam)).size; return out; };
+  if (SE41) { SE41.more = SE41.more || []; const baseRB = SE41.rebuild; SE41.rebuild = function () { const r = baseRB.apply(this, arguments); try { redesign(); } catch (e) { console.warn('cst45', e); } return r; }; SE41.rebuild(); }
+  // sous-titre : la forme
+  const baseOpen = SE41 && SE41.open; if (baseOpen) SE41.open = function () { const r = baseOpen.apply(this, arguments); try { const t = SE41.TREES[SE41.view ? SE41.view.id : null]; const el = document.querySelector('#cst41 .hd .sub'); const id = Object.keys(SE41.TREES).find((k) => document.querySelector('#cst41 .hd b').textContent.replace(/^.\s*/, '').trim() === SE41.TREES[k].title); const tt = t || SE41.TREES[id]; if (el && tt && tt.famFr && !el.textContent.includes('Forme')) el.textContent += ' · Forme : ' + tt.famFr; } catch (e) {} return r; };
+
+  /* =================== 3–4. Écrasement / étirement, smears, anticipation, suivi =================== */
+  const ATK = { atk1: 1, atk2: 1, atk3: 1, atk4: 1, slash1: 1, slash2: 1, slash3: 1 };
+  const bump = (x, a, b) => { const k = Math.max(0, Math.min(1, (x - a) / (b - a))); return Math.sin(k * Math.PI); };
+  function target(u) { const t = Math.max(0, Math.min(1, u.poseT || 0)), p = u.pose; const sp = Math.hypot(u.vx || 0, u.vy || 0); let sq = 0, st = 0, sh = 0;
+    if (ATK[p]) { sq = 0.26 * bump(t, 0, 0.32); st = 0.42 * bump(t, 0.26, 0.58); sh = -0.22 * bump(t, 0, 0.32) + 0.3 * bump(t, 0.26, 0.6); }
+    else if (p === 'dash') { st = Math.min(0.5, 0.2 + sp / 1400); sh = 0.35; }
+    else if (p === 'cast' || p === 'seal') { sq = t < 0.6 ? 0.22 * bump(t, 0, 0.8) : 0; st = 0.3 * bump(t, 0.58, 0.9); sh = t < 0.6 ? -0.12 : 0.22 * bump(t, 0.58, 0.95); }
+    else if (p === 'throw') { sq = 0.2 * bump(t, 0, 0.4); st = 0.3 * bump(t, 0.35, 0.65); sh = -0.15 * bump(t, 0, 0.4) + 0.25 * bump(t, 0.35, 0.7); }
+    else if (p === 'hurt') { sq = 0.28; sh = -0.25; } else if (p === 'charge') { sq = 0.12 + Math.sin(u.t * 30) * 0.04; }
+    else if ((u.z || 0) > 6) { const vz = u.vz || 0; sq = vz > 100 ? -0.32 : vz < -100 ? -0.18 : 0.06; }
+    else if (sp > 230) { sh = 0.12; st = 0.06; }
+    if (u._wind) { const k = u._wind.t / (u._wind.dur || 0.5); sq = Math.max(sq, 0.25 * Math.sin(Math.min(1, k) * Math.PI * 0.5)); sh = -0.14 * k; }
+    return [sq, st, sh]; }
+  let lastNow = performance.now();
+  function spring(u) { const S = (u._s45 = u._s45 || { v: [0, 0, 0], w: [0, 0, 0], z: 0, t: performance.now() }); const now = performance.now(); const dt = Math.min(0.05, Math.max(0.001, (now - S.t) / 1000)); S.t = now; if (dt < 0.002) return S;
+    const tg = target(u); if (S.z > 6 && (u.z || 0) <= 1) { S.w[0] += 9; SE45.ev.land = (SE45.ev.land || 0) + 1; } S.z = u.z || 0;
+    for (let i = 0; i < 3; i++) { const kk = 320, c = 16; S.w[i] += ((tg[i] - S.v[i]) * kk - S.w[i] * c) * dt; S.v[i] += S.w[i] * dt; S.v[i] = Math.max(-0.7, Math.min(0.8, S.v[i])); } return S; }
+  SE45.spring = spring;
+  function smear(ctx, u) { const p = u.pose, t = Math.max(0, Math.min(1, u.poseT || 0)); if (!ATK[p] || t < 0.24 || t > 0.66) return; const s = u.size, f = u.face, y = u.y - (u.z || 0);
+    const k = (t - 0.24) / 0.42, al = Math.sin(k * Math.PI); const D = { atk1: [-1.1, 0.5, -36, 26], atk2: [0.9, -0.9, -38, 28], atk3: [0.6, -1.4, -18, 30], atk4: [-2.6, 2.6, -28, 30], slash1: [-2.2, 0.9, -38, 36], slash2: [1.1, -1.8, -38, 36], slash3: [-0.6, 0.3, -36, 44] }[p];
+    const [a0, a1, cy, R] = D, aEnd = L(a0, a1, Math.min(1, k * 1.3)), aSt = L(a0, a1, Math.max(0, k * 1.3 - 0.55)); const cx = u.x + f * 8 * s, yy = y + cy * s, rr = R * s;
+    const ang = (a) => (f > 0 ? a : Math.PI - a); const col = u.buffs && u.buffs.elemblade && EL[u.elemMain] ? EL[u.elemMain].c : u.isPlayer ? '#fff6dc' : '#ffd6d6';
+    ctx.save(); ctx.globalAlpha = 0.55 * al; ctx.fillStyle = col; ctx.beginPath(); const n = 14; for (let i = 0; i <= n; i++) { const a = L(aSt, aEnd, i / n); ctx.lineTo(cx + Math.cos(ang(a)) * rr, yy + Math.sin(ang(a)) * rr); }
+    for (let i = n; i >= 0; i--) { const a = L(aSt, aEnd, i / n), w = 0.62 + 0.3 * (1 - Math.sin((i / n) * Math.PI)); ctx.lineTo(cx + Math.cos(ang(a)) * rr * w + f * 3 * s, yy + Math.sin(ang(a)) * rr * w); } ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 0.9 * al; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6 * s; ctx.beginPath(); for (let i = 0; i <= n; i++) { const a = L(aSt, aEnd, i / n); ctx.lineTo(cx + Math.cos(ang(a)) * rr, yy + Math.sin(ang(a)) * rr); } ctx.stroke(); ctx.restore(); SE45.ev.smear = (SE45.ev.smear || 0) + 1; }
+  function speedLines(ctx, u, S) { const st = S.v[1]; if (st < 0.18 || !(u.pose === 'dash' || ATK[u.pose] || u._rush)) return; const s = u.size, y = u.y - (u.z || 0), f = u.face; ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineCap = 'round';
+    for (let i = 0; i < 5; i++) { const yy = y - s * (8 + i * 9 + ((u.t * 90 + i * 13) % 6)), l = (20 + ((i * 37) % 23)) * s * st * 2.2; ctx.globalAlpha = 0.25 + 0.4 * st; ctx.lineWidth = (2.4 - i * 0.3) * s; ctx.beginPath(); ctx.moveTo(u.x - f * s * 14, yy); ctx.lineTo(u.x - f * (s * 14 + l), yy); ctx.stroke(); } ctx.restore(); }
+  const baseDN = drawNinja;
+  drawNinja = function (ctx, gl, u) { if (!u || !u.rig || (G.mode && FX.quality < 0.3)) return baseDN.apply(this, arguments);
+    let S; try { S = spring(u); } catch (e) { return baseDN.apply(this, arguments); } const [sq, st, sh] = S.v; const f = u.face || 1;
+    const kx = 1 + st * 0.55 + sq * 0.42, ky = 1 - st * 0.32 - sq * 0.36, shear = -sh * 0.55 * f; const fx = u.x, fy = u.y - (u.z || 0);
+    try { speedLines(ctx, u, S); smear(ctx, u); } catch (e) {}
+    ctx.save(); ctx.translate(fx, fy); ctx.transform(kx, 0, shear, ky, 0, 0); ctx.translate(-fx, -fy); let r; try { r = baseDN.apply(this, arguments); } finally { ctx.restore(); } return r; };
+  // anticipation et suivi plus marqués dans la pose
+  const baseNP = ninjaPose;
+  ninjaPose = function (u) { const P = baseNP.apply(this, arguments); const t = Math.max(0, Math.min(1, u.poseT || 0)), p = u.pose;
+    if (ATK[p]) { const ant = bump(t, 0, 0.3), hit = bump(t, 0.28, 0.6), fol = bump(t, 0.55, 1); P.lean += -0.12 * ant + 0.14 * hit - 0.06 * fol; P.crouch += 2.5 * ant; P.fH[0] -= 4 * ant; P.fF[0] += 3 * hit; P.head = Math.max(-0.25, Math.min(0.25, (P.head || 0) - 0.1 * ant + 0.08 * hit)); }
+    else if (p === 'cast' || p === 'seal') { const w = bump(t, 0, 0.6), rel = bump(t, 0.58, 0.95); P.crouch += 2 * w; P.lean += -0.06 * w + 0.1 * rel; }
+    else if (p === 'dash') { P.lean = Math.min(0.85, P.lean + 0.05); }
+    return P; };
+  /* =================== 2. Réglage « Réduire les flashs » =================== */
+  const baseOpts = UI.tab_opts; UI.tab_opts = function () { baseOpts.apply(this, arguments); try { const p = P(), s = p.settings; const q = $('#oq'); const lab = q && q.closest('label'); if (!lab) return;
+      lab.insertAdjacentHTML('afterend', `<label class="field chk45"><span>Réduire les flashs (impact frames adoucis, sans inversion de couleurs)</span><input type="checkbox" id="orf45" ${s.rf45 !== false ? 'checked' : ''}></label>`);
+      $('#orf45').onchange = (e) => { s.rf45 = !!e.target.checked; Profile.save(); SE45.ev.rf = s.rf45; }; } catch (e) {} };
+  const css = document.createElement('style'); css.textContent = `.chk45{display:flex!important;align-items:center;gap:10px;justify-content:space-between}.chk45 input{width:22px;height:22px;accent-color:#e8452c}`; document.head.appendChild(css);
+  /* =================== Correctifs et finitions =================== */
+  // PNJ : on évite les maisons même après une téléportation de route (rare)
+  setInterval(() => { try { if (!window.SE40 || !SE40.inBld || !SE40.npcs) return; for (const v of SE40.npcs) { if (!v || v.dead) continue; if (SE40.inBld(v.x, v.y)) { if (v._ok45) { v.x = v._ok45[0]; v.y = v._ok45[1]; SE45.ev.npcFix = (SE45.ev.npcFix || 0) + 1; } } else v._ok45 = [v.x, v.y]; } } catch (e) {} }, 250);
+  /* =================== Guide et notes =================== */
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody'); const fams = {}; for (const k in SE41.TREES) { const t = SE41.TREES[k]; (fams[t.famFr] = fams[t.famFr] || []).push(t.title); }
+    g.insertAdjacentHTML('afterbegin', `<section><h4>星 Constellations uniques (4.5)</h4><p class="muted small">Chaque technique a désormais sa propre constellation : forme, noms d’étoiles et transformations profondes uniques. Le dessin en fond rappelle le thème.</p><table>${Object.keys(fams).sort().map((f) => `<tr><td>${f}</td><td>${fams[f].join(', ')}</td></tr>`).join('')}</table>
+      <h4>動 Animation et confort (4.5)</h4><table><tr><td>Impact frames</td><td>Réservés à la Bijūdama (et sa version nucléaire), aux ultimes et cinématiques de Susanoo et aux grands chocs. Plus courts ; « Réduire les flashs » (Options, activé par défaut) supprime l’inversion des couleurs.</td></tr><tr><td>Animation</td><td>Écrasement/étirement sur ressort (avec dépassement), smears en croissant sur le combo M1, lignes de vitesse au dash, anticipation à l’incantation, atterrissage amorti.</td></tr><tr><td>Personnage</td><td>Cou, torse qui se plie, coudes et genoux articulés, mains, pieds orientés, cheveux qui suivent le mouvement.</td></tr></table></section>`); };
+  SE3.NOTES.unshift({ v: '4.5 — Constellations & Animation Polish', d: '20 octobre 2026', tag: '72 constellations uniques, des yeux reposés, des coups qui claquent.', s: [
+    ['Constellations', ['Les 72 constellations sont uniques : 24 formes thématiques (spirale du Rasengan, éclair fourchu du Chidori, flamme d’Amaterasu, cage thoracique du Susanoo, œil à tomoe, sablier de Gaara…) avec leurs propres paramètres, des noms d’étoiles propres à chaque technique et des transformations profondes différentes.', 'Le dessin de la forme apparaît en fond ; ta progression déjà apprise est conservée.']],
+    ['Confort visuel', ['Impact frames retirés de la plupart des techniques ; conservés (raccourcis, adoucis) pour la Bijūdama, le Rasengan nucléaire, les ultimes/Susanoo et les grands chocs.', 'Nouvelle option « Réduire les flashs », activée par défaut : plus d’inversion des couleurs.']],
+    ['Animation', ['Écrasement et étirement bien plus marqués (sur ressort, avec dépassement), smears en croissant sur chaque coup du combo, lignes de vitesse au dash et pendant les ruées, anticipation avant les incantations, atterrissages amortis.']],
+    ['Personnage', ['Rig amélioré : cou, torse qui se plie à la taille, membres effilés avec coudes et genoux, mains avec pouce, pieds orientés, cheveux à mouvement secondaire, tête alignée sur le cou.']],
+    ['Correctifs', ['Les PNJ coincés dans une maison en sont repoussés.', 'Les titres de constellation identiques (Amaterasu, Kamui, Shinra Tensei) indiquent le personnage.']],
   ] });
 })();
 

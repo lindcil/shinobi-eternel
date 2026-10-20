@@ -1,3 +1,5 @@
+72 constellations uniques (24 formes thématiques, noms et transformations uniques, vérifiés par script) ; impact frames limités à la Bijūdama/Rasengan nucléaire, ultimes/Susanoo et grands chocs, adoucis, option « Réduire les flashs » activée par défaut ; écrasement/étirement sur ressort, smears M1, lignes de vitesse, anticipation ; rig plus fin (cou, torse plié, coudes/genoux, mains, pieds, cheveux) ; PNJ repoussés hors des maisons.
+
 Modes créatifs : choc de Bijūdama (score), entraîneur de chocs, créateur de moveset + simulation IA, simulateur de boss, labo (45 réactions, ultimes, duos), éditeur de maîtrise. Accès : écran titre/QG, panneau créatif, manette.
 
 - 29 nouvelles réactions : 10 triples, 5 quadruples, 1 quintuple (Six Voies, cinématique)

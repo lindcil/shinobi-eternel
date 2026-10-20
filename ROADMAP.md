@@ -1,3 +1,4 @@
+> ✅ v4.5 Constellations & Animation Polish : livrée. v4.5 Constellations & Animation Polish — livré
 > ✅ v4.4 Creative Modes : livrée. v4.4 Modes créatifs — livré
 > ✅ v4.3 Reactions Expansion : livrée. v4.3 Reactions Expansion — fait
 > ✅ v4.2 Combat & Animation : livrée. v4.2 Combat & Animation — fait
