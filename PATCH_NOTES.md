@@ -1,3 +1,5 @@
+Rig entièrement remplacé : squelette hiérarchique (racine › hanches › colonne › poitrine › cou › tête, bras, jambes, pieds), FK + IK 2 os, une seule orientation pour tout le corps (600 cas testés, 8 directions, gauche/droite) ; accessoires rattachés aux nouveaux os ; animation façon ZZZ : anticipation, frappe éclair, pose tenue, retour avec dépassement, hit-stop léger sans flash, arcs, finisseurs, images rémanentes au dash, respiration, course en arcs, course ninja.
+
 72 constellations uniques (24 formes thématiques, noms et transformations uniques, vérifiés par script) ; impact frames limités à la Bijūdama/Rasengan nucléaire, ultimes/Susanoo et grands chocs, adoucis, option « Réduire les flashs » activée par défaut ; écrasement/étirement sur ressort, smears M1, lignes de vitesse, anticipation ; rig plus fin (cou, torse plié, coudes/genoux, mains, pieds, cheveux) ; PNJ repoussés hors des maisons.
 
 Modes créatifs : choc de Bijūdama (score), entraîneur de chocs, créateur de moveset + simulation IA, simulateur de boss, labo (45 réactions, ultimes, duos), éditeur de maîtrise. Accès : écran titre/QG, panneau créatif, manette.

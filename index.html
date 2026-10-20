@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.5 Constellations & Animation Polish</title>
+<title>Shinobi Éternel II — v4.6 Rig & ZZZ Animation</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6493,7 +6493,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.5';
+  const VERSION = '4.6';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -9016,6 +9016,7 @@ const Net = {
       else if (d === 'masque_kakashi') { ctx.fillStyle = fl ? '#fff' : '#2a2a34'; ctx.beginPath(); ctx.arc(hx + 1, hy + 1, 8.2, 0.05, Math.PI - 0.3); ctx.fill(); }
       else if (d === 'kama') { ctx.strokeStyle = '#121018'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(hx + 1, hy - 7); ctx.lineTo(hx + 3, hy - 3); ctx.lineTo(hx + 5, hy - 7); ctx.moveTo(hx + 7, hy - 2); ctx.lineTo(hx + 8.5, hy + 3); ctx.stroke(); } }
   }
+  SE37.drawBack = drawBack; SE37.drawFront = drawFront;
   const baseDN = drawNinja;
   drawNinja = function (ctx, gl, u) { const A = u.rig ? accOf(u) : null; let F = null;
     if (A) try { F = frame(u); ctx.globalAlpha = u.alpha != null ? u.alpha : 1; withT(ctx, u, F, () => drawBack(ctx, u, A, F)); } catch (x) { F = null; }
@@ -10585,6 +10586,176 @@ const Net = {
     ['Animation', ['Écrasement et étirement bien plus marqués (sur ressort, avec dépassement), smears en croissant sur chaque coup du combo, lignes de vitesse au dash et pendant les ruées, anticipation avant les incantations, atterrissages amortis.']],
     ['Personnage', ['Rig amélioré : cou, torse qui se plie à la taille, membres effilés avec coudes et genoux, mains avec pouce, pieds orientés, cheveux à mouvement secondaire, tête alignée sur le cou.']],
     ['Correctifs', ['Les PNJ coincés dans une maison en sont repoussés.', 'Les titres de constellation identiques (Amaterasu, Kamui, Shinra Tensei) indiquent le personnage.']],
+  ] });
+})();
+/* v4.6 — Nouveau rig (squelette hiérarchique FK + IK 2 os, une seule orientation) et passe d'animation façon ZZZ */
+(function () {
+  const SE46 = (window.SE46 = { ev: {}, n: { draw: 0, ghost: 0, smear: 0 } });
+  const TAU2 = Math.PI * 2, cl = (v, a, b) => Math.max(a, Math.min(b, v)), lp = (a, b, k) => a + (b - a) * k;
+  const lp2 = (a, b, k) => [lp(a[0], b[0], k), lp(a[1], b[1], k)];
+  const eOut = (k) => 1 - Math.pow(1 - k, 3), eExpo = (k) => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k)), backOut = (k) => { const c = 1.9; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+  /* ---------- Squelette : longueurs (unités locales, x = avant, y = bas, sol = 0) ---------- */
+  const B = { pelvis: 0, spine: 11.5, chest: 9.5, neck: 4.2, head: 8.3, thigh: 13.8, shin: 13.2, foot: 6.2, upper: 11.2, fore: 10.6, shoulderW: 2.2, hipW: 1.8 };
+  SE46.B = B;
+  // IK 2 os : renvoie le coude/genou ; bend = +1 / -1 choisit le côté (constant en local => miroir global cohérent)
+  function ik2(a, t, l1, l2, bend) { let dx = t[0] - a[0], dy = t[1] - a[1], d = Math.hypot(dx, dy); const mx = l1 + l2 - 0.05; if (d > mx) { dx *= mx / d; dy *= mx / d; d = mx; } d = Math.max(d, 0.5);
+    const c = cl((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1), ang = Math.atan2(dy, dx) + Math.acos(c) * bend; const m = [a[0] + Math.cos(ang) * l1, a[1] + Math.sin(ang) * l1]; return [m, [a[0] + dx, a[1] + dy]]; }
+  const rotv = (ang, l) => [Math.sin(ang) * l, -Math.cos(ang) * l]; // angle 0 = vertical vers le haut, + = penché vers l'avant
+  const add = (a, b) => [a[0] + b[0], a[1] + b[1]];
+  /* ---------- FK : racine > hanches > colonne > poitrine > cou > tête ; épaules > bras ; hanches > jambes ---------- */
+  function solve(Q) { const J = {}; J.root = [0, Q.rootY || 0]; J.hip = add(J.root, [Q.hip[0], Q.hip[1]]);
+    const sp = Q.lean, ch = Q.lean + (Q.bend || 0); J.waist = add(J.hip, rotv(sp, B.spine * (Q.breath || 1))); J.chest = add(J.waist, rotv(ch, B.chest)); J.neck = J.chest; J.head = add(add(J.neck, rotv(ch * 0.6 + (Q.head || 0), B.neck)), rotv(ch * 0.4 + (Q.head || 0), B.head * 0.85));
+    const perp = (a, w) => [Math.cos(a) * w, Math.sin(a) * w];
+    J.shF = add(add(J.chest, rotv(ch, -2.6)), perp(ch, B.shoulderW)); J.shB = add(add(J.chest, rotv(ch, -2.6)), perp(ch, -B.shoulderW));
+    J.hipF = add(J.hip, [B.hipW, 0]); J.hipB = add(J.hip, [-B.hipW, 0]);
+    const footT = (f) => [f[0], f[1] - 1.6 + (Q.rootY || 0) * 0];
+    [J.kneeF, J.ankF] = ik2(J.hipF, footT(Q.fF), B.thigh, B.shin, -1); [J.kneeB, J.ankB] = ik2(J.hipB, footT(Q.bF), B.thigh, B.shin, -1);
+    // genou toujours vers l'avant (local +x) : on corrige si l'IK l'a placé derrière
+    for (const k of ['F', 'B']) { const h = J['hip' + k], a = J['ank' + k], n = J['knee' + k]; const mx = (h[0] + a[0]) / 2, my = (h[1] + a[1]) / 2, vx = a[0] - h[0], vy = a[1] - h[1]; const cr = vx * (n[1] - my) - vy * (n[0] - mx);
+      if (cr > 0.01) { const L2 = vx * vx + vy * vy || 1, t = ((n[0] - h[0]) * vx + (n[1] - h[1]) * vy) / L2, px = h[0] + vx * t, py = h[1] + vy * t; J['knee' + k] = [2 * px - n[0], 2 * py - n[1]]; } }
+    const fa = (f, lift) => cl(lift > 2 ? 0.55 : 0, 0, 0.7); J.toeF = add(J.ankF, [Math.cos(fa(Q.fF, -Q.fF[1])) * B.foot, Math.sin(fa(Q.fF, -Q.fF[1])) * B.foot]); J.toeB = add(J.ankB, [Math.cos(fa(Q.bF, -Q.bF[1])) * B.foot, Math.sin(fa(Q.bF, -Q.bF[1])) * B.foot]);
+    [J.elbF, J.handF] = ik2(J.shF, Q.fH, B.upper, B.fore, 1); [J.elbB, J.handB] = ik2(J.shB, Q.bH, B.upper, B.fore, 1);
+    J.sword = Q.sword; return J; }
+  SE46.solve = solve;
+  /* ---------- Poses clés façon ZZZ ---------- */
+  const STANCE = { hip: [0, -24], lean: 0.1, head: 0, fF: [8, 0], bF: [-8, 0], fH: [10, -35], bH: [3, -33], sword: null, rootY: 0, bend: 0.04 };
+  const ATK = {
+    atk1: { A: { hip: [-2, -22], lean: -0.16, fH: [1, -38], bH: [9, -36], fF: [9, 0], bF: [-11, 0] }, S: { hip: [5, -22], lean: 0.36, fH: [31, -41], bH: [-3, -34], fF: [15, 0], bF: [-12, 0], head: 0.05 } },
+    atk2: { A: { hip: [-3, -22], lean: -0.22, fH: [12, -38], bH: [-7, -38], fF: [9, 0], bF: [-12, 0] }, S: { hip: [6, -21], lean: 0.44, fH: [0, -34], bH: [32, -42], fF: [17, 0], bF: [-13, 0] } },
+    atk3: { A: { hip: [-2, -23], lean: -0.1, fH: [7, -40], bH: [-8, -36], fF: [3, -7], bF: [-6, 0] }, S: { hip: [-1, -24], lean: -0.36, fH: [-11, -44], bH: [-17, -32], fF: [31, -30], bF: [-6, 0], head: -0.1 } },
+    atk4: { A: { hip: [-2, -17], lean: 0.28, fH: [13, -29], bH: [-10, -27], fF: [10, 0], bF: [-12, 0] }, S: { hip: [1, -26], rootY: -15, lean: -0.28, fH: [-14, -46], bH: [10, -45], fF: [27, -40], bF: [-4, -7] }, ender: 1 },
+    slash1: { A: { hip: [-2, -22], lean: -0.14, fH: [-2, -46], bH: [-5, -42], sword: -2.6, fF: [9, 0], bF: [-12, 0] }, S: { hip: [6, -21], lean: 0.42, fH: [25, -37], bH: [17, -34], sword: 0.3, fF: [16, 0], bF: [-13, 0] } },
+    slash2: { A: { hip: [-1, -21], lean: 0.05, fH: [5, -24], bH: [2, -24], sword: 1.5, fF: [10, 0], bF: [-11, 0] }, S: { hip: [4, -24], lean: 0.24, fH: [20, -48], bH: [14, -45], sword: -1.6, fF: [13, 0], bF: [-12, -2] } },
+    slash3: { A: { hip: [-4, -18], lean: -0.12, fH: [-10, -36], bH: [-4, -34], sword: 3.0, fF: [11, 0], bF: [-13, 0] }, S: { hip: [11, -20], lean: 0.58, fH: [31, -37], bH: [-10, -32], sword: 0.04, fF: [22, 0], bF: [-12, 0] }, ender: 1 },
+  };
+  SE46.ATK = ATK;
+  const PH = { a: 0.3, s: 0.37, h: 0.6 }; // anticipation / frappe éclair / tenue sur contact / retour avec dépassement
+  function mixQ(a, b, k) { const o = {}; for (const key of ['hip', 'fF', 'bF', 'fH', 'bH']) o[key] = lp2(a[key], b[key], k); for (const key of ['lean', 'head', 'rootY', 'bend']) o[key] = lp(a[key] || 0, b[key] || 0, k);
+    o.sword = a.sword == null && b.sword == null ? null : lp(a.sword == null ? b.sword : a.sword, b.sword == null ? a.sword : b.sword, k); return o; }
+  function attackQ(def, t, N) { const A = Object.assign({}, N, def.A), S = Object.assign({}, N, def.S);
+    if (t < PH.a) return Object.assign(mixQ(N, A, eOut(t / PH.a)), { rate: 22, phase: 'ant' });
+    if (t < PH.s) return Object.assign(mixQ(A, S, eExpo((t - PH.a) / (PH.s - PH.a))), { rate: 95, phase: 'strike' });
+    if (t < PH.h) { const k = (t - PH.s) / (PH.h - PH.s); const q = mixQ(S, S, 0); q.hip = [q.hip[0] + k * 1.2, q.hip[1]]; return Object.assign(q, { rate: 80, phase: 'hold' }); }
+    return Object.assign(mixQ(S, N, backOut((t - PH.h) / (1 - PH.h))), { rate: 30, phase: 'rec' }); }
+  SE46.phaseOf = (t) => (t < PH.a ? 'ant' : t < PH.s ? 'strike' : t < PH.h ? 'hold' : 'rec');
+  function flair(u) { const m = u.ms33 || (u._m35 && u._m35.id) || ''; return m; }
+  function poseQ(u) { const t = cl(u.poseT || 0, 0, 1), p = u.pose, r = u.rig, sp = Math.hypot(u.vx || 0, u.vy || 0), T = u.t || 0, fl = flair(u);
+    const N = Object.assign({}, STANCE, { sword: u.sword ? -1.1 : null });
+    if (ATK[p]) return attackQ(ATK[p], t, N);
+    if (p === 'dash') return Object.assign({}, N, { hip: [5, -19], lean: 0.78, bend: 0.1, fF: [17, -2], bF: [-19, -7], fH: [-20, -33], bH: [-25, -29], head: -0.2, rate: 45 });
+    if ((u.z || 0) > 6 && p !== 'air' && p !== 'down' && p !== 'cast' && p !== 'seal') { const up = (u.vz || 0) > 0; return Object.assign({}, N, up ? { hip: [0, -26], lean: 0.05, fF: [8, -11], bF: [-6, -5], fH: [11, -47], bH: [-9, -45], rate: 25 } : { hip: [0, -24], lean: 0.18, fF: [11, -6], bF: [-8, -3], fH: [16, -40], bH: [-15, -38], rate: 18 }); }
+    if (p === 'run' || (p === 'idle' && sp > 30)) { const ph = r.runPh || 0, k = cl(sp / 220, 0.4, 1.3), fast = sp > 235;
+      const foot = (o) => [Math.sin(ph + o) * 14 * k, -Math.max(0, Math.cos(ph + o)) * 10 * k];
+      const q = Object.assign({}, N, { hip: [2, -24 - Math.abs(Math.cos(ph)) * 2.2 * k + 1.2], lean: 0.2 + 0.14 * k + (fast ? 0.12 : 0), bend: 0.06, fF: foot(0), bF: foot(Math.PI), head: -0.12 - 0.05 * k, rate: 24 });
+      if (fast && /naruto|minato|sasuke|kakashi|itachi/.test(fl)) { q.fH = [-22, -33 + Math.sin(ph * 2)]; q.bH = [-26, -29]; q.lean += 0.1; } // course ninja
+      else { q.fH = [6 - Math.sin(ph) * 13 * k, -31 + Math.abs(Math.sin(ph)) * 2]; q.bH = [2 + Math.sin(ph) * 13 * k, -31 + Math.abs(Math.cos(ph)) * 2]; }
+      return q; }
+    if (p === 'idle' || !p) { const br = Math.sin(T * 2.4), sh = Math.sin(T * 0.9);
+      const q = Object.assign({}, N, { hip: [sh * 1.4, -23.6 + br * 0.35], lean: 0.08 + sh * 0.02, breath: 1 + br * 0.025, fF: [8, 0], bF: [-8, 0], fH: [10 + sh * 0.6, -34 + br * 0.9], bH: [3 + sh * 0.6, -32 + br * 0.9], head: Math.sin(T * 0.45) * 0.06, rate: 9 });
+      if (/gai|lee/.test(fl)) { q.fH = [12, -44]; q.bH = [-4, -30]; } else if (/kakashi/.test(fl)) { q.lean = -0.02; q.bend = 0.18; q.head = 0.12; q.fH = [6, -26]; q.bH = [-2, -26]; } else if (/sasuke|itachi/.test(fl)) { q.fH = [4, -27]; q.bH = [-3, -27]; q.lean = 0.02; }
+      return q; }
+    // autres poses (incantation, sceaux, lancer, garde, coups reçus…) : cibles du moteur de pose existant, remappées sur le nouveau squelette
+    const P = (r && r.pp) || ninjaPose(u);
+    return { hip: [P.lean * 6 + (P.hipX || 0), -24 + (P.bob || 0) + (P.crouch || 0)], lean: cl(P.lean * 0.85, -0.6, 0.85), bend: 0.04, head: P.head || 0, fF: P.fF.slice(), bF: P.bF.slice(), fH: P.fH.slice(), bH: P.bH.slice(), sword: P.sword, rootY: 0, rate: P.rate || 20, rot: P.rot && p === 'down' ? P.rot : 0 }; }
+  SE46.poseQ = poseQ;
+  // lissage par unité (instantané en frappe, amorti ailleurs)
+  function smooth(u, Q) { const r = u.rig; const now = performance.now(); const S = (r.q46 = r.q46 || { q: null, t: now }); const dt = cl((now - S.t) / 1000, 0, 0.05); S.t = now; if (!S.q) { S.q = Q; return Q; }
+    const k = 1 - Math.exp(-(Q.rate || 20) * dt); const o = mixQ(S.q, Q, k); o.breath = Q.breath; o.rot = Q.rot; o.phase = Q.phase; if (Q.sword == null) o.sword = null; else if (S.q.sword == null) o.sword = Q.sword; S.q = o; return o; }
+  /* ---------- Dessin ---------- */
+  function seg(ctx, a, b, w, c) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
+  function limb3(ctx, a, m, e, w1, w2, c) { seg(ctx, a, m, w1, c); seg(ctx, m, e, w2, c); ctx.fillStyle = c; ctx.beginPath(); ctx.arc(m[0], m[1], (w1 + w2) / 4, 0, TAU2); ctx.fill(); }
+  function torso(ctx, J, Q, ow, c) { const ch = Q.lean + (Q.bend || 0), sp = Q.lean; const n = (a, w) => [Math.cos(a) * w, Math.sin(a) * w];
+    const hL = add(J.hip, n(sp, -5.6 - ow)), hR = add(J.hip, n(sp, 5.6 + ow)), wL = add(J.waist, n(sp, -4.6 - ow)), wR = add(J.waist, n(sp, 4.8 + ow)), cL = add(J.chest, n(ch, -7.4 - ow)), cR = add(J.chest, n(ch, 7.8 + ow)), top = add(J.chest, rotv(ch, 2 + ow));
+    ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(hL[0], hL[1] + 2); ctx.lineTo(hR[0], hR[1] + 2); ctx.quadraticCurveTo(wR[0], wR[1], cR[0], cR[1]); ctx.quadraticCurveTo(top[0], top[1], cL[0], cL[1]); ctx.quadraticCurveTo(wL[0], wL[1], hL[0], hL[1] + 2); ctx.closePath(); ctx.fill(); }
+  function foot(ctx, a, t, c, w) { seg(ctx, a, t, w, c); }
+  function sword(ctx, h, ang, flash, u, gl, W) { const L2 = 34, cx = Math.cos(ang), cy = Math.sin(ang); ctx.lineCap = 'round';
+    seg(ctx, [h[0] - cx * 6, h[1] - cy * 6], [h[0] + cx * L2, h[1] + cy * L2], 5, OUT); seg(ctx, h, [h[0] + cx * L2, h[1] + cy * L2], 2.6, flash ? '#fff' : '#dfe6ee'); seg(ctx, [h[0] - cx * 6, h[1] - cy * 6], [h[0] + cx * 2, h[1] + cy * 2], 3.4, '#2a1a10');
+    seg(ctx, [h[0] + cx * 2 - cy * 3, h[1] + cy * 2 + cx * 3], [h[0] + cx * 2 + cy * 3, h[1] + cy * 2 - cx * 3], 4, '#c8a050'); }
+  function body(ctx, J, Q, C, u, ghost) { const s = u.size; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (let pass = ghost ? 1 : 0; pass < 2; pass++) { const O = pass === 0, ow = O ? 3 : 0, col = (c) => (ghost ? C.g : O ? OUT : c);
+      if (u.sword && J.sword == null && !O && !ghost) sword(ctx, [J.chest[0] - 8, J.chest[1] - 4], 2.0, C.flash, u);
+      limb3(ctx, J.shB, J.elbB, J.handB, 4.6 + ow, 3.9 + ow, col(C.armB)); limb3(ctx, J.hipB, J.kneeB, J.ankB, 6.4 + ow, 5.2 + ow, col(C.legB)); foot(ctx, J.ankB, J.toeB, col(C.shoe), 4 + ow);
+      torso(ctx, J, Q, ow / 2, col(C.outfit));
+      if (!O && !ghost) { const ch = Q.lean + (Q.bend || 0); const a = add(J.chest, rotv(ch, -1)), b = J.hip; ctx.strokeStyle = C.outfit2; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(a[0] + 3, a[1]); ctx.lineTo(b[0] + 2.5, b[1]); ctx.stroke();
+        ctx.save(); ctx.translate(J.hip[0], J.hip[1] - 1); ctx.rotate(Q.lean); ctx.fillStyle = C.belt; ctx.fillRect(-5.8, -1.6, 11.6, 3.2); ctx.fillStyle = C.scarf; ctx.fillRect(-1, -1.6, 2.6, 3.2); ctx.restore(); }
+      limb3(ctx, J.hipF, J.kneeF, J.ankF, 6.4 + ow, 5.2 + ow, col(C.legF)); foot(ctx, J.ankF, J.toeF, col(C.shoe), 4.2 + ow);
+      // cou + tête
+      seg(ctx, J.neck, lp2(J.neck, J.head, 0.55), 4.4 + ow, col(C.skin)); ctx.fillStyle = col(C.skin); ctx.beginPath(); ctx.ellipse(J.head[0], J.head[1], 8.2 + ow / 2, 8.8 + ow / 2, (Q.lean + (Q.head || 0)) * 0.35, 0, TAU2); ctx.fill();
+      if (!O && !ghost) { const hs = u.rig.hs46 || 0; ctx.save(); ctx.translate(J.head[0], J.head[1] + 4); ctx.rotate((Q.lean + (Q.head || 0)) * 0.35); ctx.transform(1, 0, hs, 1, 0, 0); ctx.translate(-J.head[0], -J.head[1] - 4); drawHair(ctx, J.head[0], J.head[1], u.look, C.hair, u); ctx.restore(); }
+      if (u.sword && J.sword != null && !O && !ghost) sword(ctx, J.handF, J.sword, C.flash, u);
+      limb3(ctx, J.shF, J.elbF, J.handF, 4.6 + ow, 3.9 + ow, col(C.armF));
+      ctx.fillStyle = col(C.skin); ctx.beginPath(); ctx.arc(J.handF[0], J.handF[1], 2.8 + ow / 2, 0, TAU2); ctx.fill(); if (!ghost) { ctx.fillStyle = col(C.skinD); ctx.beginPath(); ctx.arc(J.handB[0], J.handB[1], 2.5 + ow / 2, 0, TAU2); ctx.fill(); } } }
+  function colors(u) { const L = u.look, fl = u.flashT > 0; const dk = (c) => (fl ? '#e8e8f0' : mixHex(c, '#05040a', 0.38)); const skin = fl ? '#fff' : L.skin, outfit = fl ? '#fff' : L.outfit;
+    return { flash: fl, skin, skinD: dk(L.skin), outfit, outfit2: fl ? '#fff' : L.outfit2 || mixHex(L.outfit, '#000000', 0.35), hair: fl ? '#fff' : L.hair, armF: L.skinArm ? skin : outfit, armB: dk(L.skinArm ? L.skin : L.outfit), legF: outfit, legB: dk(L.outfit), shoe: fl ? '#fff' : '#1c1820', belt: fl ? '#fff' : L.belt || '#1a1418', scarf: fl ? '#fff' : L.scarf === 'prism' ? '#ffffff' : L.scarf }; }
+  /* ---------- Smears en arc, images rémanentes ---------- */
+  function tip(J, p, u) { if (u.sword && J.sword != null) return [J.handF[0] + Math.cos(J.sword) * 32, J.handF[1] + Math.sin(J.sword) * 32]; return p === 'atk3' || p === 'atk4' ? J.toeF : p === 'atk2' ? J.handB : J.handF; }
+  function drawSmear(ctx, u, r) { const tr = r.tr46; if (!tr || tr.length < 3) return; const c = u.buffs && u.buffs.elemblade && EL[u.elemMain] ? EL[u.elemMain].c : u.isPlayer ? '#fff3d0' : '#ffd0d0'; const big = r.big46 ? 1.5 : 1, n = tr.length;
+    ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; for (let i = 1; i < n; i++) { const k = i / (n - 1); ctx.globalAlpha = 0.12 + 0.55 * k; ctx.strokeStyle = c; ctx.lineWidth = (2 + 11 * k) * u.size * big; ctx.beginPath(); ctx.moveTo(tr[i - 1][0], tr[i - 1][1]); ctx.lineTo(tr[i][0], tr[i][1]); ctx.stroke(); }
+    ctx.globalAlpha = 0.9; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.6 * u.size; ctx.beginPath(); tr.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.stroke(); ctx.restore(); SE46.n.smear++; }
+  /* ---------- Rendu principal : UNE orientation (u.face) pour tout le corps ---------- */
+  function W(u, f, p, kx, ky, sh) { const s = u.size, x0 = u.x, y0 = u.y - (u.z || 0); const lx = p[0] * f * s, ly = p[1] * s; return [x0 + kx * lx + sh * ly, y0 + ky * ly]; }
+  SE46.world = W;
+  function draw(ctx, gl, u) { const r = u.rig, s = u.size, f = u.face >= 0 ? 1 : -1, L = u.look; SE46.n.draw++;
+    let Q = smooth(u, poseQ(u)); const J = solve(Q); u._lean = Q.lean; r.j46 = J; r.q46f = f;
+    // ressort squash & stretch de la v4.5 (atterrissage, frappe, dash)
+    let kx = 1, ky = 1, sh = 0; try { if (window.SE45 && SE45.spring) { const S = SE45.spring(u); const [sq, st, shr] = S.v; kx = 1 + st * 0.5 + sq * 0.4; ky = 1 - st * 0.3 - sq * 0.34; sh = -shr * 0.5 * f; } } catch (e) {}
+    // cheveux : ressort secondaire
+    { const hv = (r.hv46 = r.hv46 || { v: 0, w: 0, px: u.x }); const ax = cl((u.x - hv.px) * -0.05 * f, -0.5, 0.5); hv.px = u.x; hv.w += (ax - hv.v) * 0.2 - hv.w * 0.14; hv.v = cl(hv.v + hv.w, -0.45, 0.45); r.hs46 = hv.v; }
+    // trajectoire de la pointe (smear) et images rémanentes
+    const p = u.pose, t = cl(u.poseT || 0, 0, 1); const swing = ATK[p] && t > PH.a - 0.03 && t < PH.h + 0.04; r.tr46 = r.tr46 || [];
+    if (swing && t > PH.a) { const N0 = Object.assign({}, STANCE, { sword: u.sword ? -1.1 : null }), t1 = Math.min(t, PH.h), t0 = Math.max(PH.a - 0.06, t1 - (PH.s - PH.a) - 0.05 - Math.max(0, t - PH.h) * 0.8); r.tr46 = []; for (let i = 0; i <= 10; i++) { const tt = lp(t0, t1, i / 10); const q = attackQ(ATK[p], tt, N0); if (u.sword && q.sword == null) q.sword = 0; { const JJ = solve(q), tp = tip(JJ, p, u), c0 = JJ.chest; const ex = /atk3|atk4/.test(p) ? 1.05 : 1.3; r.tr46.push(W(u, f, [c0[0] + (tp[0] - c0[0]) * ex, c0[1] + (tp[1] - c0[1]) * ex], kx, ky, sh)); } } if (t > PH.h) r.tr46 = r.tr46.slice(Math.floor(((t - PH.h) / 0.04) * 10)); r.big46 = ATK[p].ender ? 1 : 0; } else r.tr46 = [];
+    const ghostOn = p === 'dash' || (ATK[p] && ATK[p].ender && t > PH.a && t < PH.h) || u._rush; r.gh46 = r.gh46 || []; const now = performance.now();
+    if (ghostOn && (!r.gh46.length || now - r.gh46[r.gh46.length - 1].t > 45)) r.gh46.push({ t: now, x: u.x, y: u.y - (u.z || 0), J, Q, f, kx, ky, sh }); while (r.gh46.length && now - r.gh46[0].t > 260) r.gh46.shift();
+    const C = colors(u), alpha = u.alpha != null ? u.alpha : 1;
+    // fantômes (afterimages) teintés, sans flash
+    if (r.gh46.length) { const gc = u.isPlayer ? '#7fd8ff' : '#ff9a9a'; for (const g of r.gh46) { const k = 1 - (now - g.t) / 260; if (k <= 0) continue; ctx.save(); ctx.globalAlpha = 0.32 * k * alpha; ctx.translate(g.x, g.y); ctx.transform(g.kx, 0, g.sh, g.ky, 0, 0); ctx.scale(g.f * s, s); body(ctx, g.J, g.Q, Object.assign({}, C, { g: gc }), u, true); ctx.restore(); SE46.n.ghost++; } }
+    if (r.tr46.length > 2) drawSmear(ctx, u, r);
+    ctx.globalAlpha = alpha;
+    if (!L.noScarf) drawRibbon(ctx, r.scarf, 7 * s, 3 * s, C.flash ? '#fff' : L.scarf === 'prism' ? `hsl(${(u.t * 120) % 360},90%,62%)` : L.scarf, true);
+    if (L.band) drawRibbon(ctx, r.band, 3.5 * s, 2 * s, C.flash ? '#fff' : L.band, true);
+    if (L.cape) drawRibbon(ctx, r.scarf, 16 * s, 22 * s, C.flash ? '#fff' : mixHex(L.outfit, '#ffffff', 0.15), true);
+    ctx.save(); ctx.translate(u.x, u.y - (u.z || 0)); ctx.transform(kx, 0, sh, ky, 0, 0); ctx.scale(f * s, s); if (Q.rot) { ctx.translate(0, -24); ctx.rotate(Q.rot); ctx.translate(0, 24); }
+    const A = window.SE37 && SE37.accOf ? SE37.accOf(u) : null; const F = { P: { rot: 0 }, s, f, sx: 1, sy: 1, hip: J.hip, neck: J.chest, head: J.head };
+    if (A && SE37.drawBack) try { SE37.drawBack(ctx, u, A, F); } catch (e) {}
+    body(ctx, J, Q, C, u, false);
+    // visage : yeux du côté de l'avant (local +x)
+    const ex = J.head[0] + 4.2, ey = J.head[1] - 0.5;
+    if (L.mask) { ctx.fillStyle = C.flash ? '#fff' : L.maskC || '#2a2a34'; ctx.beginPath(); ctx.arc(J.head[0] + 1, J.head[1] + 1, 8.2, 0.05, Math.PI - 0.3); ctx.fill(); }
+    if (u.eyeOn && u.eye && EYES[u.eye]) { const ec = EYES[u.eye].c; ctx.fillStyle = ec; ctx.beginPath(); ctx.arc(ex, ey, 1.9, 0, TAU2); ctx.fill(); const w = W(u, f, [ex, ey], kx, ky, sh); gl.globalAlpha = 0.9; gl.drawImage(FX.glowSprite(ec), w[0] - 9 * s, w[1] - 9 * s, 18 * s, 18 * s); gl.globalAlpha = 1; }
+    else if (u.st && u.st.trance > 0) { ctx.strokeStyle = '#e05cff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(ex, ey, 1.8, 0, TAU2 * 0.8); ctx.stroke(); }
+    else { ctx.fillStyle = '#121018'; ctx.fillRect(ex - 1, ey - 1.4, 2, r.blink > 0 ? 0.6 : 2.8); }
+    if (u.st && u.st.charm > 0) { ctx.fillStyle = '#ff7ad9'; ctx.fillRect(ex - 1, ey - 1.4, 2, 2.8); }
+    if (A && SE37.drawFront) try { SE37.drawFront(ctx, u, A, F); } catch (e) {}
+    ctx.restore(); ctx.globalAlpha = 1;
+    if ((p === 'cast' || p === 'seal') && u.castEl) { const E = EL[u.castEl] || EL.neutre; const h = W(u, f, J.handF, kx, ky, sh); gl.globalAlpha = 0.7 + Math.sin(u.t * 30) * 0.2; gl.drawImage(FX.glowSprite(E.c), h[0] - 20 * s, h[1] - 20 * s, 40 * s, 40 * s); gl.globalAlpha = 1; }
+    if (u.buffs && u.buffs.elemblade && u.sword && J.sword != null) { const E = EL[u.elemMain] || EL.neutre; const a = W(u, f, J.handF, kx, ky, sh), b = W(u, f, [J.handF[0] + Math.cos(J.sword) * 34, J.handF[1] + Math.sin(J.sword) * 34], kx, ky, sh); gl.save(); gl.globalAlpha = 0.6; gl.strokeStyle = E.c; gl.lineWidth = 8 * s; gl.beginPath(); gl.moveTo(a[0], a[1]); gl.lineTo(b[0], b[1]); gl.stroke(); gl.restore(); }
+    // lignes de vitesse au dash
+    if (p === 'dash' || u._rush) { ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineCap = 'round'; const y = u.y - (u.z || 0); for (let i = 0; i < 5; i++) { const yy = y - s * (8 + i * 9), l = (26 + ((i * 37) % 23)) * s; ctx.lineWidth = (2.4 - i * 0.3) * s; ctx.beginPath(); ctx.moveTo(u.x - f * s * 14, yy); ctx.lineTo(u.x - f * (s * 14 + l), yy); ctx.stroke(); } ctx.restore(); }
+  }
+  const prevDN = drawNinja;
+  drawNinja = function (ctx, gl, u) { if (!u || !u.rig || !u.look) return prevDN.apply(this, arguments); try { return draw(ctx, gl, u); } catch (e) { if (!SE46.err) { SE46.err = String(e); console.warn('rig46', e); } ctx.restore && 0; return prevDN.apply(this, arguments); } };
+  /* ---------- Hit-stop sur contact (léger, sans flash) + finisseur stylé ---------- */
+  const baseDD = dealDamage;
+  dealDamage = function (src, tgt, amt, o) { const h0 = tgt && tgt.hp; const r = baseDD.apply(this, arguments);
+    try { if (o && o.melee && src && tgt && tgt.hp < h0 && (src.isPlayer || tgt.isPlayer)) { const p = src.pose; const ender = ATK[p] && ATK[p].ender; G.hitStop = Math.max(G.hitStop || 0, ender ? 0.075 : 0.045); if (ender) { Cam.punch = Math.max(Cam.punch || 0, 0.05); FX.ring && FX.ring(tgt.x, tgt.y - 30 * (tgt.size || 1), '#ffffff', 6, 70, 0.22, 4); SE46.ev.ender = (SE46.ev.ender || 0) + 1; } } } catch (e) {}
+    return r; };
+  /* ---------- Test de cohérence d'orientation ---------- */
+  SE46.check = function (u) { const out = { cases: 0, fails: [] }; const sv = { face: u.face, aim: u.aim, pose: u.pose, poseT: u.poseT, vx: u.vx, vy: u.vy, sword: u.sword };
+    const poses = ['idle', 'run', 'dash', 'atk1', 'atk2', 'atk3', 'atk4', 'slash1', 'slash2', 'slash3', 'cast', 'seal', 'throw', 'guard', 'hurt'];
+    try { for (let d = 0; d < 8; d++) { const aim = (d * Math.PI) / 4; for (const fs of Math.abs(Math.cos(aim)) < 0.01 ? [1, -1] : [Math.cos(aim) > 0 ? 1 : -1]) for (const ps of poses) for (const t of [0.1, 0.33, 0.5, 0.8]) { u.face = fs; u.aim = aim; u.pose = ps; u.poseT = t; u.sword = /slash|guard/.test(ps); u.vx = ps === 'run' ? Math.cos(aim) * 200 : 0; u.vy = ps === 'run' ? Math.sin(aim) * 200 : 0; if (u.rig) u.rig.pp = ninjaPose(u);
+          const Q = poseQ(u), J = solve(Q), f = u.face; const w = (p) => W(u, f, p, 1, 1, 0); out.cases++;
+          const toeF = w(J.toeF)[0] - w(J.ankF)[0], toeB = w(J.toeB)[0] - w(J.ankB)[0]; const chestDir = w(add(J.chest, [Math.cos(Q.lean + (Q.bend || 0)) * 7.8, 0]))[0] - w(J.chest)[0]; const nose = w([J.head[0] + 8, J.head[1]])[0] - w(J.head)[0];
+          const knee = (k) => { const h = w(J['hip' + k]), a = w(J['ank' + k]), n = w(J['knee' + k]); return Math.sign((n[0] - (h[0] + a[0]) / 2) * f + 0.001); };
+          const ok = Math.sign(toeF) === f && Math.sign(toeB) === f && Math.sign(chestDir) === f && Math.sign(nose) === f && knee('F') >= 0 && knee('B') >= 0 && Math.abs(J.head[0] - J.chest[0]) < 10;
+          if (!ok) out.fails.push({ d, fs, ps, t, toeF: +toeF.toFixed(1), toeB: +toeB.toFixed(1), chestDir: +chestDir.toFixed(1), nose: +nose.toFixed(1), kF: knee('F'), kB: knee('B') }); } } } finally { Object.assign(u, sv); if (u.rig) u.rig.pp = null; }
+    out.ok = !out.fails.length; return out; };
+  /* ---------- Guide et notes ---------- */
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody');
+    g.insertAdjacentHTML('afterbegin', `<section><h4>骨 Nouveau rig et animation (4.6)</h4><table><tr><td>Squelette</td><td>Racine › hanches › colonne › poitrine › cou › tête ; épaules › bras › avant-bras › main ; hanches › cuisse › tibia › pied. Cinématique directe + IK à 2 os (pieds plantés, mains sur cible). Une seule orientation pilote tout le corps : pieds, genoux, torse, tête et mains sont toujours tournés du même côté.</td></tr><tr><td>Combat</td><td>Poses clés : anticipation marquée, frappe éclair, pose tenue au contact, retour avec dépassement. Hit-stop court sans flash, grands arcs (smears), finisseurs (coup de pied retourné aérien, estoc) avec images rémanentes.</td></tr><tr><td>Mouvement</td><td>Course en arcs avec inclinaison (course ninja pour Naruto, Sasuke, Kakashi, Itachi, Minato), dash penché avec images rémanentes, respiration et transfert du poids à l’arrêt, atterrissage écrasé.</td></tr></table></section>`); };
+  SE3.NOTES.unshift({ v: '4.6 — Rig & ZZZ Animation', d: '20 octobre 2026', tag: 'Un tout nouveau squelette, et des combats qui claquent façon ZZZ.', s: [
+    ['Rig', ['Personnage entièrement refait : squelette hiérarchique (hanches, colonne, poitrine, cou, tête, bras, jambes, pieds), cinématique directe et IK à 2 os.', 'Une seule orientation pour tout le corps : fini les pieds tournés à l’opposé du torse (vérifié automatiquement dans les 8 directions).', 'Accessoires (bandeaux, masques, manteaux, armes) rattachés aux nouveaux os.']],
+    ['Animation façon ZZZ', ['Combo : anticipation, frappe éclair, pose tenue au contact, retour avec dépassement ; hit-stop court et sans flash.', 'Grands arcs de mouvement, finisseurs stylés (coup de pied retourné aérien, estoc plongeant) avec images rémanentes.', 'Course en arcs avec inclinaison (course ninja pour certains personnages), dash penché avec images rémanentes, respiration et transfert du poids à l’arrêt, atterrissage écrasé.']],
+    ['Confort', ['Impact frames toujours limités aux grands moments ; l’option « Réduire les flashs » reste respectée.']],
   ] });
 })();
 
