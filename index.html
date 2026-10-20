@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.6 Rig & ZZZ Animation</title>
+<title>Shinobi Éternel II — v4.6.1 Smears ZZZ</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6493,7 +6493,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.6';
+  const VERSION = '4.6.1';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -10709,7 +10709,7 @@ const Net = {
     const C = colors(u), alpha = u.alpha != null ? u.alpha : 1;
     // fantômes (afterimages) teintés, sans flash
     if (r.gh46.length) { const gc = u.isPlayer ? '#7fd8ff' : '#ff9a9a'; for (const g of r.gh46) { const k = 1 - (now - g.t) / 260; if (k <= 0) continue; ctx.save(); ctx.globalAlpha = 0.32 * k * alpha; ctx.translate(g.x, g.y); ctx.transform(g.kx, 0, g.sh, g.ky, 0, 0); ctx.scale(g.f * s, s); body(ctx, g.J, g.Q, Object.assign({}, C, { g: gc }), u, true); ctx.restore(); SE46.n.ghost++; } }
-    if (r.tr46.length > 2) drawSmear(ctx, u, r);
+    if (r.tr46.length > 2 && !SE46.noOldSmear) drawSmear(ctx, u, r);
     ctx.globalAlpha = alpha;
     if (!L.noScarf) drawRibbon(ctx, r.scarf, 7 * s, 3 * s, C.flash ? '#fff' : L.scarf === 'prism' ? `hsl(${(u.t * 120) % 360},90%,62%)` : L.scarf, true);
     if (L.band) drawRibbon(ctx, r.band, 3.5 * s, 2 * s, C.flash ? '#fff' : L.band, true);
@@ -10757,6 +10757,45 @@ const Net = {
     ['Animation façon ZZZ', ['Combo : anticipation, frappe éclair, pose tenue au contact, retour avec dépassement ; hit-stop court et sans flash.', 'Grands arcs de mouvement, finisseurs stylés (coup de pied retourné aérien, estoc plongeant) avec images rémanentes.', 'Course en arcs avec inclinaison (course ninja pour certains personnages), dash penché avec images rémanentes, respiration et transfert du poids à l’arrêt, atterrissage écrasé.']],
     ['Confort', ['Impact frames toujours limités aux grands moments ; l’option « Réduire les flashs » reste respectée.']],
   ] });
+})();
+/* v4.6.1 — Smears ZZZ en croissant (bien visibles, sans flash) + plus de chevauchement avec la cible pendant les combos */
+(function () {
+  const SE461 = (window.SE461 = { n: { smear: 0, push: 0 }, list: [] }); const SE46 = window.SE46; if (!SE46) return;
+  const COL = { naruto: '#ff9a2a', sasuke: '#8a7aff', kakashi: '#5ad8ff', itachi: '#ff4a5a', gai: '#5aff8a', lee: '#5aff8a', minato: '#ffe14a', gaara: '#e8c070', madara: '#ff6a3a', obito: '#c06bff', jiraiya: '#ff7ab0', hiruzen: '#9ad870', asuma: '#7ae8ff' };
+  const colOf = (u) => { const m = u.ms33 || (u._m35 && u._m35.id) || ''; for (const k in COL) if (m.includes(k)) return COL[k]; if (u.buffs && u.buffs.elemblade && EL[u.elemMain]) return EL[u.elemMain].c; if (u.isPlayer && u.look && u.look.scarf && u.look.scarf[0] === '#') return u.look.scarf; return u.isPlayer ? '#ffcf5a' : '#ff7a7a'; };
+  const LIFE = 0.07; // ≈ 4 images à 60 i/s
+  const lit = (c, k) => mixHex(c, '#ffffff', k);
+  function spawn(u) { const p = u.pose, D = SE46.ATK[p]; if (!D) return; const f = u.face >= 0 ? 1 : -1, s = u.size; const N = { hip: [0, -24], lean: 0.1, head: 0, fF: [8, 0], bF: [-8, 0], fH: [10, -35], bH: [3, -33], sword: u.sword ? -1.1 : null, rootY: 0, bend: 0.04 };
+    const QA = Object.assign({}, N, D.A), QS = Object.assign({}, N, D.S); const JA = SE46.solve(QA), JS = SE46.solve(QS);
+    const tipOf = (J) => (u.sword && J.sword != null ? [J.handF[0] + Math.cos(J.sword) * 32, J.handF[1] + Math.sin(J.sword) * 32] : /atk3|atk4/.test(p) ? J.toeF : p === 'atk2' ? J.handB : J.handF);
+    const c = JS.chest, a = tipOf(JA), b = tipOf(JS); let a0 = Math.atan2(a[1] - c[1], a[0] - c[0]), a1 = Math.atan2(b[1] - c[1], b[0] - c[0]); let d = a1 - a0; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; if (Math.abs(d) < 1.6) { const e = (1.6 - Math.abs(d)) / 2 * Math.sign(d || 1); a0 -= e; d += 2 * e; }
+    const R = Math.max(36, Math.hypot(b[0] - c[0], b[1] - c[1]) * 1.5) * (D.ender ? 1.35 : 1); SE461.list.push({ u, x: u.x, y: u.y - (u.z || 0), f, s, cx: c[0], cy: c[1], a0, d, R, t0: performance.now(), big: D.ender ? 1 : 0, col: colOf(u) }); SE461.n.smear++; }
+  function drawOne(ctx, S, k) { const n = 18, f = S.f, s = S.s; const P = (ang, r) => [S.x + f * s * (S.cx + Math.cos(ang) * r), S.y + s * (S.cy + Math.sin(ang) * r)];
+    const layer = (rOut, thick, col, al) => { ctx.globalAlpha = al; ctx.fillStyle = col; ctx.beginPath(); for (let i = 0; i <= n; i++) { const q = i / n, ang = S.a0 + S.d * q; const p = P(ang, rOut); ctx.lineTo(p[0], p[1]); }
+      for (let i = n; i >= 0; i--) { const q = i / n, ang = S.a0 + S.d * q, w = thick * Math.pow(Math.sin(q * Math.PI * 0.92 + 0.08), 0.8) * (0.35 + 0.65 * q); const p = P(ang, rOut - w); ctx.lineTo(p[0], p[1]); } ctx.closePath(); ctx.fill(); };
+    const th = (S.big ? 26 : 18) * (1 - k * 0.3); ctx.save();
+    layer(S.R + 4, th + 8, S.col, 0.28 * (1 - k)); layer(S.R, th, lit(S.col, 0.15), 0.72 * (1 - k * 0.6)); layer(S.R - 2, th * 0.45, lit(S.col, 0.75), 0.95 * (1 - k * 0.5));
+    // contour encre façon ZZZ
+    ctx.globalAlpha = 0.8 * (1 - k); ctx.strokeStyle = OUT; ctx.lineWidth = 1.6; ctx.beginPath(); for (let i = 0; i <= n; i++) { const p = P(S.a0 + S.d * (i / n), S.R + 0.8); ctx.lineTo(p[0], p[1]); } ctx.stroke();
+    if (S.big) { ctx.globalAlpha = 0.5 * (1 - k); ctx.strokeStyle = lit(S.col, 0.5); ctx.lineWidth = 3 * s; ctx.beginPath(); for (let i = 0; i <= n; i++) { const p = P(S.a0 + S.d * (i / n), S.R + 10); ctx.lineTo(p[0], p[1]); } ctx.stroke(); }
+    ctx.restore(); }
+  const prevDN = drawNinja;
+  drawNinja = function (ctx, gl, u) { if (u && u.rig && SE46.ATK[u.pose]) { const ph = SE46.phaseOf(Math.max(0, Math.min(1, u.poseT || 0))); const key = u.pose + ':' + (u.act && u.act.idx);
+      if ((ph === 'strike' || ph === 'hold') && u.rig.sm461 !== key + (u._atkN461 || 0)) { u.rig.sm461 = key + (u._atkN461 || 0); spawn(u); } if (ph === 'ant') u._atkN461 = (u._atkN461 || 0) + (u.rig.lastPh461 !== 'ant' ? 1 : 0); u.rig.lastPh461 = ph; }
+    else if (u && u.rig) u.rig.lastPh461 = null;
+    const res = prevDN.apply(this, arguments);
+    const now = performance.now(); for (let i = SE461.list.length - 1; i >= 0; i--) { const S = SE461.list[i]; if (S.u !== u) continue; if (!SE461.freeze) S.fr = (S.fr || 0) + 1; const k = Math.min((now - S.t0) / 1000 / (LIFE * 2.5), (S.fr - 1) / (S.big ? 5 : 4)); if (k >= 1) { SE461.list.splice(i, 1); continue; } S.x = u.x; S.y = u.y - (u.z || 0); try { drawOne(ctx, S, k); } catch (e) {} }
+    return res; };
+  // ancien smear trop discret : désactivé
+  SE46.noOldSmear = 1;
+  /* ---------- Pas de chevauchement joueur / cible pendant le combo ---------- */
+  const baseUU = updateUnit;
+  updateUnit = function (u, dt) { const r = baseUU.apply(this, arguments);
+    try { if (u && !u.dead && (u.isPlayer || u.team === 0) && u.body !== 'bj' && (u.body == null || u.body === 'ninja')) for (const v of G.units) { if (!v || v === u || v.dead || v.team === u.team || v.team === -1) continue; const dx = u.x - v.x, dy = u.y - v.y, d = Math.hypot(dx, dy), m = (u.r || 14) + (v.r || 14) + 4;
+        if (d < m && (v.dummy || (v.mass || 1) >= (u.mass || 1) || (u.act && u.act.type === 'melee'))) { const nx = d > 0.01 ? dx / d : -(u.face || 1), ny = d > 0.01 ? dy / d : 0; u.x = v.x + nx * m; u.y = v.y + ny * m; SE461.n.push++; } } } catch (e) {}
+    return r; };
+  SE3.NOTES.unshift({ v: '4.6.1 — Smears ZZZ', d: '20 octobre 2026', tag: 'Des arcs de frappe qu’on voit enfin.', s: [
+    ['Combat', ['Smears en croissant façon ZZZ sur chaque coup du combo : arc épais en 3 couches (halo, couleur, cœur clair) avec contour encré, couleur propre au personnage (Naruto orange, Sasuke violet, Kakashi cyan, Itachi rouge, Gai/Lee vert…), durée de 4 images, plus grands sur les finisseurs. Aucun flash.', 'Le personnage ne se colle plus et ne passe plus à travers le mannequin ou l’ennemi pendant un combo.']]] });
 })();
 
 </script>
