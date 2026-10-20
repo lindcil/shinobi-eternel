@@ -1,3 +1,5 @@
+Modes créatifs : choc de Bijūdama (score), entraîneur de chocs, créateur de moveset + simulation IA, simulateur de boss, labo (45 réactions, ultimes, duos), éditeur de maîtrise. Accès : écran titre/QG, panneau créatif, manette.
+
 - 29 nouvelles réactions : 10 triples, 5 quadruples, 1 quintuple (Six Voies, cinématique)
 - Chaînes : après une réaction double, la cible garde ses éléments 5 s ; un 3e/4e/5e élément enchaîne
 - Interactions dōjutsu / kekkei genkai / techniques : Vent + Amaterasu, Kamui + explosion, Byakugan + Poing Souple, Sharingan + genjutsu, Rinnegan + gravité, Mokuton vs Bijū, sable + eau, Chidori conducteur, vortex Rasen, détonation en chaîne, Totsuka, miroirs de glace, renvoi céleste
