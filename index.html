@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.1 Skill Tree Constellation</title>
+<title>Shinobi Éternel II — v4.2 Combat & Animation</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.1';
+  const VERSION = '4.2';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -8376,7 +8376,7 @@ const Net = {
   };
   /* ---------- Choc de projectiles ---------- */
   // poids : 0 = outil (dévié), 1 = petit, 2 = gros (ne peut pas être dévié), 3 = Bijūdama (gagne contre tout)
-  const big = (p) => p.shape === 'bijuu' && (p.r >= 28 || /bijudama|bj9_.*(dama|bomb)/.test(p.tech || ''));
+  const big = (p) => !!p._big || p.shape === 'bijuu' && (p.r >= 28 || /bijudama|bj9_.*(dama|bomb)/.test(p.tech || ''));
   const W = (p) => (big(p) ? 3 : p.cat === 'outil' || p.shape === 'kunai' || p.shape === 'shuriken' ? 0 : p.fused || p.shape === 'bijuu' || (p.ex || 0) >= 140 || p.r >= 22 || p.shape === 'dragon' || p.shape === 'shark' ? 2 : 1);
   SE34.weight = W;
   function spark(x, y, z, c, s) { FX.add({ type: 'flash', x, y, z, c: '#ffffff', size: 10 * s, size2: 50 * s, life: 0.14, a: 1, imp: 1 }); FX.ring(x, y, c, 4, 40 * s, 0.22, 4); for (let i = 0; i < 6; i++) FX.add({ type: 'ember', x, y, z, vx: rand(-260, 260), vy: rand(-200, 200), vz: rand(60, 260), c, size: rand(2, 4), life: 0.35 }); }
@@ -8427,7 +8427,7 @@ const Net = {
   /* ---------- Bijūdama : explosion nucléaire ---------- */
   const baseEX = explodeProj;
   explodeProj = function (p) {
-    if (big(p) && !p._nuked) { p._nuked = 1; SE34.nuke = { p, x: p.x, y: p.y, t: 0, phase: 'dark', R: p.ex || 300 }; G.slowT = 0.5; G.slowS = 0.25; Audio.play('charge'); SE34.ev.nuke = 1; return; }
+    if (big(p) && !p._nuked && !SE34.nuke) { p._nuked = 1; SE34.nuke = { p, x: p.x, y: p.y, t: 0, phase: 'dark', R: p.ex || 300, c: p._bigC }; G.slowT = 0.5; G.slowS = 0.25; Audio.play('charge'); SE34.ev.nuke = 1; return; }
     return baseEX.apply(this, arguments);
   };
   function updNuke(dt) {
@@ -9649,8 +9649,10 @@ const Net = {
     tree('sas_kirin', { title: 'Kirin', k: '麒', d2: 'Kirin céleste' }); tree('bj_bijudama', { title: 'Bijūdama', k: '尾', d2: 'Bijūdama massive', d2fx: { beh: 'odama', r: 3, dmg: 2, cost: 1.5 }, d3: 'Rafale de Bijūdama' });
     tree('nej_kaiten', { title: 'Hakkeshō Kaiten', k: '回', d2: 'Grand Kaiten' }); tree('ita_tsukuyomi', { title: 'Tsukuyomi', k: '月' }); tree('mad_meteore', { title: 'Tengai Shinsei', k: '隕', d2: 'Double météore' }); tree('mad_arbres', { title: 'Jukai Kōtan', k: '樹' });
     for (const id of ['eau_dragon', 'eau_vague', 'vent_lame', 'vent_tornade', 'foudre_chaine', 'foudre_lame', 'terre_mur', 'terre_lances', 'tai_cent', 'tai_ouragan', 'ken_iai', 'ken_croissant', 'ken_danse', 'gen_prison', 'glace_lances', 'lave_globes', 'bois_dragon', 'kunai_ex', 'shuriken', 'onde', 'sas_nagashi', 'ita_corbeaux', 'kak_ninken', 'tai_lotus']) tree(id);
+    for (const f of SE41.more || []) try { f(tree); } catch (e) {}
     SE41.count = Object.keys(SE41.TREES).length;
   }
+  SE41.rebuild = () => build();
   /* ---------- Profil, points, maîtrise ---------- */
   const creaUI = () => G.mode === 'creative' || SE41.crea;
   function store() { const p = P(); if (!p) return {}; p.cst41 = p.cst41 || {}; p.cst41c = p.cst41c || {}; p.mastC = p.mastC || {}; return creaUI() ? p.cst41c : p.cst41; }
@@ -9773,6 +9775,321 @@ const Net = {
     ['Monde', ['Les PNJ contournent maintenant les maisons et les boutiques au lieu de les traverser.']],
   ] });
   build();
+})();
+/* v4.2 — Combat & Animation : sceaux + fusions, ruées sans téléportation, chocs QTE, katana, ultimes de mode et de Susanoo,
+   clan Sarutobi (Hiruzen, Asuma), techniques générales, spéciales de Naruto, Susanoo de la Vallée de la Fin */
+(function () {
+  const SE42 = (window.SE42 = { ev: {}, FUS: [] }); const SE36 = window.SE36, SE33 = window.SE33, SE3 = window.SE3;
+  const ev = (k, v) => { SE42.ev[k] = v != null ? v : (SE42.ev[k] || 0) + 1; };
+  const foes = (u, x, y, r) => G.units.filter((v) => alive(v) && v.team !== u.team && v.team !== -1 && dist2(x, y, v.x, v.y) < (r + v.r) ** 2);
+  const ELc = (e) => (EL[e] || EL.neutre).c;
+  /* =================== Impact frames (12 principes : anticipation, contraste, exagération) =================== */
+  let IMP = null, impLast = 0;
+  SE42.impact = function (x, y, c, k = 1) { const n = performance.now(); if (n - impLast < 220) return; impLast = n; IMP = { x, y, c: c || '#ffffff', t: 0, k }; G.hitStop = Math.max(G.hitStop || 0, 0.06 * k); Cam.add(0.35 * k); Cam.punch = Math.max(Cam.punch || 0, 0.06 * k); ev('impact'); };
+  const baseDD = dealDamage;
+  dealDamage = function (src, tgt, amt, o) { const hp0 = tgt && tgt.hp; const r = baseDD.apply(this, arguments);
+    try { if (src && tgt && (src.isPlayer || tgt.isPlayer) && hp0 != null) { const lost = hp0 - tgt.hp; const T = o && o.tech && TECH[o.tech];
+        if (lost > tgt.maxHp * 0.16 || (T && T.rar >= 5 && lost > 40) || (o && o.imp42)) SE42.impact(tgt.x, tgt.y - 30, o && o.el ? ELc(o.el) : '#fff', lost > tgt.maxHp * 0.3 ? 1.4 : 1); } } catch (e) {}
+    return r; };
+  /* =================== Cinématique façon Bijūdama (assombrissement → impact frame → onde de choc) =================== */
+  let CINE = null;
+  SE42.cine = function (x, y, R, c, fn, label) { if (CINE) { fn && fn(); return; } CINE = { x, y, R, c: c || '#c06bff', t: 0, ph: 'dark', fn, label }; G.slowT = 0.5; G.slowS = 0.25; Audio.play('charge'); ev('cine'); if (label) FX.text(x, y - 120, label, c, 22, true); };
+  function updCine(dt) { const C = CINE; if (!C) return; C.t += dt;
+    if (C.ph === 'dark' && C.t > 0.45) { C.ph = 'imp'; C.t = 0; try { C.fn && C.fn(); } catch (e) { console.warn('cine', e); } Cam.add(1.3); Cam.punch = 0.12; G.hitStop = Math.max(G.hitStop, 0.1); Post.shock(C.x, C.y, 2, C.R * 3);
+      for (let i = 0; i < 3; i++) FX.ring(C.x, C.y, i ? '#ffffff' : C.c, 20, C.R * (1.3 + i * 0.6), 0.6 + i * 0.25, 14 - i * 3); FX.smoke(C.x, C.y, 30, '#1a1022', 16, 40, 240); Audio.play('boom', 1.5); }
+    else if (C.ph === 'imp' && C.t > 0.12) { C.ph = 'wave'; C.t = 0; } else if (C.ph === 'wave' && C.t > 1) CINE = null; }
+  SE42.cineOn = () => !!CINE;
+  /* =================== Sceaux : incantation courte + fusion =================== */
+  const SEALS42 = [['寅', 'Tora'], ['巳', 'Mi'], ['戌', 'Inu'], ['丑', 'Ushi'], ['辰', 'Tatsu'], ['未', 'Hitsuji'], ['申', 'Saru'], ['酉', 'Tori'], ['卯', 'U'], ['子', 'Ne'], ['亥', 'I'], ['午', 'Uma']];
+  const noWind = (T) => !T || T.kind === 'dash' || T.kind === 'teleport' || T.kind === 'launcher' || T.cat === 'outil' || T.cat === 'taijutsu' || T.cat === 'kenjutsu' || T.id === 'v_burst' || T.noWind || T.beast;
+  const windDur = (T) => 0.3 + 0.075 * clamp((T.rar || 1) - 1, 0, 4);
+  SE42.windDur = windDur;
+  const M = (x) => (typeof x === 'string' ? (T) => T && (T.id === x || ('el:' + T.el) === x || (x === 'clone' && /clones/.test(T.id)) || (x === 'rasengan' && /^(spirale|bj_rasen|nar_rasen_nuke)$/.test(T.id)) || (x === 'chidori' && /chidori|raikiri/.test(T.id)) || (x === 'amaterasu' && /amaterasu|kagutsuchi/.test(T.id)) || (x === 'kamui' && /kamui/.test(T.id)) || (x === 'sand' && /^gaa_/.test(T.id)) || (x === 'smoke' && /fumee/.test(T.id))) : x);
+  // {a, b, n, k, base:'a'|'b'|id, mod, beh}
+  const F = (a, b, n, k, base, mod, beh, d) => SE42.FUS.push({ a: M(a), b: M(b), n, k, base, mod: mod || {}, beh, d: d || '' });
+  F('el:feu', 'el:vent', 'Tempête de feu', '炎嵐', 'a', { r: 1.8, dmg: 1.7, st: { heat: 30, bleed: 15 }, cnt: 1 }, null, 'Feu attisé par le vent : une boule de feu gigantesque.');
+  F('rasengan', 'el:vent', 'Rasenshuriken', '螺旋手裏剣', 'a', { el: 'vent', dmg: 1.6 }, 'orbit', 'Rasengan + Vent : deux sphères orbitent puis détonent.');
+  F('clone', 'rasengan', 'Rasengan lancé par un clone', '影螺', 'b', { dmg: 1.5 }, 'clonethrow', 'Un clone apparaît, attrape le Rasengan et le jette sur l’ennemi.');
+  F('el:eau', 'el:foudre', 'Vague d’orage', '嵐波', 'a', { el: 'foudre', st: { wet: 40, shock: 0.8 }, dmg: 1.6, r: 1.4 }, 'wave', 'Eau conductrice + Foudre : vague électrifiée.');
+  F('el:feu', 'el:terre', 'Torrent de lave', '溶遁', 'a', { el: 'lave', st: { heat: 40 }, dmg: 1.5 }, 'wave');
+  F('el:feu', 'el:eau', 'Nuée de vapeur', '沸遁', 'b', { st: { heat: 20, wet: 20 }, dmg: 1.4 }, 'steam');
+  F('el:eau', 'el:vent', 'Tempête de glace', '氷遁', 'a', { el: 'glace', st: { slow: 1.6 }, dmg: 1.5, cnt: 2 }, null);
+  F('el:terre', 'el:eau', 'Forêt naissante', '木遁', 'a', { el: 'bois', st: { root: 1.2 }, dmg: 1.4 }, 'roots');
+  F('el:terre', 'el:foudre', 'Argile détonante', '爆遁', 'a', { el: 'explosion', dmg: 1.6, ex: 160 }, 'burst');
+  F('chidori', 'el:vent', 'Chidori tranchant', '千鳥鋭槍', 'a', { el: 'foudre', dmg: 1.5, rng: 1.6 }, 'rushX');
+  F('chidori', 'el:feu', 'Chidori embrasé', '炎千鳥', 'a', { el: 'foudre', st: { heat: 25, shock: 0.7 }, dmg: 1.5 }, 'rushX');
+  F('amaterasu', 'el:vent', 'Tornade de flammes noires', '黒炎嵐', 'a', { el: 'noir', st: { black: 4 }, dmg: 1.6 }, 'blacktornado');
+  F('el:feu', 'el:foudre', 'Plasma ardent', '熾雷', 'a', { el: 'explosion', st: { heat: 25, shock: 0.5 }, dmg: 1.6 }, 'burst');
+  F('el:vent', 'el:foudre', 'Tempête d’éclairs', '嵐遁', 'b', { st: { shock: 0.9, bleed: 10 }, dmg: 1.5 }, 'chain');
+  F('shuriken', 'el:vent', 'Shuriken de vent', '風手裏剣', 'a', { cnt: 6, spr: 0.9, dmg: 1.8, el: 'vent' }, null);
+  F('kunai_ex', 'el:feu', 'Kunai incendiaire', '火苦無', 'a', { ex: 180, dmg: 2, el: 'feu', st: { heat: 30 } }, null);
+  F('clone', 'el:feu', 'Clones embrasés', '火分身', 'a', {}, 'elemclones');
+  F('rasengan', 'el:feu', 'Rasengan Volcan', '火螺旋', 'a', { el: 'feu', st: { heat: 35 }, dmg: 1.5, r: 1.5 }, null);
+  F('rasengan', 'el:foudre', 'Rasengan Fulgurant', '雷螺旋', 'a', { el: 'foudre', st: { shock: 0.9 }, dmg: 1.5 }, null);
+  F('rasengan', 'el:eau', 'Rasengan Abyssal', '水螺旋', 'a', { el: 'eau', st: { wet: 50 }, dmg: 1.4, r: 1.6 }, null);
+  F('sand', 'el:eau', 'Sable mouvant', '流砂', 'a', { st: { slow: 2, root: 0.8 }, dmg: 1.4 }, 'roots');
+  F('terre_mur', 'el:feu', 'Rempart de lave', '溶壁', 'a', { el: 'lave' }, 'lavawall');
+  F('bj_bijudama', 'rasengan', 'Bijūdama Rasengan', '尾螺旋', 'a', { dmg: 1.5 }, null);
+  F('kamui', 'el:explosion', 'Kamui explosif', '神威爆', 'b', { dmg: 1.8, ex: 200 }, 'burst');
+  F('smoke', 'el:feu', 'Fumée explosive', '煙爆', 'a', { dmg: 1.6 }, 'burst');
+  F('clone', 'clone', 'Tajū Kage Bunshin', '多重影分身', 'a', {}, 'moreclones');
+  SE42.fusionOf = function (A, B) { for (const f of SE42.FUS) { if (f.a(A) && f.b(B)) return { f, base: f.base === 'a' ? A : f.base === 'b' ? B : TECH[f.base], other: f.base === 'a' ? B : A }; if (f.a(B) && f.b(A)) return { f, base: f.base === 'a' ? B : f.base === 'b' ? A : TECH[f.base], other: f.base === 'a' ? A : B }; } return null; };
+  function discover(n, k) { const p = P(); if (!p) return; p.fus42 = p.fus42 || {}; const first = !p.fus42[n]; p.fus42[n] = (p.fus42[n] || 0) + 1; Profile.save(); banner(n, first ? 'NOUVELLE FUSION !' : 'FUSION', '#ffd27a', first ? 'Ajoutée au Codex des fusions (Guide)' : ''); }
+  function doFusion(u, W, id2, ang, tgt) { const A = TECH[W.id], B = TECH[id2]; const R = SE42.fusionOf(A, B);
+    const cost = techCost(u, A) + techCost(u, B) * 0.5; if (u.ch < cost) { denyCast(u, 'Chakra insuffisant pour la fusion (' + Math.ceil(cost) + ')', null); return false; }
+    u.ch -= cost; u.cds[A.id] = A.cd * (u.cdMul || 1); u.cds[B.id] = B.cd * (u.cdMul || 1) * 0.7;
+    let base, n, k, mod, beh; if (R) { base = R.base; n = R.f.n; k = R.f.k; mod = R.f.mod; beh = R.f.beh; } else { base = (A.dmg || 0) >= (B.dmg || 0) ? A : B; const o = base === A ? B : A; n = 'Fusion : ' + A.n + ' × ' + B.n; k = '合'; mod = { dmg: 1.35, st: Object.assign({}, o.st || {}) }; beh = null; }
+    const X = Object.assign({}, base, { _f42: 1, _fn: n }); X.st = Object.assign({}, base.st || {}, mod.st || {}); if (mod.dmg) X.dmg = (X.dmg || 30) * mod.dmg; if (mod.r && X.r) X.r *= mod.r; if (mod.rng && X.rng) X.rng *= mod.rng; if (mod.el) X.el = mod.el; if (mod.cnt) { X.cnt = (X.cnt || 1) + mod.cnt; X.spr = Math.max(X.spr || 0, mod.spr || 0.45); } if (mod.ex) X.ex = Math.max(X.ex || 0, mod.ex);
+    FX.kanji(u.x, u.y, 120 * u.size, k, '#ffd27a', 26, 0.9); FX.ring(u.x, u.y, '#ffd27a', 20, 150, 0.4, 8); SE42.impact(u.x, u.y - 40, '#ffd27a', 0.8); Audio.play('fusion');
+    discover(n, k); ev('fusion', n); u.aim = ang;
+    runBeh(u, X, beh, ang, tgt); return true; }
+  function runBeh(u, X, beh, ang, tgt) { const pw = techPower(u, X); const pt = aimPoint(u, ang, X.rng || 460, tgt); const E = ELc(X.el);
+    switch (beh) {
+      case 'orbit': return orbitDet(u, X, ang, tgt);
+      case 'clonethrow': { const c = spawnSummon(u, 'clone', u.x - Math.cos(ang) * 40, u.y - Math.sin(ang) * 40, 3); FX.smoke(u.x, u.y, 10, '#e8e4f0', 8, 16, 70);
+        const Y = Object.assign({}, X, { kind: 'proj', spd: 640, r: Math.max(24, X.r || 20), life: 1.1, ex: 170, shape: 'orb', pierce: 0 }); G.delayed.push({ t: 0.25, f: () => { const s = c && alive(c) ? c : u; if (s.pose !== undefined) { s.pose = 'throw'; s.poseT = 0; } spawnProj(s === u ? u : u, Y, ang, pw * 1.2, s.x, s.y); FX.text(s.x, s.y - 90, 'Tiens !', '#ffd27a', 14, true); } }); return; }
+      case 'wave': { const Y = Object.assign({}, TECH.eau_vague || X, { el: X.el, st: X.st, dmg: X.dmg, _f42: 1 }); return execTech(u, Y, ang, tgt); }
+      case 'steam': addZone('steam', pt.x, pt.y, 170, 6, u); return burstAt(u, X, pt.x, pt.y, 170, 0.8);
+      case 'roots': { const Y = Object.assign({}, TECH.bois_racines || X, { el: X.el, st: X.st, dmg: X.dmg, _f42: 1 }); return execTech(u, Y, ang, tgt); }
+      case 'burst': execTech(u, X, ang, tgt); G.delayed.push({ t: 0.4, f: () => burstAt(u, X, pt.x, pt.y, X.ex || 150, 0.9) }); return;
+      case 'rushX': return rush(u, X, ang, tgt, { el: X.el, len: 1.25 });
+      case 'blacktornado': addZone('blackfire', pt.x, pt.y, 150, 6, u); addZone('tornado', pt.x, pt.y, 150, 4, u); return burstAt(u, X, pt.x, pt.y, 180, 1);
+      case 'chain': execTech(u, X, ang, tgt); { let last = pt; const hit = new Set(); for (let i = 0; i < 4; i++) G.delayed.push({ t: 0.1 * i, f: () => { const v = G.units.filter((w) => alive(w) && w.team !== u.team && w.team !== -1 && !hit.has(w)).sort((a, b) => dist2(a.x, a.y, last.x, last.y) - dist2(b.x, b.y, last.x, last.y))[0]; if (!v || dist(v.x, v.y, last.x, last.y) > 400) return; hit.add(v); FX.bolt(last.x, last.y, 40, v.x, v.y, 40, '#9ad8ff', 0.2, 3); dealDamage(u, v, X.dmg * 0.6 * pw, { el: 'foudre', st: X.st, tech: X.id }); last = v; } }); } return;
+      case 'elemclones': return elemClones(u, ang, tgt, 'feu');
+      case 'moreclones': for (let i = 0; i < 4; i++) spawnSummon(u, 'clone', u.x + Math.cos(i * 1.57) * 60, u.y + Math.sin(i * 1.57) * 60, 10); FX.smoke(u.x, u.y, 18, '#e8e4f0', 12, 20, 120); return;
+      case 'lavawall': execTech(u, X, ang, tgt); addZone('lava', pt.x, pt.y, 130, 6, u); return;
+      default: return execTech(u, X, ang, tgt); } }
+  function burstAt(u, X, x, y, R, k) { const pw = techPower(u, X); const E = ELc(X.el); for (const v of foes(u, x, y, R)) dealDamage(u, v, (X.dmg || 40) * pw * k, { el: X.el, st: X.st, kb: 320, kbA: Math.atan2(v.y - y, v.x - x), tech: X.id }); FX.ring(x, y, E, 10, R, 0.45, 10); FX.glow(x, y, 30, E, R * 0.8, 0.35); FX.element && FX.element(x, y, 20, X.el, 1.4); Post.shock(x, y, 0.7, R * 1.4); Audio.play('boom', 0.8); }
+  SE42.burstAt = burstAt;
+  function orbitDet(u, X, ang, tgt) { const E = ELc(X.el); const pt = aimPoint(u, ang, 520, tgt); ev('orbit');
+    for (let i = 0; i < 2; i++) { let k = 0; const step = () => { if (!alive(u)) return; k += 0.05; const a = k * 9 + i * Math.PI; const fly = Math.max(0, (k - 0.7) / 0.35); const ox = u.x + Math.cos(a) * 60, oy = u.y + Math.sin(a) * 40; const x = ox + (pt.x - ox) * Math.min(1, fly), y = oy + (pt.y - oy) * Math.min(1, fly);
+        FX.glow(x, y, 40, E, 70, 0.14); FX.glow(x, y, 40, '#ffffff', 26, 0.1); if (k < 1.05) G.delayed.push({ t: 0.05, f: step }); else if (i === 0) { burstAt(u, X, pt.x, pt.y, 150, 0.8); G.delayed.push({ t: 0.18, f: () => burstAt(u, X, pt.x, pt.y, 290, 1) }); } }; step(); } }
+  function elemClones(u, ang, tgt, el) { el = el || u.elemMain || 'feu'; const tech = { feu: 'feu_boule', vent: 'vent_lame', eau: 'eau_balle', foudre: 'foudre_loup', terre: 'terre_boulet' }[el] || 'feu_boule'; FX.smoke(u.x, u.y, 18, '#e8e4f0', 12, 20, 100);
+    for (let i = 0; i < 3; i++) { const c = spawnSummon(u, 'clone', u.x + Math.cos(ang + (i - 1) * 1.2) * 70, u.y + Math.sin(ang + (i - 1) * 1.2) * 70, 6); if (!c) continue; c._elem42 = el; c.look = Object.assign({}, c.look || {}, { scarf: ELc(el) });
+      G.delayed.push({ t: 0.35 + i * 0.12, f: () => { if (alive(c) && TECH[tech]) { const e = nearestEnemy(c, 700); const a = e ? Math.atan2(e.y - c.y, e.x - c.x) : ang; spawnProj(c, TECH[tech], a, techPower(u, TECH[tech])); FX.kanji(c.x, c.y, 90, '分', ELc(el), 16, 0.5); } } }); }
+    ev('elemclones'); }
+  const baseTry = tryCast;
+  tryCast = function (u, id, ang, tgt) {
+    if (!u || !u.isPlayer || u._w42skip || !id || !TECH[id]) return baseTry.apply(this, arguments);
+    const T = TECH[id];
+    if (u._wind) { if (u._wind.id === id) return false; if (noWind(T) && T.cat !== 'outil') return baseTry.apply(this, arguments);
+      if (!canCast(u, id) && !(u.cds[id] > 0 ? false : true)) return false; if ((u.cds[id] || 0) > 0) { denyCast(u, 'Recharge : ' + TECH[id].n, null); return false; }
+      const W = u._wind; u._wind = null; return doFusion(u, W, id, u.aim != null ? u.aim : ang, tgt || W.tgt); }
+    if (noWind(T) || G.mode === 'demo' || SE42.noWind) return baseTry.apply(this, arguments);
+    if (castBlockReason(u, id) || !canCast(u, id) || (u.act && !u.act.cancelable)) return baseTry.apply(this, arguments);
+    const dur = windDur(T) * (u.buffs && u.buffs.gates ? 0.7 : 1); u._wind = { id, ang, tgt, t: 0, dur, n: 0 }; u.pose = 'seal'; u.poseT = 0; ev('wind');
+    const p = P(); if (p && !p.tut42) { p.tut42 = 1; Profile.save(); banner('Sceaux', 'FUSION', '#ffd27a', 'Lance une 2e technique pendant les sceaux pour les fusionner !'); }
+    return true; };
+  function tickWind(u, dt) { const W = u._wind; if (!W) return; W.t += dt; u.pose = 'seal';
+    const ns = Math.max(2, Math.round(W.dur / 0.15)); const want = Math.floor((W.t / W.dur) * ns); while (W.n < Math.min(ns, want + 1)) { const s = SEALS42[(hashStr(W.id) + W.n) % 12]; FX.kanji(u.x + (W.n - ns / 2) * 22, u.y, 100 * u.size + 8, s[0], ELc(TECH[W.id].el), 24, 0.55); FX.text(u.x + (W.n - ns / 2) * 22, u.y - 136 * u.size, s[1], '#ffe9a0', 12, true); Audio.play('seal', 0.4); W.n++; }
+    if (u.st && (u.st.shock > 0 || u.st.freeze > 0 || u.st.stun > 0 || u.st.fear > 0 || u.st.bound > 0) || u.dead) { u._wind = null; return; }
+    if (W.t >= W.dur) { u._wind = null; u._w42skip = 1; try { baseTry.call(null, u, W.id, u.aim != null ? u.aim : W.ang, u.target || W.tgt); } finally { u._w42skip = 0; } } }
+  /* =================== Ruées : Rasengan / Chidori / ruée — on court (boost) et on détone au premier ennemi =================== */
+  const RUSH = { spirale: { el: 'neutre', c: '#7ab8ff' }, bj_rasen: { el: 'neutre', c: '#ffb13d' }, nar_rasen_nuke: null, ow_chidori: { el: 'foudre', c: '#9ad8ff' }, kak_raikiri: { el: 'foudre', c: '#9ad8ff' }, tai_meteore: { el: 'neutre', c: '#ffd27a' } };
+  SE42.RUSH = RUSH;
+  function rush(u, T, ang, tgt, o = {}) { const X = window.SE41 && SE41.shaped ? SE41.shaped(u, T) || T : T; const big = X.r && T.r ? X.r / T.r : 1; const B = X._beh || [];
+    if (B.includes('rshur')) { if (window.SE41) SE41.ev.rshur = (SE41.ev.rshur || 0) + 1; return orbitDet(u, X, ang, tgt); } if (B.includes('odama') && window.SE41) SE41.ev.odama = X.r;
+    u._rush = { T: X, t: 0, dur: (o.len || 1) * 0.95, sp: X.noBoost ? 1.0 : 2.6, c: (RUSH[T.id] && RUSH[T.id].c) || ELc(o.el || X.el), el: o.el || (RUSH[T.id] && RUSH[T.id].el) || X.el, R: Math.max(30, (X.r || 20) * 1.6), big, ang };
+    u.act = { type: 'channel', t: 0, dur: u._rush.dur + 0.05, cancelable: false }; u.pose = 'run'; u.aim = ang; ev('rush', T.id); Audio.play('charge', 0.5); }
+  SE42.rush = rush;
+  function tickRush(u, dt) { const R = u._rush; if (!R) return; R.t += dt; if (u.dead) { u._rush = null; return; }
+    const s = u.ctrl && u.ctrl.state; if (s && Math.hypot(s.mx || 0, s.my || 0) > 0.3) R.ang = angLerp(R.ang, Math.atan2(s.my, s.mx), Math.min(1, dt * 5)); else if (u.target && alive(u.target)) R.ang = angLerp(R.ang, Math.atan2(u.target.y - u.y, u.target.x - u.x), Math.min(1, dt * 3));
+    const sp = (u.spd || 220) * R.sp; u.x += Math.cos(R.ang) * sp * dt; u.y += Math.sin(R.ang) * sp * dt; u.vx = Math.cos(R.ang) * 40; u.vy = Math.sin(R.ang) * 40; if (G.map) { u.x = clamp(u.x, 30, G.map.w - 30); u.y = clamp(u.y, 30, G.map.h - 30); } u.face = Math.cos(R.ang) >= 0 ? 1 : -1; u.aim = R.ang; u.pose = 'run'; if (u.act) u.act.t = Math.min(u.act.t, u.act.dur - 0.05);
+    const hx = u.x + Math.cos(R.ang) * (22 + R.R * 0.4), hy = u.y + Math.sin(R.ang) * (22 + R.R * 0.4);
+    FX.glow(hx, hy, 34, R.c, R.R * 1.1, 0.08); if (R.el === 'foudre') FX.bolt(hx, hy, 34, hx + rand(-50, 50), hy + rand(-40, 40), 34 + rand(-20, 20), '#ffffff', 0.08, 2); else FX.ring(hx, hy, R.c, R.R * 0.3, R.R * 0.7, 0.12, 3);
+    if (SE34 && SE34.addGhost && Math.random() < 0.4) SE34.addGhost(u, 0.35);
+    const hit = foes(u, hx, hy, R.R * 0.9 + 10)[0]; if (hit) return detonate(u, R, hit, hx, hy);
+    if (R.t >= R.dur) detonate(u, R, null, hx, hy); }
+  const angLerp = (a, b, k) => a + angDiff(a, b) * k;
+  function detonate(u, R, v, x, y) { u._rush = null; u.vx *= 0.2; u.vy *= 0.2; if (u.act && u.act.type === 'channel') u.act = null; const T = R.T; const pw = techPower(u, T); const k = v ? 1 : 0.55;
+    // choc de techniques : l'adversaire est lui-même en pleine ruée ou incantation
+    if (v && (v._rush || (v.act && v.act.type === 'cast')) && (v.boss || v.elite || v.isPlayer || v.ms33)) { if (skillClash(u, v, T, x, y)) return; }
+    const BR = Math.max(90, R.R * 2.4) * (R.big > 3 ? 1.6 : 1);
+    for (const w of foes(u, x, y, BR)) dealDamage(u, w, T.dmg * 2.4 * pw * k * (w === v ? 1 : 0.6), { el: R.el, st: T.st, kb: 900, kbA: R.ang, tech: T.id, imp42: !!v });
+    FX.ring(x, y, R.c, 10, BR, 0.4, 10); FX.ring(x, y, '#ffffff', 10, BR * 0.7, 0.3, 5); FX.glow(x, y, 30, R.c, BR, 0.3); Post.shock(x, y, 1, BR * 1.6); Audio.play('heavy'); if (R.el === 'foudre') for (let i = 0; i < 6; i++) FX.bolt(x, y, 30, x + rand(-BR, BR), y + rand(-BR, BR), rand(10, 80), '#9ad8ff', 0.2, 3);
+    if (v) SE42.impact(x, y, R.c, R.big > 3 ? 1.5 : 1.1); ev('detonate', v ? 'hit' : 'air'); const B = T._beh || []; if (B.includes('burst')) G.delayed.push({ t: 0.3, f: () => burstAt(u, T, x, y, 140, 0.5) }); if (B.includes('echo')) G.delayed.push({ t: 0.35, f: () => burstAt(u, T, x, y, BR * 0.8, 0.55) }); }
+  /* =================== Choc de techniques (QTE) =================== */
+  let clashT = 0;
+  function skillClash(u, v, T, x, y) { if (performance.now() - clashT < 6000 || !SE35 || !SE35.runQTE || !(u.isPlayer || v.isPlayer)) return false; clashT = performance.now(); const pl = u.isPlayer ? u : v, op = pl === u ? v : u;
+    v._rush = null; FX.add({ type: 'flash', x, y, z: 40, c: '#ffffff', size: 30, size2: 200, life: 0.3, a: 1, imp: 1 }); SE42.impact(x, y, '#ffffff', 1.3); ev('clash');
+    SE35.runQTE({ type: 'mash', title: 'Choc de techniques ! ' + T.n, dur: 3.2, k: 0.075, decay: 0.16, maxMiss: 0 }, (win) => { const w = win ? pl : op, l = win ? op : pl; ev('clashEnd', win ? 'win' : 'lose');
+      if (alive(l)) dealDamage(w, l, Math.max(60, (T.dmg || 60) * 3 * techPower(w, T)), { el: T.el, kb: 1200, kbA: Math.atan2(l.y - w.y, l.x - w.x), tech: T.id, imp42: 1 });
+      FX.ring(x, y, win ? '#ffd27a' : '#ff5a5a', 20, 320, 0.6, 12); Post.shock(x, y, 1.6, 500); banner(win ? 'Choc remporté !' : 'Choc perdu…', 'CHOC DE TECHNIQUES', win ? '#ffd27a' : '#ff5a5a'); }); return true; }
+  SE42.skillClash = skillClash;
+  // projectiles lourds qui se croisent (joueur impliqué) → QTE au lieu de s'annuler
+  const baseUP = updateProjs;
+  updateProjs = function (dt) { try { updCine(dt); const P_ = G.projs; if (P_.length > 1 && performance.now() - clashT > 6000 && window.SE34 && SE34.weight) {
+        for (let i = 0; i < P_.length; i++) { const a = P_[i]; if (a.dead || a._clash || a.delay > 0 || SE34.weight(a) !== 2) continue; for (let j = i + 1; j < P_.length; j++) { const b = P_[j]; if (b.dead || b._clash || b.team === a.team || b.delay > 0 || SE34.weight(b) !== 2) continue;
+            if (!((a.owner && a.owner.isPlayer) || (b.owner && b.owner.isPlayer))) continue; if (dist2(a.x, a.y, b.x, b.y) > (a.r + b.r) ** 2) continue;
+            const pa = a.owner && a.owner.isPlayer ? a : b, pb = pa === a ? b : a; clashT = performance.now(); a._clash = b._clash = 1; const sv = [a.vx, a.vy, b.vx, b.vy]; a.vx = a.vy = b.vx = b.vy = 0; a.life = b.life = 99; ev('pclash'); SE42.impact((a.x + b.x) / 2, (a.y + b.y) / 2, '#fff', 1.2);
+            SE35.runQTE({ type: 'mash', title: 'Choc de techniques !', dur: 3, k: 0.075, decay: 0.16, maxMiss: 0 }, (win) => { const w = win ? pa : pb, l = win ? pb : pa; l.dead = true; const k = G.projs.indexOf(l); if (k >= 0) G.projs.splice(k, 1); const o = l.owner; const an = o && alive(o) ? Math.atan2(o.y - w.y, o.x - w.x) : Math.atan2(sv[1], sv[0]); w.vx = Math.cos(an) * 620; w.vy = Math.sin(an) * 620; w.life = 1.5; w.dmg *= 1.6; w._clash = 0; w.hit && w.hit.clear(); ev('pclashEnd', win ? 'win' : 'lose'); banner(win ? 'Choc remporté !' : 'Choc perdu…', 'CHOC DE TECHNIQUES', win ? '#ffd27a' : '#ff5a5a'); });
+            i = P_.length; break; } } } } catch (e) { console.warn('se42 up', e); } return baseUP.apply(this, arguments); };
+  /* =================== Katana : arme réelle =================== */
+  const hasKat = (u) => { if (!u || !u.isPlayer) return false; const A = window.SE37 && SE37.accOf ? SE37.accOf(u) : u.acc; return !!(A && A.dos === 'arme_katana'); };
+  SE42.hasKat = hasKat;
+  const baseSM = startMelee;
+  startMelee = function (u) { if (hasKat(u)) { u.sword = true; u._kat = 1; if (u.act && u.act.type === 'dash' && !u._iaiT) { // Iai : M1 pendant l'esquive = dégainage éclair
+        u._iaiT = G.t + 0.6; const a = u.aim || 0, x0 = u.x, y0 = u.y; const d = 170; u.x += Math.cos(a) * d; u.y += Math.sin(a) * d; FX.slash(x0, y0, 40, d, a - 0.15, a + 0.15, '#e8f0ff', 6, 0.35, '#ffffff');
+        for (const v of foes(u, (x0 + u.x) / 2, (y0 + u.y) / 2, 100)) dealDamage(u, v, 34 * u.atk * (u.melMul || 1) * 1.6, { el: 'neutre', st: { bleed: 20 }, melee: 1, kb: 260, kbA: a, imp42: 1 }); Audio.play('slash', 1.3); ev('iai'); return; } }
+    else if (u && u._kat) { u._kat = 0; }
+    return baseSM.apply(this, arguments); };
+  const baseMH = meleeHit;
+  meleeHit = function (u, idx) { const r = baseMH.apply(this, arguments); if (u && u._kat) { const a = u.aim || 0; const R = 105; FX.slash(u.x, u.y, 36, R, a - 1.1, a + 1.1, '#e8f0ff', 5, 0.22, '#9ab4ff');
+      for (const v of foes(u, u.x + Math.cos(a) * 60, u.y + Math.sin(a) * 60, 70)) if (!v._katHit || v._katHit < G.t) { v._katHit = G.t + 0.12; dealDamage(u, v, 10 * u.atk * (u.melMul || 1), { el: 'neutre', st: { bleed: 8 }, melee: 1, kb: 80, kbA: a }); }
+      if (idx === u.maxCombo && TECH.ken_croissant) { const Y = Object.assign({}, TECH.ken_croissant, { dmg: TECH.ken_croissant.dmg * 0.6 }); spawnProj(u, Y, a, techPower(u, Y)); ev('katWave'); } ev('katHit'); }
+    return r; };
+  /* =================== Techniques (kits, générales, spéciales) =================== */
+  const TT = (id, n, cat, el, cost, cd, dmg, rar, p, desc, fn) => { T(id, n, cat, el, 'm36', cost, cd, dmg, rar, Object.assign({ m42: 1 }, p || {}), desc); SE36.H[id] = fn; };
+  const proj = (u, base, ang, mod, pw) => { const Y = Object.assign({ kind: 'proj', spd: 600, r: 14, life: 1.2 }, base, mod || {}); return spawnProj(u, Y, ang, pw != null ? pw : techPower(u, Y)); };
+  const bigProj = (u, T, ang, o) => { const p = proj(u, T, ang, Object.assign({ shape: 'orb' }, o.mod || {})); p._big = 1; p._bigC = o.c; p.c = o.c; p.s42 = o.s42; p.ex = o.ex || 300; p.r = o.r || 30; return p; };
+  // --- Hiruzen Sarutobi
+  TT('hir_shuriken', 'Shuriken Kage Bunshin', 'ninjutsu', 'neutre', 18, 7, 9, 4, { kit42: 'hiruzen' }, 'Un shuriken lancé se multiplie en une nuée de dizaines de clones d’ombre.', (u, T, a) => {
+    proj(u, TECH.shuriken, a, { cnt: 1, dmg: 12 }); G.delayed.push({ t: 0.18, f: () => { if (!alive(u)) return; FX.smoke(u.x + Math.cos(a) * 120, u.y + Math.sin(a) * 120, 10, '#e8e4f0', 6, 14, 60); for (let i = 0; i < 18; i++) spawnProj(u, Object.assign({}, TECH.shuriken, { dmg: T.dmg, spd: 900 + rand(-60, 60), cnt: 1 }), a + (i / 17 - 0.5) * 1.1, techPower(u, T), u.x + Math.cos(a) * 120, u.y + Math.sin(a) * 120); ev('hirShur'); } }); });
+  TT('hir_dragon', 'Katon : Karyū Endan', 'ninjutsu', 'feu', 34, 10, 120, 5, { kit42: 'hiruzen', r: 30 }, 'Un dragon-missile de flammes jaillit de la bouche et laisse une traînée de feu.', (u, T, a) => {
+    const p = proj(u, TECH.feu_dragon || {}, a, { dmg: T.dmg, r: 30, spd: 620, life: 1.5, ex: 160, el: 'feu', st: { heat: 40 } }); p._trail42 = 'fire'; FX.kanji(u.x, u.y, 110, '龍', '#ff7a2b', 20, 0.6); });
+  TT('hir_mur', 'Doton : Doryūheki', 'ninjutsu', 'terre', 26, 12, 40, 4, { kit42: 'hiruzen' }, 'Un mur de terre à têtes de dragon se dresse en arc et repousse les ennemis.', (u, T, a) => {
+    const W0 = TECH.terre_mur; for (let i = -2; i <= 2; i++) G.delayed.push({ t: Math.abs(i) * 0.06, f: () => { const aa = a + i * 0.32, x = u.x + Math.cos(aa) * 150, y = u.y + Math.sin(aa) * 150; if (W0) baseExec42(u, Object.assign({}, W0, { _f42: 1 }), aa, null); FX.debris(x, y, '#8a6a4a', 8, 200); for (const v of foes(u, x, y, 60)) dealDamage(u, v, T.dmg * techPower(u, T), { el: 'terre', kb: 500, kbA: aa, tech: T.id }); } }); FX.kanji(u.x, u.y, 110, '土', '#c8a070', 20, 0.6); });
+  TT('hir_enma', 'Roi Enma : Bâton adamantin', 'ninjutsu', 'terre', 30, 12, 140, 5, { kit42: 'hiruzen' }, 'Invoque le Roi Singe Enma transformé en bâton adamantin : il s’allonge et balaie tout.', (u, T, a) => {
+    FX.smoke(u.x, u.y, 14, '#e8e4f0', 10, 16, 90); FX.kanji(u.x, u.y, 120, '閻', '#c8b070', 24, 0.8); u._enma = G.t + 6; ev('enma');
+    for (let k = 0; k < 3; k++) G.delayed.push({ t: 0.15 + k * 0.28, f: () => { if (!alive(u)) return; const aa = (u.aim || a) + (k - 1) * 0.6, L = 360; FX.slash(u.x, u.y, 40, L, aa - 0.5, aa + 0.5, '#c8b070', 14, 0.35, '#fff4d6');
+        for (const v of foes(u, u.x, u.y, L)) if (Math.abs(angDiff(aa, Math.atan2(v.y - u.y, v.x - u.x))) < 0.55) dealDamage(u, v, T.dmg * techPower(u, T) * 0.5, { el: 'terre', kb: 700, kbA: aa, tech: T.id }); Cam.add(0.3); Audio.play('heavy', 0.8); } }); });
+  TT('hir_shiki', 'Shiki Fūjin : Sceau du Dieu de la Mort', 'fuinjutsu', 'neutre', 60, 60, 400, 5, { kit42: 'hiruzen', ult42: 1 }, 'Ultime au prix terrible : le Shinigami scelle l’âme de l’ennemi. Les sbires sont scellés net, les boss perdent 35 % de leurs PV et sont scellés ; tu perds la moitié de tes PV et 25 % de tes PV max pour le combat.', (u, T, a, tg) => {
+    const v = tg && alive(tg) ? tg : nearestEnemy(u, 700); u.hp = Math.max(1, u.hp * 0.5); u.maxHp = Math.round(u.maxHp * 0.75); u.hp = Math.min(u.hp, u.maxHp); ev('shiki');
+    SE42.cine(u.x, u.y, 260, '#b0a0ff', () => { if (!v || !alive(v)) return; if (v.boss) { dealDamage(u, v, v.maxHp * 0.35, { el: 'neutre', tech: T.id, imp42: 1, st: { seal: 6 } }); } else { dealDamage(u, v, v.hp + 999, { el: 'neutre', tech: T.id, imp42: 1 }); } FX.kanji(v.x, v.y, 120, '封', '#b0a0ff', 40, 1.2); }, 'Shiki Fūjin !');
+    SE42.spectre = { u, t: 0 }; });
+  // --- Asuma Sarutobi
+  TT('asu_lames', 'Lames de chakra (Vent)', 'ninjutsu', 'vent', 16, 12, 0, 4, { kit42: 'asuma' }, 'Les poings américains canalisent le vent : lames allongées, coups de base +40 %, portée +60, saignement (10 s).', (u, T) => { u._asuma = G.t + 10; FX.ring(u.x, u.y, '#9fe8c8', 10, 90, 0.35, 6); FX.kanji(u.x, u.y, 110, '刃', '#9fe8c8', 20, 0.6); ev('asuLames'); });
+  TT('asu_cendres', 'Haisekishō : Nuée de cendres', 'ninjutsu', 'feu', 22, 3, 30, 4, { kit42: 'asuma' }, '1er lancer : un nuage de cendres brûlantes ralentit. 2e lancer (dans les 6 s) : claque des dents et tout le nuage s’embrase.', (u, T, a, tg) => {
+    const C = u._ash42; if (C && C.until > G.t) { u._ash42 = null; burstAt(u, Object.assign({}, T, { el: 'feu', st: { heat: 45 }, dmg: T.dmg * 4 }), C.x, C.y, 200, 1); FX.text(C.x, C.y - 80, 'Embrasement !', '#ff7a2b', 18, true); ev('asuIgnite'); return; }
+    const pt = aimPoint(u, a, 320, tg); addZone('ash', pt.x, pt.y, 190, 6, u); FX.smoke(pt.x, pt.y, 30, '#4a4248', 20, 40, 180); u._ash42 = { x: pt.x, y: pt.y, until: G.t + 6 }; u.cds[T.id] = 0.6; ev('asuAsh'); });
+  TT('asu_hien', 'Hien : Hirondelle volante', 'ninjutsu', 'vent', 18, 6, 70, 4, { kit42: 'asuma' }, 'Une lame de vent fine et perçante file en ligne droite et traverse tout.', (u, T, a) => { proj(u, TECH.vent_lame || {}, a, { dmg: T.dmg, pierce: 9, spd: 1100, r: 12, life: 0.7, el: 'vent', st: { bleed: 20 } }); FX.slash(u.x, u.y, 36, 160, a - 0.12, a + 0.12, '#9fe8c8', 5, 0.25); });
+  TT('asu_ultime', 'Danse des lames de vent', 'ninjutsu', 'vent', 40, 30, 60, 5, { kit42: 'asuma', ult42: 1 }, 'Ultime : six coups de lames de vent en tourbillon, puis le nuage de cendres explose autour de toi.', (u, T, a) => {
+    for (let i = 0; i < 6; i++) G.delayed.push({ t: i * 0.1, f: () => { if (!alive(u)) return; const aa = a + i * 1.05; FX.slash(u.x, u.y, 36, 170, aa - 0.8, aa + 0.8, '#9fe8c8', 8, 0.25, '#ffffff'); for (const v of foes(u, u.x, u.y, 170)) dealDamage(u, v, T.dmg * techPower(u, T) * 0.5, { el: 'vent', st: { bleed: 10 }, kb: 120, kbA: aa, tech: T.id }); } });
+    G.delayed.push({ t: 0.75, f: () => alive(u) && SE42.cine(u.x, u.y, 220, '#ff7a2b', () => burstAt(u, Object.assign({}, T, { el: 'feu', dmg: T.dmg * 3 }), u.x, u.y, 240, 1), 'Haisekishō !') }); });
+  // --- Techniques générales
+  TT('gen_fumee_ex', 'Bombe de fumée explosive', 'ninjutsu', 'explosion', 16, 9, 60, 3, {}, 'Un écran de fumée te dissimule (les ennemis perdent ta trace), puis explose 1,5 s plus tard.', (u, T, a) => { const x = u.x, y = u.y; FX.smoke(x, y, 34, '#c8c4d0', 26, 40, 200); addZone('mist', x, y, 170, 2, u); u._hide42 = G.t + 1.6; for (const v of foes(u, x, y, 500)) if (v.target === u) v.target = null;
+    G.delayed.push({ t: 1.5, f: () => burstAt(u, T, x, y, 170, 1) }); ev('fumee'); });
+  TT('gen_clones_elem', 'Clones élémentaires', 'ninjutsu', 'neutre', 28, 14, 0, 4, {}, 'Trois clones teintés de ton élément principal projettent chacun une technique élémentaire.', (u, T, a, tg) => elemClones(u, a, tg, u.elemMain));
+  TT('nar_rasen_nuke', 'Rasengan nucléaire', 'ninjutsu', 'neutre', 50, 30, 260, 5, {}, 'Un Rasengan d’une densité folle : explosion « nucléaire » avec cinématique (assombrissement, impact, onde).', (u, T, a) => { bigProj(u, Object.assign({}, T, { spd: 380, life: 1.6 }), a, { c: '#7ab8ff', ex: 320, r: 32 }); FX.glow(u.x, u.y, 40, '#7ab8ff', 80, 0.3); });
+  // --- Spéciales de Naruto
+  TT('nar_lancer', 'Lancer de clone', 'ninjutsu', 'neutre', 20, 7, 60, 4, { kit42: 'naruto' }, 'Un clone t’attrape et te lance : tu fonces sans téléportation et frappes au premier contact (avec un Rasengan si tu le connais).', (u, T, a, tg) => {
+    const c = spawnSummon(u, 'clone', u.x - Math.cos(a) * 30, u.y - Math.sin(a) * 30, 1.2); FX.smoke(u.x, u.y, 10, '#e8e4f0', 8, 14, 70); FX.text(u.x, u.y - 100, 'Vas-y !', '#ffd27a', 14, true);
+    const Y = Object.assign({}, TECH.spirale || T, { id: 'nar_lancer', dmg: T.dmg * 1.3, r: 22, n: T.n }); rush(u, Y, a, tg, { len: 0.7, el: 'neutre' }); if (u._rush) u._rush.sp = 3.6; ev('narLancer'); });
+  TT('nar_rendan', 'Uzumaki Rendan', 'taijutsu', 'neutre', 18, 8, 70, 4, { kit42: 'naruto' }, 'Quatre clones frappent la cible vers le haut (U-zu-ma-ki !) puis tu termines d’un talon.', (u, T, a, tg) => {
+    const v = tg && alive(tg) ? tg : nearestEnemy(u, 260); if (!v) return; const nm = ['U', 'Zu', 'Ma', 'Ki'];
+    for (let i = 0; i < 4; i++) G.delayed.push({ t: i * 0.14, f: () => { if (!alive(v)) return; FX.smoke(v.x + rand(-30, 30), v.y + 20, 8, '#e8e4f0', 5, 12, 50); FX.text(v.x, v.y - 60 - i * 16, nm[i] + ' !', '#ff8a2b', 16, true); dealDamage(u, v, T.dmg * 0.35 * techPower(u, T), { el: 'neutre', st: { knockup: 0.4 }, melee: 1, tech: T.id, kb: 60 }); } });
+    G.delayed.push({ t: 0.7, f: () => { if (!alive(v)) return; FX.text(v.x, v.y - 140, 'Rendan !', '#ffd27a', 20, true); dealDamage(u, v, T.dmg * 1.4 * techPower(u, T), { el: 'neutre', melee: 1, tech: T.id, kb: 700, kbA: a, imp42: 1 }); FX.ring(v.x, v.y, '#ffd27a', 10, 120, 0.35, 8); } }); ev('rendan'); });
+  TT('nar_recharge', 'Clones : énergie naturelle', 'ninjutsu', 'neutre', 0, 25, 0, 4, { kit42: 'naruto' }, 'Des clones méditent et te transmettent l’énergie (ou le chakra de Kurama) : +45 % chakra, prochaine technique ×1,8.', (u, T) => {
+    for (let i = 0; i < 3; i++) { const c = spawnSummon(u, 'clone', u.x + Math.cos(i * 2.1) * 80, u.y + Math.sin(i * 2.1) * 80, 1.6); if (c) { c.ai = null; c.pose = 'seal'; } }
+    G.delayed.push({ t: 1.2, f: () => { if (!alive(u)) return; u.ch = Math.min(u.maxCh, u.ch + u.maxCh * 0.45); u._pow42 = 1.8; FX.ring(u.x, u.y, '#ffb13d', 10, 140, 0.5, 8); FX.text(u.x, u.y - 110, 'Énergie absorbée !', '#ffb13d', 16, true); } }); ev('recharge'); });
+  TT('nar_avatar', 'Avatar de Kurama : Bijūdama multiples', 'ninjutsu', 'neutre', 70, 40, 220, 5, { kit42: 'naruto', ult42: 1 }, 'L’avatar de chakra de Kurama aux bras et têtes multiples tire plusieurs Bijūdama à la fois.', (u, T, a) => {
+    FX.kanji(u.x, u.y, 150, '九', '#ffb13d', 40, 1); for (let i = 0; i < 4; i++) G.delayed.push({ t: 0.15 * i, f: () => { if (!alive(u)) return; const p = proj(u, Object.assign({}, T, { spd: 420, life: 1.6, ex: i === 0 ? 300 : 200 }), a + (i - 1.5) * 0.28, { shape: 'bijuu', r: i === 0 ? 34 : 24, el: 'neutre' }); p.c = '#ffb13d'; if (i === 0) { p._big = 1; p._bigC = '#ffb13d'; } } }); ev('avatar'); });
+  TT('nar_planetaire', 'Rasengan planétaire', 'ninjutsu', 'vent', 55, 30, 240, 5, { kit42: 'naruto', ult42: 1 }, 'Une sphère centrale et ses satellites de Rasengan : orbite, puis explosion cinématique.', (u, T, a) => { const p = bigProj(u, Object.assign({}, T, { spd: 360, life: 1.7 }), a, { c: '#9fe8c8', ex: 300, r: 30, s42: 'planet' }); ev('planet'); });
+  TT('nar_bijuu_shur', 'Rasenshuriken à queues', 'ninjutsu', 'vent', 70, 40, 320, 5, { kit42: 'naruto', ult42: 1 }, 'Rasenshuriken infusé du chakra de Kurama : cinématique Bijūdama, choc QTE contre les Susanoo.', (u, T, a) => { bigProj(u, Object.assign({}, T, { spd: 420, life: 1.8 }), a, { c: '#ffb13d', ex: 340, r: 36, s42: 'rshur' }); ev('tbRshur'); });
+  // --- Sasuke : Susanoo de la Vallée de la Fin
+  const SUSV = '#9a5aff';
+  TT('sas_indra', 'Flèche d’Indra', 'ninjutsu', 'foudre', 70, 40, 340, 5, { kit42: 'sasuke', ult42: 1, sus42: 1 }, 'Le Susanoo parfait bande son arc : flèche de foudre colossale (cinématique, choc QTE contre une Bijūdama).', (u, T, a) => { bigProj(u, Object.assign({}, T, { spd: 520, life: 1.6, el: 'foudre' }), a, { c: SUSV, ex: 340, r: 32, s42: 'arrow' }); FX.kanji(u.x, u.y, 150, '因', SUSV, 36, 0.9); ev('indra'); });
+  TT('sas_indra_bijuu', 'Flèche d’Indra des neuf Bijū', 'ninjutsu', 'foudre', 80, 45, 400, 5, { kit42: 'sasuke', ult42: 1, sus42: 1 }, 'La flèche d’Indra chargée du chakra des Bijū : plus grosse, aux couleurs des neuf queues.', (u, T, a) => { bigProj(u, Object.assign({}, T, { spd: 480, life: 1.8, el: 'foudre' }), a, { c: '#ff7ad9', ex: 380, r: 38, s42: 'arrow9' }); ev('indra9'); });
+  TT('sas_sus_chidori', 'Lame Chidori du Susanoo', 'ninjutsu', 'foudre', 40, 14, 180, 5, { kit42: 'sasuke', sus42: 1 }, 'Le Susanoo enveloppe sa lame de Chidori : grande entaille électrique en arc.', (u, T, a) => { const R = 380; FX.slash(u.x, u.y, 90, R, a - 1, a + 1, SUSV, 18, 0.6, '#ffffff'); for (let i = 0; i < 8; i++) FX.bolt(u.x, u.y, 80, u.x + Math.cos(a + rand(-1, 1)) * R, u.y + Math.sin(a + rand(-1, 1)) * R, 30, '#c8a0ff', 0.25, 3);
+    for (const v of foes(u, u.x, u.y, R)) if (Math.abs(angDiff(a, Math.atan2(v.y - u.y, v.x - u.x))) < 1.05) dealDamage(u, v, T.dmg * techPower(u, T), { el: 'foudre', st: { shock: 0.8 }, kb: 600, kbA: a, tech: T.id, imp42: 1 }); Cam.add(0.6); });
+  TT('sas_armure', 'Armure de Kagutsuchi', 'ninjutsu', 'noir', 35, 25, 30, 5, { kit42: 'sasuke' }, 'Flammes d’Amaterasu façonnées en armure : −35 % dégâts subis et brûlure noire au contact (8 s).', (u, T) => { u._kag42 = G.t + 8; FX.ring(u.x, u.y, '#2a0a3a', 10, 120, 0.5, 10); FX.kanji(u.x, u.y, 120, '炎', '#b070ff', 24, 0.7); ev('kagArmor'); });
+  TT('sas_fleches', 'Flèches Chidori', 'ninjutsu', 'foudre', 26, 8, 40, 4, { kit42: 'sasuke' }, 'Cinq flèches de Chidori en éventail, qui paralysent.', (u, T, a) => { for (let i = 0; i < 5; i++) { const p = proj(u, {}, a + (i - 2) * 0.16, { dmg: T.dmg, spd: 980, r: 9, life: 0.8, el: 'foudre', st: { shock: 0.5 }, id: T.id }); p.c = '#c8a0ff'; p.s42 = 'arrowS'; } ev('chidArrows'); });
+  // --- Ultimes de Susanoo (cinématique Bijūdama)
+  TT('ita_totsuka', 'Épée de Totsuka', 'ninjutsu', 'neutre', 60, 40, 300, 5, { sus42: 1, ult42: 1 }, 'L’épée scellante du Susanoo d’Itachi transperce et scelle la cible (cinématique).', (u, T, a, tg) => { const v = tg && alive(tg) ? tg : nearestEnemy(u, 600); const x = v ? v.x : u.x + Math.cos(a) * 300, y = v ? v.y : u.y + Math.sin(a) * 300;
+    SE42.cine(x, y, 200, '#ff5a3a', () => { FX.slash(u.x, u.y, 80, dist(u.x, u.y, x, y) + 40, Math.atan2(y - u.y, x - u.x) - 0.05, Math.atan2(y - u.y, x - u.x) + 0.05, '#ff7a5a', 16, 0.5, '#fff'); for (const w of foes(u, x, y, 140)) dealDamage(u, w, T.dmg * techPower(u, T), { el: 'neutre', st: { seal: 5 }, tech: T.id, imp42: 1 }); FX.kanji(x, y, 120, '封', '#ff5a3a', 36, 1); }, 'Totsuka no Tsurugi'); ev('totsuka'); });
+  TT('ita_yata', 'Miroir de Yata', 'ninjutsu', 'neutre', 40, 30, 0, 5, { sus42: 1, ult42: 1 }, 'Le bouclier réfléchissant du Susanoo : invulnérable 3 s, renvoie les projectiles.', (u, T) => { u.iframe = Math.max(u.iframe || 0, 3); u.buffs.mirror = 3; u._yata = G.t + 3; FX.ring(u.x, u.y, '#ff5a3a', 20, 120, 0.6, 12); ev('yata'); });
+  TT('mad_sus_meteore', 'Météore du Susanoo', 'ninjutsu', 'terre', 70, 45, 360, 5, { sus42: 1, ult42: 1 }, 'Madara fait tomber un météore puis un second, enveloppés par le Susanoo parfait (cinématique).', (u, T, a, tg) => { const pt = aimPoint(u, a, 420, tg); SE42.cine(pt.x, pt.y, 300, '#4a7aff', () => { burstAt(u, Object.assign({}, T, { el: 'terre' }), pt.x, pt.y, 320, 1); FX.debris(pt.x, pt.y, '#5a4a3a', 30, 420); }, 'Tengai Shinsei'); ev('madMet'); });
+  TT('mad_sus_lame', 'Tranchant du Susanoo parfait', 'ninjutsu', 'neutre', 60, 35, 320, 5, { sus42: 1, ult42: 1 }, 'Deux entailles du Susanoo parfait qui fendent l’horizon (cinématique).', (u, T, a) => { SE42.cine(u.x + Math.cos(a) * 200, u.y + Math.sin(a) * 200, 300, '#4a7aff', () => { for (const s of [-1, 1]) { FX.slash(u.x, u.y, 100, 520, a - 0.9 * s, a + 0.9 * s, '#4a7aff', 22, 0.8, '#ffffff'); } for (const v of foes(u, u.x, u.y, 520)) if (Math.abs(angDiff(a, Math.atan2(v.y - u.y, v.x - u.x))) < 1) dealDamage(u, v, T.dmg * techPower(u, T), { el: 'neutre', kb: 900, kbA: a, tech: T.id, imp42: 1 }); }, 'Susanoo parfait'); ev('madSlash'); });
+  TT('kak_kamui_shur', 'Shuriken Kamui du Susanoo', 'ninjutsu', 'neutre', 60, 35, 300, 5, { sus42: 1, ult42: 1 }, 'Le Susanoo de Kakashi lance un shuriken de Kamui qui efface l’espace à l’impact (cinématique, choc QTE).', (u, T, a) => { bigProj(u, Object.assign({}, T, { spd: 560, life: 1.5 }), a, { c: '#5ad8ff', ex: 300, r: 30, s42: 'kshur' }); ev('kamuiShur'); });
+  /* =================== Rendu des projectiles spéciaux =================== */
+  const baseDP = drawProj;
+  drawProj = function (ctx, gl, p) { if (!p.s42) return baseDP.apply(this, arguments); const x = p.x, y = p.y - (p.z || 30), a = Math.atan2(p.vy, p.vx), t = performance.now() / 1000, c = p.c || '#fff', r = p.r;
+    ctx.save(); ctx.translate(x, y); ctx.shadowColor = c; ctx.shadowBlur = 24;
+    if (p.s42 === 'arrow' || p.s42 === 'arrow9' || p.s42 === 'arrowS') { ctx.rotate(a); const L = p.s42 === 'arrowS' ? 34 : r * 4; ctx.strokeStyle = c; ctx.lineWidth = p.s42 === 'arrowS' ? 3 : r * 0.35; ctx.beginPath(); ctx.moveTo(-L, 0); ctx.lineTo(L * 0.6, 0); ctx.stroke(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(L, 0); ctx.lineTo(L * 0.5, -r * 0.5); ctx.lineTo(L * 0.5, r * 0.5); ctx.fill();
+      if (p.s42 !== 'arrowS') for (let i = 0; i < 3; i++) { ctx.strokeStyle = p.s42 === 'arrow9' ? ['#ff7a2b', '#ffd27a', '#9a5aff'][i] : '#e8d0ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-L * Math.random(), rand(-r, r)); ctx.lineTo(L * 0.4, rand(-r * 0.3, r * 0.3)); ctx.stroke(); } }
+    else if (p.s42 === 'kshur') { ctx.rotate(t * 18); ctx.fillStyle = c; for (let i = 0; i < 4; i++) { ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(r * 0.6, -r * 0.3, r * 1.4, 0); ctx.quadraticCurveTo(r * 0.6, r * 0.2, 0, 0); ctx.fill(); } ctx.fillStyle = '#0a1a2a'; ctx.beginPath(); ctx.arc(0, 0, r * 0.3, 0, TAU); ctx.fill(); }
+    else if (p.s42 === 'rshur') { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, TAU); ctx.fill(); ctx.rotate(t * 20); ctx.fillStyle = c + 'cc'; for (let i = 0; i < 4; i++) { ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.moveTo(0, -r * 0.3); ctx.lineTo(r * 2.2, -r * 0.1); ctx.lineTo(r * 2, r * 0.3); ctx.lineTo(0, r * 0.3); ctx.fill(); } }
+    else if (p.s42 === 'planet') { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, 0, r * 0.7, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, r * 0.35, 0, TAU); ctx.fill(); for (let i = 0; i < 3; i++) { const aa = t * 6 + i * 2.09; ctx.fillStyle = '#bfefff'; ctx.beginPath(); ctx.arc(Math.cos(aa) * r * 1.5, Math.sin(aa) * r * 0.8, r * 0.3, 0, TAU); ctx.fill(); } }
+    ctx.restore(); };
+  /* =================== Mise à jour des unités : sceaux, ruées, buffs =================== */
+  const baseUU = updateUnit;
+  updateUnit = function (u, dt) { if (u._wind) tickWind(u, dt); const r = baseUU.apply(this, arguments); if (u._rush) tickRush(u, dt);
+    if (u._kag42 > G.t && Math.random() < 0.3) { FX.add({ type: 'glow', x: u.x + rand(-20, 20), y: u.y, z: rand(10, 70), vz: 40, c: '#1a0a22', size: 14, life: 0.5 }); for (const v of foes(u, u.x, u.y, 50)) if (!v._kagT || v._kagT < G.t) { v._kagT = G.t + 0.5; dealDamage(u, v, 6 * u.atk, { el: 'noir', st: { black: 2 }, noMark: 1 }); } }
+    if (u._asuma > G.t && Math.random() < 0.2) FX.add({ type: 'spark', x: u.x + Math.cos(u.aim || 0) * 40, y: u.y + Math.sin(u.aim || 0) * 40, z: 40, c: '#9fe8c8', size: 3, life: 0.2 });
+    if (u._hide42 > G.t) u.alpha = 0.35; else if (u._hide42) { u._hide42 = 0; u.alpha = 1; }
+    return r; };
+  // Asuma (lames de vent) et Kagutsuchi : modificateurs de dégâts
+  const baseDD2 = dealDamage;
+  dealDamage = function (src, tgt, amt, o) { o = o || {}; if (src && src._asuma > G.t && o.melee) { amt *= 1.4; o.st = Object.assign({ bleed: 10 }, o.st || {}); }
+    if (tgt && tgt._kag42 > G.t) amt *= 0.65; if (src && src._pow42 && o.tech && !o.melee) { amt *= src._pow42; src._pow42 = 0; }
+    return baseDD2.call(this, src, tgt, amt, o); };
+  const baseMH2 = meleeHit; meleeHit = function (u, idx) { const r = baseMH2.apply(this, arguments); if (u && u._asuma > G.t) { const a = u.aim || 0; FX.slash(u.x, u.y, 36, 130, a - 0.5, a + 0.5, '#9fe8c8', 4, 0.2); for (const v of foes(u, u.x + Math.cos(a) * 95, u.y + Math.sin(a) * 95, 45)) if (dist(u.x, u.y, v.x, v.y) > 70) dealDamage(u, v, 8 * u.atk, { el: 'vent', melee: 1, st: { bleed: 6 } }); } return r; };
+  /* =================== Exécution : ruées sans téléportation =================== */
+  const baseExec42 = execTech;
+  execTech = function (u, T, ang, tgt) { if (T && !T._f42 && RUSH[T.id] !== undefined && RUSH[T.id] && u && (u.isPlayer || u.team !== 0)) { const pw = 1; return rush(u, T, ang, tgt); } return baseExec42.apply(this, arguments); };
+  /* =================== Movesets : clan Sarutobi + ajouts Naruto / Sasuke, ultimes de mode =================== */
+  const L = (hair, outfit, scarf, o) => Object.assign({ hair, outfit, scarf }, o || {});
+  if (SE33 && SE33.MS) {
+    SE33.CHARS.hiruzen = 'Hiruzen Sarutobi'; SE33.CHARS.asuma = 'Asuma Sarutobi';
+    SE33.MS.hiruzen = { n: 'Hiruzen Sarutobi', k: '猿', c: '#c8b070', el: 'feu', look: L('#d8d8d8', '#c84a2a', '#f2f2f2', { hat: 1 }), sk: ['hir_shuriken', 'hir_dragon', 'hir_mur', 'hir_enma'], ult: 'hir_shiki', combo: 'Professeur : chaque 4e coup lance un shuriken de clone.' };
+    SE33.MS.asuma = { n: 'Asuma Sarutobi', k: '飛', c: '#9fe8c8', el: 'vent', look: L('#2a1a10', '#3a5a3a', '#e8e4dc', { beard: 1 }), sk: ['asu_lames', 'asu_hien', 'asu_cendres', 'vent_lame'], ult: 'asu_ultime', combo: 'Poings américains : les coups de base allongent une lame de vent.' };
+    const hc = new WeakMap(); SE33.MSFX.hiruzen = (s, t) => { const n = (hc.get(s) || 0) + 1; hc.set(s, n); if (n % 4 === 0 && TECH.shuriken) spawnProj(s, TECH.shuriken, Math.atan2(t.y - s.y, t.x - s.x), s.atk); };
+    SE33.MSFX.asuma = (s, t, o) => { o.st = Object.assign({ bleed: 1 }, o.st || {}); };
+    const N = SE33.MS.naruto; if (N) { N.sk = [...new Set([...N.sk, 'nar_lancer', 'nar_rendan', 'nar_recharge'])]; N.ult42 = ['nar_bijuu_shur', 'nar_planetaire', 'nar_avatar']; }
+    const S = SE33.MS.sasuke; if (S) { S.sk = [...new Set([...S.sk, 'sas_fleches', 'sas_sus_chidori', 'sas_armure'])]; S.ult42 = ['sas_indra', 'sas_indra_bijuu']; }
+  }
+  // ultimes propres à chaque mode / palier (Espace en mode)
+  const MSULT = { itachi: ['ita_yata', 'ita_totsuka'], sasuke: ['sas_indra', 'sas_indra_bijuu'], madara: ['mad_sus_meteore', 'mad_sus_lame'], kakashi: ['kak_kamui_shur', 'kak_kamui_shur'], obito: ['kak_kamui_shur', 'kak_kamui_shur'], naruto: ['nar_bijuu_shur', 'nar_planetaire'] };
+  SE42.MSULT = MSULT;
+  if (SE33 && SE33.msDef) { const baseMD = SE33.msDef; SE33.msDef = function (md) { const d = baseMD.apply(this, arguments); if (!d) return d; const o = Object.assign({}, d); const U = MSULT[md.ms];
+      if (U && /Susanoo|Kurama|Bijū|Avatar|Sage|Ermite|Six/i.test(o.n || '')) o.ult = /parfait|Parfait|Six|Avatar/.test(o.n) ? U[1] : U[0]; else if (U && md.type === 'bijuu') o.ult = U[1];
+      if (!o.ult) o.ult = (o.sk || []).find((id) => TECH[id] && TECH[id].rar >= 5) || (o.sk || [])[0]; return o; }; }
+  const MODES = SE3.MODES; const SUSU = { 'Susanoo parfait': 'mad_sus_lame' };
+  for (const k in MODES) { const st = MODES[k].stages || []; let last = null; for (let i = st.length - 1; i >= 0; i--) if (st[i].ult) { last = st[i].ult; break; } for (const s of st) { if (s.sus >= 3 && s.ult === 'shr_fleche') s.ult = 'shr_fleche'; if (!s.ult) s.ult = (s.sk || []).find((id) => TECH[id] && TECH[id].rar >= 5) || last || s.sk[0]; } }
+  /* =================== Arène « Vallée de la Fin » et choc signature =================== */
+  BIOMES.vallee = { n: 'Vallée de la Fin', g1: '#33402e', g2: '#46563c', g3: '#5c6e4a', ob: 'rock', amb: -2, tint: '#0a1018', zones: [], mobs: ['deserteur', 'samourai'] };
+  const baseMM = makeMap; makeMap = function (biome, w, h, seed) { const m = baseMM.apply(this, arguments); if (biome !== 'vallee') return m; try { const g = m.ground.getContext('2d'), sc = m.sc || 0.5; const cx = m.w / 2;
+      g.fillStyle = '#2a5a7a'; g.fillRect((cx - 150) * sc, 0, 300 * sc, m.h * sc); g.fillStyle = 'rgba(200,230,255,.35)'; for (let i = 0; i < 60; i++) g.fillRect((cx - 150 + Math.random() * 300) * sc, Math.random() * m.h * sc, 2, 14);
+      g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect((cx - 150) * sc, 120 * sc, 300 * sc, 40 * sc);
+      m.obs = (m.obs || []).filter((o) => Math.abs(o.x - cx) > 260 && dist(o.x, o.y, cx, m.h / 2) > 400); m.obs.push({ x: cx - 330, y: 260, r: 60, t: 'statue42', s: 1, who: 'h' }, { x: cx + 330, y: 260, r: 60, t: 'statue42', s: 1, who: 'm' }); } catch (e) {} return m; };
+  const baseDO = drawObstacle; drawObstacle = function (ctx, gl, o) { if (o.t !== 'statue42') return baseDO.apply(this, arguments); const x = o.x, y = o.y; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(x, y + 6, 70, 18, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#8a8478'; ctx.strokeStyle = OUT; ctx.lineWidth = 3; ctx.fillRect(x - 40, y - 200, 80, 200); ctx.strokeRect(x - 40, y - 200, 80, 200); ctx.beginPath(); ctx.arc(x, y - 222, 26, 0, TAU); ctx.fill(); ctx.stroke(); ctx.fillStyle = o.who === 'h' ? '#6a6458' : '#5a544a'; ctx.fillRect(x - 54, y - 190, 108, 20);
+    ctx.fillStyle = '#e8e4dc'; ctx.font = '700 16px "Yuji Syuku", serif'; ctx.textAlign = 'center'; ctx.fillText(o.who === 'h' ? '柱' : '斑', x, y - 100); ctx.restore(); };
+  SE42.endClash = function () { // Naruto (joueur) vs Sasuke (IA) : Rasenshuriken à queues contre Flèche d'Indra → choc Bijūdama (QTE)
+    const u = G.players[0]; if (!u) return; if (G.map) { u.x = G.map.w / 2 - 280; u.y = G.map.h / 2; } G.obstacles = (G.obstacles || []).filter((o) => o.t === 'statue42' || Math.abs(o.y - u.y) > 120 || Math.abs(o.x - u.x - 280) > 420); const e = spawnMob('deserteur', u.x + 560, u.y, 3, { team: 1 }); if (!e) return; e.name = 'Sasuke (Susanoo)'; e.ms33 = 'sasuke'; e.look = Object.assign({}, e.look, SE33.MS.sasuke ? SE33.MS.sasuke.look : {}); e.maxHp = e.hp = 4000; e.elite = 1; e.ai = null;
+    banner('Vallée de la Fin', 'NARUTO × SASUKE', '#ffd27a', 'Rasenshuriken à queues contre Flèche d’Indra'); FX.ring(e.x, e.y, SUSV, 20, 160, 0.6, 10);
+    G.delayed.push({ t: 0.9, f: () => { const n0 = G.projs.length; SE36.H.nar_bijuu_shur(u, TECH.nar_bijuu_shur, 0); SE36.H.sas_indra(e, TECH.sas_indra, Math.PI); for (let i = n0; i < G.projs.length; i++) { G.projs[i].pierce = 99; G.projs[i].noObs = 1; } } }); G.delayed.push({ t: 6, f: () => { if (e && !e.dead) e.ai = undefined; } }); ev('endClash'); };
+  const baseBC = UI.buildCreative; UI.buildCreative = function () { const r = baseBC.apply(this, arguments); try { const c = $('#creative'); c.insertAdjacentHTML('beforeend', `<div class="row"><b>Choc signature (4.2)</b><br><button id="cr42end">Vallée de la Fin : Naruto × Sasuke</button></div>`);
+      $('#cr42end').onclick = () => { if ($('#crbiome')) { $('#crbiome').value = 'vallee'; $('#crbiome').onchange({ target: { value: 'vallee' } }); } SE42.endClash(); }; } catch (e) {} return r; };
+  /* =================== HUD : impact frames et cinématique =================== */
+  const baseHUD = drawHUD;
+  drawHUD = function (ctx) { const r = baseHUD.apply(this, arguments); try { ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const scr = (x, y) => [(x - Cam.x) * Cam.zoom + VW / 2, (y - Cam.y) * Cam.zoom + VH / 2];
+      if (IMP) { IMP.t += 1; const [sx, sy] = scr(IMP.x, IMP.y); if (IMP.t <= 2) { ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, VW, VH); ctx.globalCompositeOperation = 'source-over'; } else if (IMP.t <= 4) { ctx.fillStyle = IMP.c + '55'; ctx.fillRect(0, 0, VW, VH); }
+        ctx.strokeStyle = IMP.t <= 2 ? '#000' : '#fff'; ctx.lineWidth = 2; for (let i = 0; i < 26; i++) { const a = i / 26 * TAU + IMP.t; const r0 = 60 + Math.random() * 40, r1 = Math.max(VW, VH); ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.moveTo(sx + Math.cos(a) * r0, sy + Math.sin(a) * r0); ctx.lineTo(sx + Math.cos(a) * r1, sy + Math.sin(a) * r1); ctx.stroke(); } ctx.globalAlpha = 1; if (IMP.t > 6) IMP = null; }
+      if (CINE) { const [sx, sy] = scr(CINE.x, CINE.y); if (CINE.ph === 'dark') { ctx.fillStyle = `rgba(4,0,10,${Math.min(0.88, CINE.t / 0.45 * 0.88)})`; ctx.fillRect(0, 0, VW, VH); const g = ctx.createRadialGradient(sx, sy, 2, sx, sy, 60 + CINE.t * 180); g.addColorStop(0, CINE.c); g.addColorStop(1, 'transparent'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); }
+        else if (CINE.ph === 'imp') { ctx.globalCompositeOperation = 'difference'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, VW, VH); ctx.globalCompositeOperation = 'source-over'; } else { ctx.fillStyle = `rgba(255,240,255,${Math.max(0, 0.45 - CINE.t * 0.5)})`; ctx.fillRect(0, 0, VW, VH); } }
+      for (const u of G.players || []) if (u && u._wind) { const [sx, sy] = scr(u.x, u.y - 140 * u.size); const k = u._wind.t / u._wind.dur; ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx, sy, 14, -Math.PI / 2, -Math.PI / 2 + k * TAU); ctx.stroke(); }
+      ctx.restore(); } catch (e) {} return r; };
+  if (window.SE41 && SE41.rebuild) { SE41.more = SE41.more || []; SE41.more.push((tree) => {
+      tree('nar_lancer', { title: 'Lancer de clone', k: '投', b1: 'Double lancer', d2: 'Lancer Ōdama' }); tree('nar_rendan', { title: 'Uzumaki Rendan', k: '渦', d1: 'Rendan 2000' }); tree('nar_recharge', { title: 'Énergie des clones', k: '仙' });
+      tree('nar_avatar', { title: 'Avatar de Kurama', k: '九', d2: 'Avatar géant' }); tree('nar_planetaire', { title: 'Rasengan planétaire', k: '惑', d2: 'Super Rasengan planétaire' }); tree('nar_bijuu_shur', { title: 'Rasenshuriken à queues', k: '尾', d2: 'Rasenshuriken des Six Voies' }); tree('nar_rasen_nuke', { title: 'Rasengan nucléaire', k: '核' });
+      tree('hir_shuriken', { title: 'Shuriken Kage Bunshin', k: '猿' }); tree('hir_dragon', { title: 'Karyū Endan', k: '龍' }); tree('hir_mur', { title: 'Doryūheki', k: '土' }); tree('hir_enma', { title: 'Roi Enma', k: '閻' }); tree('asu_hien', { title: 'Hien', k: '飛' }); tree('asu_cendres', { title: 'Haisekishō', k: '灰' });
+      tree('sas_indra', { title: 'Flèche d’Indra', k: '因', d2: 'Flèche des neuf Bijū' }); tree('sas_fleches', { title: 'Flèches Chidori', k: '矢' }); tree('sas_sus_chidori', { title: 'Lame Chidori du Susanoo', k: '剣' }); tree('gen_fumee_ex', { title: 'Fumée explosive', k: '煙' }); tree('gen_clones_elem', { title: 'Clones élémentaires', k: '分' }); });
+    SE41.rebuild(); }
+  /* =================== Guide, Codex des fusions, notes =================== */
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody'); const p = P() || {}; const got = p.fus42 || {};
+    g.insertAdjacentHTML('afterbegin', `<section><h4>印 Combat 4.2 : sceaux, fusions, chocs</h4><table><tr><td>Sceaux</td><td>Les techniques à sceaux ont une courte incantation (0,3 à 0,6 s selon le rang) : les kanji (Tora, Mi, Inu…) défilent au-dessus de la tête. Pas d’incantation pour l’attaque de base, l’esquive, les outils et le taijutsu.</td></tr><tr><td>Tutoriel : fusion</td><td>Pendant les sceaux, lance une 2e technique : elles <b>fusionnent</b> (Feu + Vent = Tempête de feu, Rasengan + Vent = Rasenshuriken, Clone + Rasengan = Rasengan lancé par un clone, Eau + Foudre = Vague d’orage…). Sinon, fusion générique.</td></tr><tr><td>Ruées</td><td>Rasengan, Chidori, Raikiri : plus de téléportation, tu cours avec un boost (dirigeable) et ça détone au premier ennemi touché. Ōdama : pas de boost mais énorme.</td></tr><tr><td>Chocs</td><td>Deux techniques lourdes qui se croisent, ou deux ruées : QTE à marteler. Bijūdama, Susanoo et Rasenshuriken à queues : choc Bijūdama.</td></tr><tr><td>Katana</td><td>Équipe le Katana dorsal (dos) : coups au sabre avec entaille et saignement, vague en croissant au dernier coup, M1 pendant l’esquive = Iai.</td></tr><tr><td>Sarutobi</td><td>Hiruzen : Shuriken Kage Bunshin, Karyū Endan, Doryūheki, Roi Enma, Shiki Fūjin (ultime au prix de tes PV). Asuma : lames de vent, Haisekishō (2e lancer = embrasement), Hien, Danse des lames.</td></tr><tr><td>Naruto / Sasuke</td><td>Lancer de clone, Uzumaki Rendan, recharge par clones, Avatar de Kurama, Rasengan planétaire, Rasenshuriken à queues · Flèche d’Indra (et des neuf Bijū), Lame Chidori du Susanoo, Armure de Kagutsuchi, Flèches Chidori. Créatif : « Vallée de la Fin » (arène + choc signature).</td></tr></table>
+      <h4>合 Codex des fusions (${Object.keys(got).length} / ${SE42.FUS.length} découvertes)</h4><div class="fus42">${SE42.FUS.map((f) => got[f.n] ? `<span title="${esc(f.d)}">${f.k} ${esc(f.n)}</span>` : '<span class="lk">？？？</span>').join('')}</div></section>`); };
+  const css = document.createElement('style'); css.textContent = `.fus42{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}.fus42 span{border:1px solid #ffd27a66;border-radius:6px;padding:2px 8px;font-size:.8rem;color:#ffd27a}.fus42 .lk{opacity:.45;color:#ccc}`; document.head.appendChild(css);
+  SE3.NOTES.unshift({ v: '4.2 — Combat & Animation', d: '20 octobre 2026', tag: 'Sceaux, fusions, ruées, chocs, Sarutobi et la Vallée de la Fin.', s: [
+    ['Sceaux et fusions', ['Incantation courte (0,3–0,6 s) avec les kanji des sceaux au-dessus de la tête.', `Lancer une 2e technique pendant les sceaux les fusionne : ${SE42.FUS.length} fusions nommées + fusion générique, Codex des fusions dans le Guide.`]],
+    ['Ruées et impact', ['Rasengan, Chidori, Raikiri : course avec boost et détonation au premier ennemi, sans téléportation.', 'Impact frames (inversion, lignes de vitesse, hit-stop) sur les gros coups ; cinématique Bijūdama pour les ultimes.']],
+    ['Chocs', ['Deux techniques lourdes qui se croisent, ou deux ruées : QTE de choc. Les ultimes de Susanoo s’entrechoquent comme deux Bijūdama.']],
+    ['Katana', ['Le Katana dorsal équipé donne enfin un vrai moveset : entailles, saignement, vague en croissant, Iai pendant l’esquive.']],
+    ['Ultimes', ['Chaque palier de mode a son ultime ; Susanoo : Totsuka / Yata (Itachi), Flèche d’Indra (Sasuke), Météore / Tranchant parfait (Madara), Shuriken Kamui (Kakashi).']],
+    ['Clan Sarutobi', ['Hiruzen : Shuriken Kage Bunshin, Karyū Endan, Doryūheki, Roi Enma, Shiki Fūjin. Asuma : lames de vent, Haisekishō, Hien, Danse des lames.', 'Techniques générales : Bombe de fumée explosive, Clones élémentaires, Rasengan nucléaire.']],
+    ['Naruto & Sasuke', ['Naruto : lancer de clone, Uzumaki Rendan, recharge par clones, Avatar de Kurama, Rasengan planétaire, Rasenshuriken à queues.', 'Sasuke (Susanoo de la Vallée de la Fin) : Flèche d’Indra, Lame Chidori, Armure de Kagutsuchi, Flèches Chidori, Flèche des neuf Bijū. Arène et choc signature en Créatif.']],
+  ] });
 })();
 
 </script>

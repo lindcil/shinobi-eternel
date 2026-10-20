@@ -1,3 +1,13 @@
+- Sceaux : incantation 0,3–0,6 s avec kanji (Tora, Mi, Inu…) ; 2e technique pendant les sceaux = fusion (26 fusions nommées + générique, Codex des fusions)
+- Rasengan / Chidori / Raikiri : course avec boost, détonation au premier ennemi, plus de téléportation
+- Impact frames, cinématique Bijūdama pour les ultimes, chocs QTE (techniques lourdes, ruées, Susanoo vs Bijūdama)
+- Katana dorsal : vrai moveset (entailles, saignement, croissant, Iai pendant l’esquive)
+- Ultimes par palier de mode ; Susanoo : Totsuka/Yata, Flèche d’Indra, Météore/Tranchant parfait, Shuriken Kamui
+- Clan Sarutobi : Hiruzen (Shuriken Kage Bunshin, Karyū Endan, Doryūheki, Roi Enma, Shiki Fūjin) et Asuma (lames de vent, Haisekishō, Hien)
+- Fumée explosive, clones élémentaires, Rasengan nucléaire
+- Naruto : lancer de clone, Uzumaki Rendan, recharge, Avatar de Kurama, Rasengan planétaire, Rasenshuriken à queues
+- Sasuke : Flèche d’Indra (+ neuf Bijū), Lame Chidori, Armure de Kagutsuchi, Flèches Chidori ; arène Vallée de la Fin + choc signature en Créatif
+
 - 54 techniques avec arbre de voies (10–14 étoiles) en vue constellation (clic droit, appui long, K, Select manette)
 - Rasengan : Multi-Rasengan, Ōdama (×11, sans boost), Rasenshuriken (2 sphères en orbite qui détonent), Rasengan Katon/Raiton/Suiton/Fūton
 - Chidori/Raikiri, Amaterasu/Kagutsuchi, Gōkakyū, sable, C1–C4, Kamui, Shinra/Chibaku Tensei, Kirin, Bijūdama…
