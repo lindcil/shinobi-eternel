@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v3.9 QoL & Progression</title>
+<title>Shinobi Éternel II — v4.0 Living Open World</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '3.9';
+  const VERSION = '4.0';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -8494,7 +8494,7 @@ const Net = {
     crapaud35: { n: 'Crapaud guerrier', ai: 'beast', body: 'quad', sp: 'boar', hp: 110, spd: 190, dmg: 12, xp: 11, ryo: 5, mind: 0.05, skill: 0.2, size: 1.1, c: '#c86a2a', c2: '#ffd27a' },
   });
   /* ---------- Carte et zones ---------- */
-  const MW = 4800, MH = 3000, CW = MW / 3, CH = MH / 2;
+  const MW = 7200, MH = 4500, CW = MW / 3, CH = MH / 2; SE35.MW = MW; SE35.MH = MH;
   const ZONES = [
     { id: 'foret', n: 'Forêt de Konoha', k: '森', c: '#3c8a40', mobs: ['loup', 'cerf35', 'sanglier', 'bandit'] },
     { id: 'village', n: 'Village caché de la Feuille', k: '里', c: '#d8b870', safe: 1, mobs: [] },
@@ -8732,7 +8732,7 @@ const Net = {
   function startWorld() {
     Session.team = [{ dev: 'auto' }]; if (UI.stopPreview) UI.stopPreview(); Audio.init();
     resetWorld(); G.mode = 'monde'; G.paused = false; G.cheats = { god: false, inf: false, nocd: false, ai: true, time: 1 }; newRun(1); G.run.items = []; G.ev = null;
-    const map = makeMap('foret', MW, MH, hashStr('monde35')); paintZones(map); loadMap(map);
+    const map = makeMap('foret', MW, MH, hashStr('monde35')); paintZones(map); if (SE35.onMap) try { SE35.onMap(map); } catch (e) { console.warn(e); } loadMap(map);
     const vz = ZONES[1]; G.obstacles = G.obstacles.filter((o) => dist(o.x, o.y, vz.cx, vz.cy) > 520 && !MASTERS.some((M) => { const z = ZONES.find((q) => q.id === M.zone); return dist(o.x, o.y, z.cx + M.dx, z.cy + M.dy) < 160; }));
     const team = buildTeam('farm'); placeTeam(team, vz.cx, vz.cy + 200); Cam.x = vz.cx; Cam.y = vz.cy + 200; Cam.zoom = baseZoom();
     G.director = worldDirector(); UI.enterGame(); owb.classList.add('on');
@@ -9317,7 +9317,7 @@ const Net = {
   SE38.o = o38;
   /* ---------- Rotation : 4 maîtres présents, changent chaque jour, à chaque visite et toutes les 4 minutes ---------- */
   function rot(seed) { let s = hashStr(String(seed)) >>> 0; const R = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); const ids = ROSTER.slice(); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
-    const Z = SE35.ZONES; const off = Math.floor(R() * Z.length); return ids.slice(0, 4).map((M, i) => { const z = Z[(off + i) % Z.length]; return { M, x: z.x0 + 260 + R() * (1600 - 520), y: z.y0 + 260 + R() * (1500 - 520), z }; }); }
+    const Z = SE35.ZONES; const off = Math.floor(R() * Z.length); return ids.slice(0, 4).map((M, i) => { const z = Z[(off + i) % Z.length]; return { M, x: z.x0 + 260 + R() * (SE35.MW / 3 - 520), y: z.y0 + 260 + R() * (SE35.MH / 2 - 520), z }; }); }
   SE38.rot = rot;
   function clearMasters() { for (const u of G.units) if (u._m38) { u.dead = true; u.hp = 0; } G.units = G.units.filter((u) => !u._m38); }
   function placeMasters(seed) { clearMasters(); SE38.present = rot(seed); SE38.seed = seed; SE38.rotT = 240;
@@ -9368,7 +9368,7 @@ const Net = {
   const baseHUD = drawHUD;
   drawHUD = function (ctx) { const r = baseHUD.apply(this, arguments); if (G.mode !== 'monde') return r; try {
     ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const S = (x, y) => [(x - Cam.x) * Cam.zoom + VW / 2, (y - Cam.y) * Cam.zoom + VH / 2]; ctx.textAlign = 'center'; const m = o38();
-    const mw = Math.min(220, VW * 0.22), MW = 4800, MH = 3000, mh = mw * MH / MW, x0 = VW - mw - 14, y0 = 56;
+    const mw = Math.min(220, VW * 0.22), MW = SE35.MW || 4800, MH = SE35.MH || 3000, mh = mw * MH / MW, x0 = VW - mw - 14, y0 = 56;
     for (const P0 of SE38.present) { const n = P0.u; if (!n || !alive(n)) continue; const M = P0.M; const [sx, sy] = S(n.x, n.y - 92);
       if (sx > -60 && sx < VW + 60 && sy > -60 && sy < VH + 60) { ctx.font = '800 12px "Dela Gothic One", sans-serif'; ctx.fillStyle = M.c; ctx.fillText('師 ' + M.n, sx, sy); ctx.font = '700 10px sans-serif'; ctx.fillStyle = '#ffd27a'; ctx.fillText('★'.repeat(M.tier) + ' ' + TIERN[M.tier], sx, sy + 12); if (!m.learned[M.id]) { ctx.font = '900 20px sans-serif'; ctx.fillText('!', sx, sy - 16 + Math.sin(G.t * 5) * 3); } }
       const mx = x0 + n.x / MW * mw, my = y0 + n.y / MH * mh; ctx.fillStyle = M.c; ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(mx, my - 5); ctx.lineTo(mx + 5, my); ctx.lineTo(mx, my + 5); ctx.lineTo(mx - 5, my); ctx.closePath(); ctx.fill(); ctx.stroke(); }
@@ -9495,6 +9495,100 @@ const Net = {
     ['Progression', ['XP nécessaire par niveau réduite de 45 % et XP gagnée ×1,8 : environ 3× moins de farm.']],
     ['Correctif', ['Les movesets donnaient accès à toutes les techniques secrètes sans relever leur défi. Hors Créatif et Arène, les secrets non débloqués sont remplacés par une technique du même élément.', 'Les réactions des ennemis et les éliminations de clones, invocations ou mannequins ne font plus avancer les défis. Les sauvegardes sont vérifiées une fois : seuls les secrets dont le défi est rempli restent débloqués.']],
     ['Interface', ['Transitions partout : fondu glissé entre les onglets et les menus, balayage à l’encre en entrant et sortant d’une partie, flash coloré à l’entrée d’un mode.']],
+  ] });
+})();
+/* v4.0 — Living Open World : monde 2,25× plus grand, vrais villages, routes, PNJ avec trajets */
+(function () {
+  const SE40 = (window.SE40 = { ev: {}, npcs: [], shops: [], villages: [] });
+  const SE35 = window.SE35; const BLD = { house40: 1, shop40: 1, gate40: 1, wall40: 1, tower40: 1 };
+  const VIL = [
+    { z: 'village', n: 'Konoha', k: '木', roof: '#a8321e', wall: '#e8d8b8', R: 620, houses: 26, shops: [['Ichiraku Ramen', '麺', 'ramen'], ['Armurerie Tenten', '武', 'arme'], ['Librairie de parchemins', '巻', 'scroll'], ['Fleuriste Yamanaka', '花', 'soin']] },
+    { z: 'suna', n: 'Sunagakure', k: '砂', roof: '#c8a070', wall: '#e0c898', R: 420, houses: 14, round: 1, shops: [['Marchand du désert', '商', 'scroll'], ['Marionnettiste', '傀', 'arme']] },
+    { z: 'kiri', n: 'Kirigakure', k: '霧', roof: '#4a6a8a', wall: '#c8d0d8', R: 420, houses: 14, shops: [['Poissonnerie de la Brume', '魚', 'ramen'], ['Forge de Kiri', '鍛', 'arme']] },
+    { z: 'myoboku', n: 'Hameau des crapauds', k: '蝦', roof: '#3a8a6a', wall: '#d8e0b0', R: 280, houses: 7, shops: [['Huile de crapaud', '油', 'soin']] },
+  ];
+  SE40.VIL = VIL;
+  /* ---------- Construction de la carte ---------- */
+  SE35.onMap = function (map) { const R = mulberry32(hashStr('monde40')); const g = map.ground.getContext('2d'); const sc = map.sc || 0.5; const Z = SE35.ZONES;
+    SE40.villages = []; SE40.shops = []; const obs = map.obs;
+    const clear = (x, y, r) => { for (let i = obs.length - 1; i >= 0; i--) if (dist(obs[i].x, obs[i].y, x, y) < r) obs.splice(i, 1); };
+    // routes entre les villages (pavées) + chemins vers chaque zone
+    const centers = Z.map((z) => [z.cx, z.cy]); const road = (a, b, w, c) => { g.save(); g.strokeStyle = c; g.lineWidth = w * sc; g.lineCap = 'round'; g.beginPath(); g.moveTo(a[0] * sc, a[1] * sc); const mx = (a[0] + b[0]) / 2 + (R() - 0.5) * 400, my = (a[1] + b[1]) / 2 + (R() - 0.5) * 300; g.quadraticCurveTo(mx * sc, my * sc, b[0] * sc, b[1] * sc); g.stroke(); g.restore(); return [mx, my]; };
+    SE40.roads = [];
+    const links = [[1, 0], [1, 2], [1, 4], [0, 3], [2, 5], [4, 3], [4, 5]];
+    for (const [i, j] of links) { const m = road(centers[i], centers[j], 120, 'rgba(90,70,45,.55)'); road(centers[i], centers[j], 0, ''); SE40.roads.push({ a: centers[i], m, b: centers[j] });
+      g.save(); g.strokeStyle = 'rgba(150,125,90,.55)'; g.lineWidth = 80 * sc; g.lineCap = 'round'; g.beginPath(); g.moveTo(centers[i][0] * sc, centers[i][1] * sc); g.quadraticCurveTo(m[0] * sc, m[1] * sc, centers[j][0] * sc, centers[j][1] * sc); g.stroke(); g.restore();
+      for (let t = 0; t <= 1; t += 0.02) { const x = (1 - t) * (1 - t) * centers[i][0] + 2 * (1 - t) * t * m[0] + t * t * centers[j][0], y = (1 - t) * (1 - t) * centers[i][1] + 2 * (1 - t) * t * m[1] + t * t * centers[j][1]; clear(x, y, 70); } }
+    for (const V of VIL) { const z = Z.find((q) => q.id === V.z); if (!z) continue; const cx = z.cx, cy = z.cy; clear(cx, cy, V.R + 120); const vil = { V, cx, cy, houses: [] }; SE40.villages.push(vil);
+      // place pavée et anneau de rues
+      g.save(); g.fillStyle = 'rgba(184,160,120,.85)'; g.beginPath(); g.ellipse(cx * sc, cy * sc, V.R * sc, V.R * 0.72 * sc, 0, 0, TAU); g.fill(); g.strokeStyle = 'rgba(90,70,48,.7)'; g.lineWidth = 6; g.stroke();
+      g.strokeStyle = 'rgba(120,96,64,.6)'; g.lineWidth = 50 * sc; g.beginPath(); g.ellipse(cx * sc, cy * sc, V.R * 0.62 * sc, V.R * 0.44 * sc, 0, 0, TAU); g.stroke();
+      g.beginPath(); g.moveTo((cx - V.R) * sc, cy * sc); g.lineTo((cx + V.R) * sc, cy * sc); g.moveTo(cx * sc, (cy - V.R * 0.72) * sc); g.lineTo(cx * sc, (cy + V.R * 0.72) * sc); g.stroke(); g.restore();
+      // maisons sur deux anneaux, en évitant rues et place centrale
+      for (let i = 0; i < V.houses; i++) { const ring = i % 2 ? 0.82 : 0.42; const a = (i / V.houses) * TAU + (ring > 0.5 ? 0.12 : 0.3); const x = cx + Math.cos(a) * V.R * ring, y = cy + Math.sin(a) * V.R * 0.72 * ring;
+        if (Math.abs(Math.sin(a)) < 0.12 || Math.abs(Math.cos(a)) < 0.12) continue; const h = { x, y, r: 46, t: 'house40', s: 0.9 + R() * 0.35, seed: R(), roof: V.roof, wall: V.wall, round: V.round }; obs.push(h); vil.houses.push(h); }
+      // boutiques autour de la place
+      V.shops.forEach(([n, k, kind], i) => { const a = -Math.PI / 2 + (i - (V.shops.length - 1) / 2) * 0.7; const x = cx + Math.cos(a) * V.R * 0.25, y = cy + Math.sin(a) * V.R * 0.2 - 40; const o = { x, y, r: 44, t: 'shop40', s: 1.05, seed: R(), roof: V.roof, wall: V.wall, n, k, kind, vil: V.n }; obs.push(o); SE40.shops.push(o); });
+      // portes (est/ouest/nord/sud) et murs d'enceinte
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const gx = cx + dx * (V.R + 30), gy = cy + dy * (V.R * 0.72 + 30); obs.push({ x: gx + (dy ? -70 : 0), y: gy + (dx ? -60 : 0), r: 18, t: 'gate40', s: 1, seed: 0, side: dx || dy, c: V.roof, kanji: V.k }); obs.push({ x: gx + (dy ? 70 : 0), y: gy + (dx ? 60 : 0), r: 18, t: 'gate40', s: 1, seed: 1, c: V.roof, kanji: V.k }); vil[dx === 1 ? 'east' : dx === -1 ? 'west' : dy === 1 ? 'south' : 'north'] = [gx, gy]; }
+      for (let i = 0; i < 40; i++) { const a = (i / 40) * TAU; if (Math.abs(Math.sin(a)) < 0.16 || Math.abs(Math.cos(a)) < 0.16) continue; obs.push({ x: cx + Math.cos(a) * (V.R + 34), y: cy + Math.sin(a) * (V.R * 0.72 + 34), r: 20, t: 'wall40', s: 1, seed: R(), c: V.wall }); }
+    } };
+  /* ---------- Rendu des bâtiments ---------- */
+  const baseDO = drawObstacle;
+  drawObstacle = function (ctx, gl, o) { if (!BLD[o.t]) return baseDO.apply(this, arguments); const x = o.x, y = o.y, s = o.s || 1;
+    if (o.t === 'house40' || o.t === 'shop40') { const w = 92 * s, h = 54 * s, rh = 34 * s; ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(x, y + 4, w * 0.62, 16 * s, 0, 0, TAU); ctx.fill();
+      ctx.fillStyle = o.wall; ctx.strokeStyle = OUT; ctx.lineWidth = 3; ctx.fillRect(x - w / 2, y - h, w, h); ctx.strokeRect(x - w / 2, y - h, w, h);
+      ctx.fillStyle = '#5a3a24'; ctx.fillRect(x - 9 * s, y - 26 * s, 18 * s, 26 * s); ctx.fillStyle = 'rgba(40,30,20,.55)'; ctx.fillRect(x - w / 2 + 10 * s, y - h + 12 * s, 16 * s, 12 * s); ctx.fillRect(x + w / 2 - 26 * s, y - h + 12 * s, 16 * s, 12 * s);
+      ctx.fillStyle = o.roof; ctx.beginPath(); if (o.round) { ctx.ellipse(x, y - h, w * 0.55, rh, 0, Math.PI, 0); } else { ctx.moveTo(x - w * 0.64, y - h + 4); ctx.lineTo(x - w * 0.36, y - h - rh); ctx.lineTo(x + w * 0.36, y - h - rh); ctx.lineTo(x + w * 0.64, y - h + 4); } ctx.closePath(); ctx.fill(); ctx.stroke();
+      if (o.t === 'shop40') { ctx.fillStyle = '#d63c3c'; ctx.fillRect(x - w * 0.42, y - h + 2, w * 0.84, 12 * s); ctx.fillStyle = '#fff4d6'; ctx.font = `700 ${11 * s}px "Zen Kaku Gothic New", sans-serif`; ctx.textAlign = 'center'; ctx.fillText(o.k + ' ' + (o.n.length > 16 ? o.n.slice(0, 15) + '…' : o.n), x, y - h + 12 * s); for (let i = -2; i <= 2; i++) { ctx.fillStyle = i % 2 ? '#fff4d6' : '#d63c3c'; ctx.fillRect(x + i * 14 * s - 7 * s, y - 34 * s, 14 * s, 8 * s); } }
+      return; }
+    if (o.t === 'gate40') { ctx.fillStyle = o.c; ctx.strokeStyle = OUT; ctx.lineWidth = 3; ctx.fillRect(x - 8, y - 92, 16, 92); ctx.strokeRect(x - 8, y - 92, 16, 92); if (o.seed === 0 && o.kanji) { ctx.fillStyle = '#2a1a10'; ctx.fillRect(x - 16, y - 104, 32, 18); ctx.fillStyle = '#ffd27a'; ctx.font = '700 14px "Yuji Syuku", serif'; ctx.textAlign = 'center'; ctx.fillText(o.kanji, x, y - 90); } return; }
+    if (o.t === 'wall40') { ctx.fillStyle = o.c; ctx.strokeStyle = OUT; ctx.lineWidth = 2.5; ctx.fillRect(x - 22, y - 30, 44, 30); ctx.strokeRect(x - 22, y - 30, 44, 30); ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(x - 22, y - 30, 44, 5); return; } };
+  if (typeof drawObstacleBase === 'function') { const baseOB = drawObstacleBase; drawObstacleBase = function (ctx, gl, o) { if (BLD[o.t]) return; return baseOB.apply(this, arguments); }; }
+  if (typeof damageObstacle === 'function') { const baseDmg = damageObstacle; damageObstacle = function (o) { if (o && BLD[o.t]) return; return baseDmg.apply(this, arguments); }; }
+  /* ---------- PNJ avec trajets : gardes en patrouille, villageois, marchands itinérants ---------- */
+  const NAMES = { garde: ['Garde de la porte', 'Chūnin de garde', 'Patrouille ANBU'], villageois: ['Villageoise', 'Vieil artisan', 'Enfant du village', 'Pêcheur', 'Marchande de fruits'], marchand: ['Marchand itinérant', 'Caravane de Suna', 'Colporteur'] };
+  function spawnNPC(kind, route, vil) { const [x, y] = route[0]; const u = spawnMob('moine', x, y, 0, { team: -1 }); if (!u) return null; u.ai = null; u.maxHp = u.hp = 1e9; u.mass = 50; u._npc40 = { kind, route, i: 1, wait: 0, spd: kind === 'garde' ? 70 : kind === 'marchand' ? 85 : 55 + Math.random() * 25 };
+    u.name = pick(NAMES[kind]); u.look = Object.assign({}, u.look, kind === 'garde' ? { outfit: '#3a5a3a', scarf: '#2a2a30', hair: '#2a2a30', band: '#9a9aa4' } : kind === 'marchand' ? { outfit: '#8a6a3a', scarf: '#ffd27a', hair: '#5a3a24' } : { outfit: pick(['#a86a5a', '#5a7aa8', '#c8a050', '#7a5a8a', '#6a8a5a']), scarf: pick(['#e8d8b8', '#ffd27a', '#7dffb0']), hair: pick(['#2a1a10', '#5a3a24', '#c8c8c8', '#f2d870']) }); SE40.npcs.push(u); return u; }
+  function populate() { SE40.npcs = []; for (const vil of SE40.villages) { const V = vil.V, cx = vil.cx, cy = vil.cy;
+      // gardes : porte est ↔ porte ouest par la place
+      if (vil.east && vil.west) { spawnNPC('garde', [vil.east, [cx, cy], vil.west, [cx, cy]], vil); spawnNPC('garde', [vil.north, [cx + 80, cy], vil.south, [cx - 80, cy]], vil); }
+      const nv = Math.max(3, Math.round(V.houses / 3)); for (let i = 0; i < nv; i++) { const hs = vil.houses.length ? [pick(vil.houses), pick(vil.houses), pick(vil.houses)] : []; const route = [[cx + rand(-80, 80), cy + rand(-60, 60)], ...hs.map((h) => [h.x, h.y + 60])]; spawnNPC('villageois', route, vil); } }
+    for (const r of (SE40.roads || []).slice(0, 4)) spawnNPC('marchand', [r.a, r.m, r.b, r.m], null); SE40.ev.npcs = SE40.npcs.length; }
+  function tickNPC(dt) { const hr = SE40.hour(); const night = hr < 6 || hr >= 21;
+    for (const u of SE40.npcs) { if (!u || u.dead) continue; const N = u._npc40; u.hp = u.maxHp; if (N.talk > 0) { N.talk -= dt; u.vx = u.vy = 0; continue; }
+      // horaires : la nuit les villageois rentrent chez eux (près de la première maison), les gardes doublent la cadence
+      const route = N.route; const tgt = night && N.kind === 'villageois' ? route[route.length - 1] : route[N.i % route.length];
+      if (N.wait > 0) { N.wait -= dt; u.vx = u.vy = 0; continue; }
+      const dx = tgt[0] - u.x, dy = tgt[1] - u.y, d = Math.hypot(dx, dy); const sp = N.spd * (night && N.kind === 'garde' ? 1.3 : 1);
+      if (d < 24) { if (!(night && N.kind === 'villageois')) { N.i++; N.wait = N.kind === 'villageois' ? rand(1.5, 4) : N.kind === 'marchand' ? rand(3, 6) : 0.6; } u.vx = u.vy = 0; continue; }
+      u.vx = (dx / d) * sp; u.vy = (dy / d) * sp; u.face = dx >= 0 ? 1 : -1; u.pose = 'run'; } }
+  SE40.hour = () => { const D = G.director; const t = (D && D.t40) || 0; return (8 + t / 30) % 24; }; // 1 h de jeu = 30 s
+  /* ---------- Boutiques (entrée avec transition) ---------- */
+  function shop(o) { const p = P(); const say = SE35.say; if (window.SE39) SE39.wipe(); SE40.ev.shop = o.n; const W = { who: o.n, k: o.k, c: '#ffd27a' };
+    const offers = { ramen: [['Bol de ramen (PV et chakra au max) — 40 ryō', 40, () => { for (const u of G.players) { healUnit(u, u.maxHp, null, true); u.ch = u.maxCh; } }]], soin: [['Pommade (PV au max) — 30 ryō', 30, () => { for (const u of G.players) healUnit(u, u.maxHp, null, true); }]],
+      arme: [['Accessoire au hasard — 400 ryō', 400, () => { const k = Object.keys(SE35.ACC).filter((a) => a !== 'kama' && !SE35.prof().acc.includes(a)); if (k.length) SE35.giveAcc(pick(k)); else p.ryo += 400; }]],
+      scroll: [['Parchemin de technique — 250 ryō', 250, () => { const pool = Object.keys(TECH).filter((k) => TECH[k].rar <= 3 && !p.techs.includes(k) && TECH[k].cat !== 'secret' && !TECH[k].s33 && !TECH[k].beast && !TECH[k].mode); if (pool.length) { const id = pick(pool); grantTech(p, TECH[id]); toast('Parchemin', TECH[id].n, 'Ajouté à ta collection.', '#ffd27a', '巻'); } }]] }[o.kind] || [];
+    say([Object.assign({ t: `Bienvenue chez ${o.n} (${o.vil}) ! Tu as ${p.ryo} ryō.`, ch: [...offers.map(([t, c, f]) => ({ t, f: () => { if (p.ryo < c) return say([Object.assign({ t: 'Pas assez de ryō, désolé !' }, W)]); p.ryo -= c; f(); Audio.play('coin'); Profile.save(); SE40.ev.bought = (SE40.ev.bought || 0) + 1; } })), { t: 'Sortir' }] }, W)]); }
+  SE40.shop = shop;
+  /* ---------- Démarrage et mise à jour ---------- */
+  const baseStart = SE35.start;
+  SE35.start = function () { const r = baseStart.apply(this, arguments); try { const have = new Set(G.obstacles); for (const o of G.map.obs) if (BLD[o.t] && !G.obstacles.some((q) => q.t === o.t && q.x === o.x && q.y === o.y)) G.obstacles.push(Object.assign({}, o)); } catch (e) {} populate(); const D = G.director; if (D) { const up = D.update; D.t40 = 0; SE40.near = {}; SE40.lastZone = null; D.update = (dt) => { up(dt); D.t40 += dt; tick(dt); }; } return r; };
+  function tick(dt) { const u = G.players[0]; if (!u) return; tickNPC(dt);
+    if (G.paused) return; const z = SE35.zoneAt(u.x, u.y); if (SE40.lastZone && z !== SE40.lastZone && window.SE39) { SE39.wipe(); SE40.ev.cross = (SE40.ev.cross || 0) + 1; } SE40.lastZone = z;
+    for (const o of SE40.shops) { const d = dist(u.x, u.y, o.x, o.y + 60); if (d < 70 && !SE40.near[o.n]) { SE40.near[o.n] = 1; shop(o); } else if (d > 160) SE40.near[o.n] = 0; }
+    for (const n of SE40.npcs) { if (!n || n.dead) continue; const d = dist(u.x, u.y, n.x, n.y); if (d < 60 && !SE40.near[n.id] && n._npc40.kind !== 'garde') { SE40.near[n.id] = 1; n._npc40.talk = 4; n.face = u.x > n.x ? 1 : -1; FX.text(n.x, n.y - 80, pick(n._npc40.kind === 'marchand' ? ['La route est longue jusqu’à Suna…', 'Des bandits sur la route, prudence !', 'Je vends mes épices au prochain village.'] : ['Belle journée, n’est-ce pas ?', 'Les boutiques sont sur la place.', 'Le Hokage veille sur nous.', 'J’ai vu un maître passer par la porte est !']), '#e8e4dc', 13); } else if (d > 140) SE40.near[n.id] = 0; } }
+  // HUD : heure du jour et villages sur la mini-carte
+  const baseHUD = drawHUD;
+  drawHUD = function (ctx) { const r = baseHUD.apply(this, arguments); if (G.mode !== 'monde') return r; try { ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const MW = SE35.MW, MH = SE35.MH, mw = Math.min(220, VW * 0.22), mh = mw * MH / MW, x0 = VW - mw - 14, y0 = 56;
+      for (const v of SE40.villages) { ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(x0 + v.cx / MW * mw, y0 + v.cy / MH * mh, v.V.R / MW * mw, v.V.R * 0.72 / MH * mh, 0, 0, TAU); ctx.stroke(); }
+      for (const n of SE40.npcs) if (n && !n.dead) { ctx.fillStyle = n._npc40.kind === 'garde' ? '#9ab4ff' : n._npc40.kind === 'marchand' ? '#ffd27a' : 'rgba(232,228,220,.7)'; ctx.fillRect(x0 + n.x / MW * mw - 1, y0 + n.y / MH * mh - 1, 2, 2); }
+      const h = SE40.hour(); ctx.fillStyle = '#e8e4dc'; ctx.font = '700 11px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`${h < 6 || h >= 21 ? '☾' : '☀'} ${String(Math.floor(h)).padStart(2, '0')}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`, x0, y0 - 6); ctx.restore(); } catch (e) {} return r; };
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody'); g.insertAdjacentHTML('afterbegin', `<section><h4>里 Monde vivant (4.0)</h4><table><tr><td>Villages</td><td>Konoha, Sunagakure, Kirigakure et le hameau des crapauds : portes, remparts, rues, maisons et boutiques (approche-toi de l’entrée pour entrer).</td></tr><tr><td>PNJ</td><td>Gardes en patrouille entre les portes, villageois qui vont de maison en maison et rentrent la nuit, marchands itinérants sur les routes. L’heure est affichée au-dessus de la mini-carte.</td></tr></table></section>`); };
+  SE3.NOTES.unshift({ v: '4.0 — Living Open World', d: '20 octobre 2026', tag: 'Un monde 2,25× plus grand, des villages vivants.', s: [
+    ['Monde', ['La Terre du Feu fait maintenant 7200 × 4500 (2,25× plus grande), reliée par des routes pavées.', 'Transition à l’encre en passant d’une région à l’autre.']],
+    ['Villages', ['Konoha (26 maisons, 4 boutiques), Sunagakure (maisons rondes), Kirigakure et le hameau des crapauds : portes avec kanji, remparts, rues et place centrale.', 'Boutiques : ramen (PV et chakra), soins, accessoires, parchemins. On y entre en s’approchant de la porte.']],
+    ['PNJ', ['Gardes qui patrouillent d’une porte à l’autre, villageois qui vont de maison en maison et rentrent la nuit, marchands itinérants sur les routes. Cycle jour/nuit (1 h = 30 s).']],
   ] });
 })();
 

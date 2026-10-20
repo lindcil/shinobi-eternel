@@ -1,6 +1,6 @@
 # Shinobi Éternel II
 
-Jeu d'action ninja inspiré de *Naruto*, entièrement dans **un seul fichier `index.html`** (aucune installation, fonctionne hors-ligne). Version actuelle : **v3.9**.
+Jeu d'action ninja inspiré de *Naruto*, entièrement dans **un seul fichier `index.html`** (aucune installation, fonctionne hors-ligne). Version actuelle : **v4.0**.
 
 ▶️ **Jouer : https://lindcil.github.io/shinobi-eternel/**  
 (ou téléchargez `index.html` et ouvrez-le dans un navigateur)

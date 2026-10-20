@@ -1,3 +1,9 @@
+- Carte 7200×4500 (×2,4 surface)
+- Routes entre zones, villages réels : Konoha (maisons, Ichiraku, boutiques, portes), Suna, Kiri, hameau de Myoboku
+- 34 PNJ : gardes en patrouille, villageois, marchands, avec horaires jour/nuit (1 h = 30 s)
+- Boutiques avec dialogue, transitions encre entre zones
+- Minimap : villages, PNJ, horloge ; entrée Guide
+
 - Palier max : Chakra maintenu + touche du mode = saut au palier max débloqué (50 % chakra)
 - XP requise −45 %, XP gagnée ×1,8
 - Correctif : les movesets débloquaient tous les secrets ; compteurs de défis assainis ; réparation des sauvegardes

@@ -1,3 +1,4 @@
+> ✅ v4.0 Living Open World : livrée. v4.0 Living Open World — fait
 > ✅ v3.9 QoL & Progression : livrée. v3.9 QoL & Progression (fait)
 > ✅ v3.8 Maîtres Update : livrée. v3.8 Maîtres Update (fait)
 > ✅ v3.7.4 Kage Bunshin : livrée. v3.7.4 Kage Bunshin (fait)
