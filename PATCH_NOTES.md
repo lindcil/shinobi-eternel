@@ -1,3 +1,8 @@
+- Palier max : Chakra maintenu + touche du mode = saut au palier max débloqué (50 % chakra)
+- XP requise −45 %, XP gagnée ×1,8
+- Correctif : les movesets débloquaient tous les secrets ; compteurs de défis assainis ; réparation des sauvegardes
+- Transitions : onglets, menus, entrée/sortie de partie (encre), entrée de mode
+
 - 32 maîtres itinérants (+5 fixes) : 4 présents à la fois, rotation chaque jour / visite / 4 min, losanges sur la mini-carte
 - Épreuves QTE selon le palier (Genin → Ōtsutsuki), réessai après repos
 - 17 nouveaux modes à paliers + Sharingan/Byakugan/Rinnegan ; mode actif choisi dans l'onglet Monde (E · R3 · 瞳)

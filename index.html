@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v3.8 Maîtres Update</title>
+<title>Shinobi Éternel II — v3.9 QoL & Progression</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '3.8';
+  const VERSION = '3.9';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -9434,6 +9434,68 @@ const Net = {
   const mo = new MutationObserver(() => { clearTimeout(mo.t); mo.t = setTimeout(() => { try { if ($('#tabbody') && $('#tabbody .lib:not(.x38), #tabbody .codexgrid') ) enhance(UI.tab); } catch (e) {} }, 30); });
   const hook = () => { const b = $('#tabbody'); if (b) mo.observe(b, { childList: true }); else setTimeout(hook, 500); }; hook();
   SE3.NOTES[0] && SE3.NOTES[0].s && SE3.NOTES[0].s.push(['Menus', ['Bibliothèque, Préparation, Codex, techniques secrètes, movesets et maîtres : grilles de cartes à taille minimale fixe, texte tronqué proprement, zones défilantes qui ne débordent plus, barre de recherche fixe en haut, panneau de détails au survol ou au toucher.']]);
+})();
+/* v3.9 — QoL & Progression */
+(function () {
+  const SE39 = (window.SE39 = { ev: {} });
+  /* ---------- Palier max : maintenir Chakra + touche du mode (E · R3 · 瞳 / F · L3 · 獣) ---------- */
+  function maxStage(u) { const md = u.md; if (!md || md.choice) return false; const cap = SE3.stageCap(u, md); if (md.stage >= cap) { FX.text(u.x, u.y - 110, 'Déjà au palier maximal débloqué', '#ffd27a', 13); return true; }
+    if (u.ch < u.maxCh * 0.5 && !(G.cheats && G.cheats.inf)) { FX.text(u.x, u.y - 110, 'Palier max : 50 % de chakra requis', '#ffc0c0', 13); return true; }
+    u.ch -= u.maxCh * 0.5; let n = 0; while (md.stage < cap && !md.choice && n++ < 12) if (!SE3.stageUp(u)) break; SE39.ev.max = (SE39.ev.max || 0) + 1;
+    banner('Palier max', 'PALIER ' + md.stage, SE3.modeColor(u), md.choice ? 'Choisis ta forme finale' : 'Saut direct au palier maximal débloqué'); G.flashA = 0.5; G.flashC = '#ffffff'; Cam.add(0.6); return true; }
+  SE39.maxStage = maxStage;
+  const baseTE = toggleEye; toggleEye = function (u, off) { if (u && u.isPlayer && !off && u.charging && u.md && u.md.type === 'eye') return maxStage(u); return baseTE.apply(this, arguments); };
+  const baseAB = activateBeast; activateBeast = function (u) { if (u && u.isPlayer && u.charging && u.md && u.md.type === 'bijuu') return maxStage(u); return baseAB.apply(this, arguments); };
+  /* ---------- Progression plus rapide ---------- */
+  const baseXF = xpFor; xpFor = function (lv) { return Math.round(baseXF(lv) * 0.55); };
+  const baseGX = grantXP; grantXP = function (p, xp) { return baseGX.call(this, p, Math.round((xp || 0) * 1.8)); };
+  /* ---------- Techniques secrètes : verrouillage réel ---------- */
+  const isS33 = (id) => !!(TECH[id] && TECH[id].s33);
+  const unl = (id) => { const p = P(); return !!(p && p.sec33 && p.sec33.un && p.sec33.un[id]); };
+  const free = () => G.mode === 'creative' || G.mode === 'pvp' || G.mode === 'demo' || SE3.allModes || (window.SE44 && SE44.free);
+  function fallback(M, used) { const el = M.el || 'neutre'; const pool = Object.values(TECH).filter((T) => !T.s33 && !T.beast && !T.mode && T.cat !== 'secret' && (T.el === el || T.el === 'neutre') && T.rar <= 3 && !used.includes(T.id) && T.kind !== 'summon'); pool.sort((a, b) => b.rar - a.rar || a.id.localeCompare(b.id)); return pool.length ? pool[0].id : null; }
+  const baseMS = SE33.applyMS;
+  function gate(u, id) { try { if (u && u.isPlayer && !free() && SE33.MS[id]) { const M = SE33.MS[id]; let locked = 0;
+      u.slots = u.slots.map((s) => { if (s && isS33(s) && !unl(s)) { locked++; return fallback(M, u.slots); } return s; });
+      u.wheelExtra = (u.wheelExtra || []).filter((s) => !(isS33(s) && !unl(s))); if (u.secret && isS33(u.secret) && !unl(u.secret)) { locked++; u.secret = null; } u._nw = null; u._lock39 = locked; if (locked) FX.text(u.x, u.y - 100, locked + ' secret(s) du moveset verrouillé(s)', '#ffd27a', 13); } } catch (e) {} }
+  SE39.gate = gate; SE33.applyMS = function (u, id) { const r = baseMS.apply(this, arguments); gate(u, id); return r; };
+  // les compteurs de défis ne comptent plus les réactions des ennemis ni les cibles d'entraînement
+  const baseKU = killUnit; let kTick = 0;
+  killUnit = function (u, killer) { const sd = u && (u.dummy || u.kind === 'summon' || u.isClone || u.team === -1); const k0 = window.SE33 && P() && P().sec33 ? P().sec33.st.kills : null; const r = baseKU.apply(this, arguments); if (sd && k0 != null && P().sec33.st.kills > k0) P().sec33.st.kills = k0; return r; };
+  setInterval(() => { try { const s = P() && P().sec33; if (!s) return; if (!SE39.lr) SE39.lr = s.st.reac; const d = s.st.reac - SE39.lr; if (d > 2) s.st.reac = SE39.lr + 2; SE39.lr = s.st.reac; } catch (e) {} }, 1000);
+  // réparation des sauvegardes : on garde ce qui est réellement mérité, on retire le reste
+  function repair() { const p = P(); if (!p || !p.sec33 || p.sec33.fix39) return; const s = p.sec33; let rm = 0;
+    for (const id in s.un) { const e = SE33.LIST.find((x) => x.id === id); if (!e || SE33.chText(e.ch)[1] < 1) { delete s.un[id]; rm++; } }
+    p.slots = (p.slots || []).map((x) => (x && isS33(x) && !s.un[x] ? null : x)); if (!p.slots[0] && CLANS[p.clan]) p.slots[0] = CLANS[p.clan].start[0];
+    s.fix39 = 1; SE39.ev.repaired = rm; Profile.save(); }
+  SE39.repair = repair;
+  const baseHub = UI.hub;
+  /* ---------- Transitions entre écrans, onglets et modes ---------- */
+  const css = document.createElement('style'); css.textContent = `
+  @keyframes tab39{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  #tabbody.t39{animation:tab39 .28s cubic-bezier(.2,.8,.2,1) both}
+  .modal.on,.scr.on,[id^=scr-].on{animation:tab39 .3s cubic-bezier(.2,.8,.2,1) both}
+  #ink39{position:fixed;inset:0;z-index:9999;pointer-events:none;background:#0b0810;clip-path:circle(0% at 50% 50%);opacity:0}
+  #ink39.go{animation:ink39 .62s cubic-bezier(.65,0,.35,1) both}
+  @keyframes ink39{0%{opacity:1;clip-path:circle(0% at var(--x,50%) var(--y,50%))}45%{opacity:1;clip-path:circle(150% at var(--x,50%) var(--y,50%))}100%{opacity:0;clip-path:circle(150% at var(--x,50%) var(--y,50%))}}
+  #ink39 i{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(200,40,30,.25) 70%,transparent 72%)}
+  @media (prefers-reduced-motion:reduce){#tabbody.t39,#ink39.go{animation-duration:.01s}}`; document.head.appendChild(css);
+  const ink = document.createElement('div'); ink.id = 'ink39'; ink.innerHTML = '<i></i>'; document.body.appendChild(ink);
+  function wipe(x, y) { ink.style.setProperty('--x', (x != null ? x : 50) + '%'); ink.style.setProperty('--y', (y != null ? y : 50) + '%'); ink.classList.remove('go'); void ink.offsetWidth; ink.classList.add('go'); SE39.ev.wipe = (SE39.ev.wipe || 0) + 1; }
+  SE39.wipe = wipe;
+  let lastTab = null, inGame = false;
+  UI.hub = function (tab) { const fromGame = inGame; inGame = false; const r = baseHub.apply(this, arguments); try { repair(); const b = $('#tabbody'); if (fromGame) wipe(); else if (b && this.tab !== lastTab) { b.classList.remove('t39'); void b.offsetWidth; b.classList.add('t39'); SE39.ev.tab = (SE39.ev.tab || 0) + 1; } lastTab = this.tab; } catch (e) {} return r; };
+  const baseEG = UI.enterGame; UI.enterGame = function () { inGame = true; wipe(); const r = baseEG.apply(this, arguments); try { for (const u of G.players) if (u.ms33) gate(u, u.ms33); } catch (e) {} return r; };
+  const baseEM = SE3.enterMode; SE3.enterMode = function (u, type) { const had = u && u.md; const r = baseEM.apply(this, arguments); if (u && u.isPlayer && !had && u.md) { G.flashA = Math.max(G.flashA || 0, 0.35); G.flashC = SE3.modeColor(u); } return r; };
+  const baseSU = SE3.stageUp;
+  /* ---------- Notes & Guide ---------- */
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody'); g.insertAdjacentHTML('afterbegin', `<section><h4>新 Nouveautés 3.9</h4><table><tr><td>Palier max</td><td>Dans un mode, maintiens Chakra (${esc(codeLabel('KeyC'))} · LT · bouton Chakra) et appuie sur la touche du mode (${esc(codeLabel('KeyE'))} pupille / ${esc(codeLabel('KeyF'))} bête · R3 / L3 · 瞳 / 獣) : saut direct au palier maximal débloqué pour 50 % de chakra.</td></tr><tr><td>Progression</td><td>Niveaux ~45 % plus rapides à monter, XP ×1,8.</td></tr><tr><td>Secrets</td><td>Les techniques secrètes des movesets restent verrouillées hors Créatif et Arène tant que leur défi n’est pas réussi (remplacées par une technique du même élément).</td></tr></table></section>`); };
+  SE3.NOTES.unshift({ v: '3.9 — QoL & Progression', d: '20 octobre 2026', tag: 'Palier max, progression rapide, secrets réellement verrouillés, transitions.', s: [
+    ['Modes', ['Palier max : dans un mode, maintiens Chakra et appuie sur la touche du mode (E / F · R3 / L3 · 瞳 / 獣) pour sauter au palier maximal débloqué (coûte 50 % du chakra). Les bêtes s’arrêtent au choix de forme finale.']],
+    ['Progression', ['XP nécessaire par niveau réduite de 45 % et XP gagnée ×1,8 : environ 3× moins de farm.']],
+    ['Correctif', ['Les movesets donnaient accès à toutes les techniques secrètes sans relever leur défi. Hors Créatif et Arène, les secrets non débloqués sont remplacés par une technique du même élément.', 'Les réactions des ennemis et les éliminations de clones, invocations ou mannequins ne font plus avancer les défis. Les sauvegardes sont vérifiées une fois : seuls les secrets dont le défi est rempli restent débloqués.']],
+    ['Interface', ['Transitions partout : fondu glissé entre les onglets et les menus, balayage à l’encre en entrant et sortant d’une partie, flash coloré à l’entrée d’un mode.']],
+  ] });
 })();
 
 </script>
