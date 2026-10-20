@@ -105,6 +105,11 @@ Modes créatifs : choc de Bijūdama (score), entraîneur de chocs, créateur de 
 
 Theme: the tailed beasts. Nothing else changes.
 
+## v4.7.2 — Ninjutsu & menu des jeux (20 octobre 2026)
+- Bouton **忍 Ninjutsu** sur l’écran titre : toutes les techniques, filtres par rôle (projectile, zone, mobilité…), élément, rareté, techniques de mode / ultimes, recherche et tri.
+- Bouton **« Retour au menu des jeux »** (lindcil.github.io).
+- XP ×5 (déjà actif depuis la v4.7).
+
 ## The nine bijū
 Save IDs are kept: the old beasts become the new ones, tail for tail.
 
