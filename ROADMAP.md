@@ -1,3 +1,4 @@
+> ✅ v4.3 Reactions Expansion : livrée. v4.3 Reactions Expansion — fait
 > ✅ v4.2 Combat & Animation : livrée. v4.2 Combat & Animation — fait
 > ✅ v4.1 Skill Tree Constellation : livrée. v4.1 Skill Tree Constellation — fait
 > ✅ v4.0 Living Open World : livrée. v4.0 Living Open World — fait

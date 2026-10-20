@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.2 Combat & Animation</title>
+<title>Shinobi Éternel II — v4.3 Reactions Expansion</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.2';
+  const VERSION = '4.3';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -10089,6 +10089,102 @@ const Net = {
     ['Ultimes', ['Chaque palier de mode a son ultime ; Susanoo : Totsuka / Yata (Itachi), Flèche d’Indra (Sasuke), Météore / Tranchant parfait (Madara), Shuriken Kamui (Kakashi).']],
     ['Clan Sarutobi', ['Hiruzen : Shuriken Kage Bunshin, Karyū Endan, Doryūheki, Roi Enma, Shiki Fūjin. Asuma : lames de vent, Haisekishō, Hien, Danse des lames.', 'Techniques générales : Bombe de fumée explosive, Clones élémentaires, Rasengan nucléaire.']],
     ['Naruto & Sasuke', ['Naruto : lancer de clone, Uzumaki Rendan, recharge par clones, Avatar de Kurama, Rasengan planétaire, Rasenshuriken à queues.', 'Sasuke (Susanoo de la Vallée de la Fin) : Flèche d’Indra, Lame Chidori, Armure de Kagutsuchi, Flèches Chidori, Flèche des neuf Bijū. Arène et choc signature en Créatif.']],
+  ] });
+})();
+/* v4.3 — Reactions Expansion : réactions triples, quadruples, quintuple, et interactions dōjutsu / kekkei genkai */
+(function () {
+  const SE31 = window.SE31, SE3 = window.SE3; const SE43 = (window.SE43 = { ev: {} });
+  const NORM = { feu: 'feu', lave: 'feu', noir: 'feu', vent: 'vent', eau: 'eau', glace: 'eau', vapeur: 'eau', foudre: 'foudre', tempete: 'foudre', terre: 'terre', bois: 'terre' };
+  const foes = (src, x, y, r) => G.units.filter((v) => alive(v) && !v.decoy && v.team !== (src ? src.team : 0) && v.team !== -1 && dist2(v.x, v.y, x, y) < r * r);
+  const pw = (src) => (src ? (src.atk || 1) * 34 : 30);
+  const D = (src, v, n, el, st) => dealDamage(src, v, n, { el, st, noReact: 1, noMark: 1, tech: 'reaction' });
+  const ST = (src, v, s) => applyStatus(src, v, s);
+  const R = (id, n, k, c, mul, d, role, fx) => { const o = { id, n, k, c, mul, d, role }; SE31.EFX[id] = fx; REACTIONS[id] = { n, d, c }; return o; };
+  /* ---------- Triples (10) ---------- */
+  const TRI = {
+    'eau|feu|vent': R('rx3_ouragan', 'Ouragan Bouillant', '颶', '#f0e8ff', 2.0, 'Vapeur + vent + feu : un ouragan de vapeur brûlante aspire et ébouillante (aveugle, brûle).', 'Triple · Zone', (s, t, rr, m) => { addZone('steam', t.x, t.y, 160 * rr, 5, s); addZone('tornado', t.x, t.y, 120 * rr, 4, s); for (const v of foes(s, t.x, t.y, 200 * rr)) { v.st.blind = 3; ST(s, v, { heat: 40 }); D(s, v, pw(s) * 0.9 * m, 'feu'); } FX.smoke(t.x, t.y, 30, '#f2f0f8', 22, 40, 200); }),
+    'feu|foudre|vent': R('rx3_tempete_plasma', 'Tempête de Plasma', '熾', '#ffcf5a', 2.2, 'Feu, foudre et vent : une tornade de plasma qui foudroie tout autour.', 'Triple · Explosion', (s, t, rr, m) => { for (let i = 0; i < 3; i++) G.delayed.push({ t: i * 0.15, f: () => { for (const v of foes(s, t.x, t.y, 180 * rr)) D(s, v, pw(s) * 0.7 * m, 'foudre', { heat: 20, shock: 0.4 }); FX.ring(t.x, t.y, '#ffcf5a', 10, 190 * rr, 0.4, 10); Post.shock(t.x, t.y, 0.8, 260); } }); addZone('tornado', t.x, t.y, 120, 3, s); Audio.play('thunder'); }),
+    'eau|foudre|vent': R('rx3_typhon', 'Typhon Électrique', '颱', '#58c9ff', 2.0, 'Eau, foudre et vent : un typhon chargé paralyse et trempe toute la zone pendant 6 s.', 'Triple · Contrôle', (s, t, rr, m) => { addZone('storm', t.x, t.y, 200 * rr, 6, s); addZone('electric', t.x, t.y, 150 * rr, 5, s); for (const v of foes(s, t.x, t.y, 210 * rr)) ST(s, v, { wet: 60, shock: 1.2 }); Audio.play('thunder'); Cam.add(0.5); }),
+    'eau|feu|terre': R('rx3_obsidienne', 'Obsidienne', '黒曜', '#3a2a4a', 1.9, 'Lave refroidie par l’eau : la cible est pétrifiée dans l’obsidienne (immobile 2,5 s), puis éclate.', 'Triple · Pétrification', (s, t, rr, m) => { for (const v of foes(s, t.x, t.y, 120 * rr)) { ST(s, v, { root: 2.5, slow: 3 }); v.st.petrify43 = 2.5; G.delayed.push({ t: 2.4, f: () => { if (alive(v)) { D(s, v, pw(s) * 1.4 * m, 'terre'); FX.debris(v.x, v.y, '#2a1a3a', 14, 300); } } }); } FX.element(t.x, t.y, 20, 'lave', 2); }),
+    'feu|terre|vent': R('rx3_cendres', 'Pluie de Cendres', '灰', '#8a7a7a', 1.8, 'Lave soufflée par le vent : pluie de cendres ardentes, brûlure et aveuglement prolongés.', 'Triple · Sol', (s, t, rr, m) => { addZone('ash', t.x, t.y, 220 * rr, 7, s); addZone('lava', t.x, t.y, 90 * rr, 5, s); for (const v of foes(s, t.x, t.y, 220 * rr)) { v.st.blind = 3; ST(s, v, { heat: 45 }); } }),
+    'feu|foudre|terre': R('rx3_volcan', 'Éruption Magnétique', '噴', '#ff5a2a', 2.1, 'La foudre aimante la roche en fusion : éruption qui regroupe les ennemis puis explose.', 'Triple · Regroupement', (s, t, rr, m) => { for (const v of foes(s, t.x, t.y, 280 * rr)) if (!v.boss && v !== t) { const a = Math.atan2(t.y - v.y, t.x - v.x); v.vx += Math.cos(a) * 700; v.vy += Math.sin(a) * 700; } G.delayed.push({ t: 0.45, f: () => { for (const v of foes(s, t.x, t.y, 170 * rr)) D(s, v, pw(s) * 1.3 * m, 'feu', { heat: 40 }); FX.ring(t.x, t.y, '#ff5a2a', 10, 180 * rr, 0.5, 14); addZone('lava', t.x, t.y, 110, 5, s); Post.shock(t.x, t.y, 1.2, 300); Audio.play('boom'); } }); }),
+    'eau|foudre|terre': R('rx3_marais', 'Marais Galvanique', '沼', '#7a9a5a', 1.8, 'Boue conductrice électrifiée : enlise et paralyse par vagues pendant 6 s.', 'Triple · Contrôle', (s, t, rr, m) => { addZone('mud', t.x, t.y, 170 * rr, 6, s); addZone('electric', t.x, t.y, 140 * rr, 6, s); for (const v of foes(s, t.x, t.y, 170 * rr)) { v.st.mud = 4; ST(s, v, { slow: 4, shock: 0.8 }); } }),
+    'eau|terre|vent': R('rx3_avalanche', 'Avalanche', '雪崩', '#cfefff', 1.9, 'Boue gelée emportée par le vent : avalanche qui gèle et repousse.', 'Triple · Gel', (s, t, rr, m) => { addZone('ice', t.x, t.y, 160 * rr, 5, s); for (const v of foes(s, t.x, t.y, 200 * rr)) { ST(s, v, { heat: -90, slow: 2 }); const a = Math.atan2(v.y - t.y, v.x - t.x); v.vx += Math.cos(a) * 500; v.vy += Math.sin(a) * 500; D(s, v, pw(s) * 0.8 * m, 'eau'); } FX.element(t.x, t.y, 30, 'glace', 2.4); }),
+    'eau|feu|foudre': R('rx3_supernova', 'Surcharge de Vapeur', '爆蒸', '#fff2c0', 2.2, 'Vapeur sous pression + foudre : explosion de chaudière, dégâts massifs et aveuglement.', 'Triple · Explosion', (s, t, rr, m) => { for (const v of foes(s, t.x, t.y, 190 * rr)) { D(s, v, pw(s) * 1.5 * m, 'foudre', { heat: 25 }); v.st.blind = 2; } FX.ring(t.x, t.y, '#ffffff', 10, 200 * rr, 0.5, 16); FX.smoke(t.x, t.y, 24, '#f2f0f8', 20, 30, 160); Post.shock(t.x, t.y, 1.3, 320); Cam.add(0.7); Audio.play('boom', 1.2); }),
+    'foudre|terre|vent': R('rx3_tempete_fer', 'Tempête de Fer', '鉄', '#b7a3ff', 1.9, 'Sable magnétisé soulevé par le vent : éclats métalliques, saignement et paralysie.', 'Triple · Saignement', (s, t, rr, m) => { addZone('ash', t.x, t.y, 170 * rr, 5, s); for (const v of foes(s, t.x, t.y, 190 * rr)) { ST(s, v, { bleed: 30, shock: 0.6 }); D(s, v, pw(s) * 0.8 * m, 'terre'); } }),
+  };
+  /* ---------- Quadruples (5) + quintuple ---------- */
+  const QUAD = {
+    'eau|feu|foudre|vent': R('rx4_cataclysme', 'Cataclysme Céleste', '天災', '#ffe9a0', 2.8, 'Quatre éléments du ciel : nuage cataclysmique — orage, vapeur et flammes frappent pendant 5 s.', 'Quadruple', (s, t, rr, m) => { addZone('storm', t.x, t.y, 240 * rr, 5, s); addZone('steam', t.x, t.y, 200 * rr, 5, s); for (let i = 0; i < 5; i++) G.delayed.push({ t: i * 0.3, f: () => { for (const v of foes(s, t.x, t.y, 240 * rr)) D(s, v, pw(s) * 0.6 * m, pick(['feu', 'foudre', 'eau']), { heat: 15, shock: 0.3, wet: 15 }); FX.bolt(t.x + rand(-150, 150), t.y - 300, 300, t.x + rand(-150, 150), t.y + rand(-100, 100), 0, '#fff', 0.3, 5); } }); }),
+    'feu|foudre|terre|vent': R('rx4_meteore', 'Météore Élémentaire', '隕', '#ff7a2b', 2.8, 'Feu, foudre, terre, vent : un météore se forme au-dessus de la cible et s’écrase.', 'Quadruple', (s, t, rr, m) => { FX.text(t.x, t.y - 160, '⚠', '#ff7a2b', 30, true); G.delayed.push({ t: 0.6, f: () => { for (const v of foes(s, t.x, t.y, 220 * rr)) D(s, v, pw(s) * 2.4 * m, 'terre', { heat: 40 }); FX.ring(t.x, t.y, '#ff7a2b', 20, 240 * rr, 0.6, 18); FX.debris(t.x, t.y, '#5a3a2a', 30, 420); Post.shock(t.x, t.y, 2, 500); Cam.add(1.2); G.hitStop = 0.08; Audio.play('boom', 1.5); } }); }),
+    'eau|foudre|terre|vent': R('rx4_deluge', 'Déluge Tellurique', '洪', '#5aa8ff', 2.6, 'Eau, foudre, terre, vent : inondation électrifiée, boue et tourbillons — tout est enlisé et paralysé.', 'Quadruple', (s, t, rr, m) => { addZone('mud', t.x, t.y, 230 * rr, 7, s); addZone('electric', t.x, t.y, 200 * rr, 6, s); addZone('tornado', t.x, t.y, 120 * rr, 4, s); for (const v of foes(s, t.x, t.y, 240 * rr)) { ST(s, v, { slow: 5, shock: 1.5, wet: 80 }); v.st.mud = 5; D(s, v, pw(s) * 1.2 * m, 'eau'); } }),
+    'eau|feu|terre|vent': R('rx4_monde', 'Naissance d’un Monde', '創', '#7ad85a', 2.6, 'Eau, feu, terre, vent : la terre se soulève et une forêt jaillit — racines, lave et vapeur.', 'Quadruple', (s, t, rr, m) => { addZone('lava', t.x, t.y, 120 * rr, 5, s); addZone('steam', t.x, t.y, 200 * rr, 5, s); for (const v of foes(s, t.x, t.y, 230 * rr)) { ST(s, v, { root: 2.5, heat: 30 }); D(s, v, pw(s) * 1.5 * m, 'terre'); } FX.element(t.x, t.y, 20, 'bois', 3); }),
+    'eau|feu|foudre|terre': R('rx4_noyau', 'Fusion du Noyau', '核', '#ff4a8a', 2.8, 'Eau, feu, foudre, terre : réaction en chaîne au cœur de la cible — triple explosion.', 'Quadruple', (s, t, rr, m) => { for (let i = 0; i < 3; i++) G.delayed.push({ t: i * 0.25, f: () => { for (const v of foes(s, t.x, t.y, (140 + i * 50) * rr)) D(s, v, pw(s) * 0.9 * m, 'foudre', { heat: 20 }); FX.ring(t.x, t.y, '#ff4a8a', 10, (150 + i * 60) * rr, 0.45, 12); Post.shock(t.x, t.y, 1, 300); } }); }),
+  };
+  const QUINT = R('rx5_rikudo', 'Six Voies : Création de Toute Chose', '六道', '#ffffff', 3.5, 'Les cinq natures sur une même cible : Yin-Yang absolu — dégâts colossaux, tous les états, cinématique.', 'Quintuple', (s, t, rr, m) => { const go = () => { for (const v of foes(s, t.x, t.y, 300 * rr)) { D(s, v, pw(s) * 4 * m, 'neutre', { heat: 30, shock: 1, wet: 40, slow: 2, bleed: 20 }); } FX.ring(t.x, t.y, '#ffffff', 20, 320, 0.8, 20); FX.ring(t.x, t.y, '#0a0a0a', 20, 260, 0.7, 14); }; if (window.SE42 && SE42.cine) SE42.cine(t.x, t.y, 300, '#ffffff', go, 'Rikudō !'); else go(); });
+  /* ---------- Interactions dōjutsu / kekkei genkai / techniques ---------- */
+  const SP = {
+    blackTornado: R('rx_ama_vent', 'Tornade de Flammes Noires', '黒嵐', '#2a0a3a', 1.9, 'Vent sur une cible brûlée par Amaterasu : tornade de flammes noires qui se propage.', 'Dōjutsu', (s, t, rr, m) => { addZone('blackfire', t.x, t.y, 130 * rr, 5, s); addZone('tornado', t.x, t.y, 120 * rr, 4, s); for (const v of foes(s, t.x, t.y, 200 * rr)) { ST(s, v, { black: 3 }); D(s, v, pw(s) * 0.8 * m, 'noir'); } }),
+    kamuiBoom: R('rx_kamui_ex', 'Distorsion Explosive', '神爆', '#5ad8ff', 2.0, 'Kamui sur une cible piégée par une explosion : l’explosion est aspirée puis recrachée deux fois plus fort.', 'Dōjutsu', (s, t, rr, m) => { G.delayed.push({ t: 0.35, f: () => { for (const v of foes(s, t.x, t.y, 200 * rr)) D(s, v, pw(s) * 1.6 * m, 'explosion'); FX.ring(t.x, t.y, '#5ad8ff', 10, 210, 0.5, 14); Post.shock(t.x, t.y, 1.2, 280); Audio.play('boom'); } }); FX.ring(t.x, t.y, '#5ad8ff', 200, 10, 0.35, 6); }),
+    jyuken: R('rx_byak_jyuken', 'Sceau des 64 Points', '点穴', '#7ff0ff', 1.6, 'Poing Souple avec Byakugan actif : les points de chakra sont fermés (sceau 3 s, chakra drainé).', 'Dōjutsu', (s, t, rr, m) => { ST(s, t, { seal: 3 }); t.ch = Math.max(0, (t.ch || 0) - 30); FX.kanji(t.x, t.y, 90, '封', '#7ff0ff', 24, 0.7); }),
+    sharGen: R('rx_shar_gen', 'Genjutsu Miroir', '写幻', '#ff3b3b', 1.7, 'Genjutsu lancé avec le Sharingan actif sur une cible en transe : la transe s’étend aux ennemis proches.', 'Dōjutsu', (s, t, rr, m) => { for (const v of foes(s, t.x, t.y, 180)) if (v !== t && !v.boss) applyGen(s, v, 'trance', 1.5, true); }),
+    rinGrav: R('rx_rin_grav', 'Écrasement Céleste', '天圧', '#b7a3ff', 1.9, 'Gravité sur une cible projetée en l’air : elle est plaquée au sol (dégâts ×1,9, étourdie).', 'Dōjutsu', (s, t, rr, m) => { ST(s, t, { shock: 1 }); FX.ring(t.x, t.y, '#b7a3ff', 60, 10, 0.3, 8); Post.shock(t.x, t.y, 1, 200); }),
+    senju: R('rx_bois_bijuu', 'Suppression Senju', '柱', '#6ac86a', 1.8, 'Mokuton sur un Jinchūriki ou une Bête : son chakra est réprimé (immobile 2 s, chakra −40).', 'Kekkei genkai', (s, t, rr, m) => { ST(s, t, { root: 2 }); t.ch = Math.max(0, (t.ch || 0) - 40); if (t.beastM) t.beastM = Math.max(0, t.beastM - 30); }),
+    sandWater: R('rx_sable_eau', 'Sable Mouvant', '流砂', '#c9a46b', 1.6, 'Sable de Gaara sur une cible mouillée : sable lourd qui l’enlise et l’immobilise.', 'Kekkei genkai', (s, t, rr, m) => { addZone('mud', t.x, t.y, 120, 5, s); ST(s, t, { root: 1.8, slow: 3 }); }),
+    chidoriWet: R('rx_chidori_eau', 'Chidori Conducteur', '千電', '#9ad8ff', 1.9, 'Chidori / Raikiri sur une cible mouillée : la décharge se propage à tous les ennemis mouillés.', 'Technique', (s, t, rr, m) => { for (const v of foes(s, t.x, t.y, 400)) if (v !== t && v.st.wet > 0) { FX.bolt(t.x, t.y, 30, v.x, v.y, 30, '#9ad8ff', 0.3, 3); D(s, v, pw(s) * 0.9 * m, 'foudre', { shock: 0.8 }); } }),
+    rasenVortex: R('rx_rasen_vent', 'Vortex Rasen', '螺渦', '#9fe8c8', 1.7, 'Rasengan sur une cible marquée Vent : un vortex aspire les ennemis proches avant l’impact.', 'Technique', (s, t, rr, m) => { for (const v of foes(s, t.x, t.y, 260)) if (v !== t && !v.boss) { const a = Math.atan2(t.y - v.y, t.x - v.x); v.vx += Math.cos(a) * 600; v.vy += Math.sin(a) * 600; } addZone('tornado', t.x, t.y, 90, 2, s); }),
+    chainBoom: R('rx_explo_feu', 'Détonation en Chaîne', '連爆', '#ffb04a', 1.7, 'Feu sur une cible piégée par de l’argile explosive : détonations en chaîne vers les ennemis proches.', 'Kekkei genkai', (s, t, rr, m) => { let k = 0; for (const v of foes(s, t.x, t.y, 260)) { if (k++ > 4) break; G.delayed.push({ t: 0.12 * k, f: () => { if (alive(v)) { D(s, v, pw(s) * 0.8 * m, 'explosion'); FX.ring(v.x, v.y, '#ffb04a', 6, 70, 0.3, 6); } } }); } }),
+    susSeal: R('rx_sus_sceau', 'Scellement de Totsuka', '封剣', '#ff5a3a', 2.0, 'Technique de Susanoo sur une cible scellée : le sceau s’approfondit (+3 s) et l’âme vacille (dégâts ×2).', 'Dōjutsu', (s, t, rr, m) => { ST(s, t, { seal: 3 }); }),
+    iceMirror: R('rx_glace_miroir', 'Miroirs de Glace', '鏡氷', '#bfe8ff', 1.6, 'Glace sur une cible ralentie par le froid : des miroirs l’entourent et la criblent de senbon.', 'Kekkei genkai', (s, t, rr, m) => { for (let i = 0; i < 8; i++) G.delayed.push({ t: i * 0.06, f: () => { if (alive(t)) D(s, t, pw(s) * 0.15 * m, 'glace', { bleed: 4 }); } }); FX.ring(t.x, t.y, '#bfe8ff', 10, 80, 0.5, 6); }),
+    gentleKaiten: R('rx_kaiten_proj', 'Renvoi Céleste', '回天', '#7ff0ff', 1.5, 'Kaiten pendant qu’une cible a des projectiles en vol : ils sont renvoyés (et chargés de chakra).', 'Dōjutsu', (s, t, rr, m) => { for (const p of G.projs) if (p.team !== s.team && dist(p.x, p.y, s.x, s.y) < 260) { p.vx *= -1.2; p.vy *= -1.2; p.team = s.team; p.owner = s; p.hit && p.hit.clear(); } }),
+  };
+  SE43.TRI = TRI; SE43.QUAD = QUAD; SE43.QUINT = QUINT; SE43.SP = SP;
+  SE43.count = Object.keys(TRI).length + Object.keys(QUAD).length + 1 + Object.keys(SP).length;
+  /* ---------- Détection ---------- */
+  const trig = (src, t, Rx, tag) => { const cd = (t._rx43cd = t._rx43cd || {}); if (cd[Rx.id] > G.t) return 1; cd[Rx.id] = G.t + 0.3; SE43.ev[Rx.id] = (SE43.ev[Rx.id] || 0) + 1; SE43.ev.any = (SE43.ev.any || 0) + 1; return SE31.trigger(src, t, Rx, null) || Rx.mul; };
+  const baseDD = dealDamage;
+  dealDamage = function (src, tgt, amt, o = {}) {
+    if (!tgt || !alive(tgt) || !src || src === tgt || o.noReact || o.noMark || o.zone || src.team === tgt.team || tgt.team === -1) return baseDD.apply(this, arguments);
+    let mul = 1; const T = o.tech && TECH[o.tech]; const tid = (T && T.id) || ''; const e = NORM[o.el];
+    // — interactions spéciales (avant la table élémentaire)
+    try {
+      if (o.el === 'vent' && tgt.st.black > 0) mul *= trig(src, tgt, SP.blackTornado);
+      else if (/kamui/.test(tid) && (tgt._exT > G.t || (tgt.mk && tgt.mk.ex43))) mul *= trig(src, tgt, SP.kamuiBoom);
+      else if (o.melee && ((src.md && src.md.key === 'celeste') || src.ms33 === 'neji' || src.eye === 'celeste' && src.eyeOn)) { if (!tgt._jyT || tgt._jyT < G.t) { tgt._jyT = G.t + 2; mul *= trig(src, tgt, SP.jyuken); } }
+      else if (T && T.cat === 'genjutsu' && src.md && src.md.key === 'miroir' && tgt.st.trance > 0) mul *= trig(src, tgt, SP.sharGen);
+      else if (o.el === 'gravite' && (tgt.z > 12 || tgt.st.knockup > 0)) mul *= trig(src, tgt, SP.rinGrav);
+      else if (o.el === 'bois' && (tgt.beastStage > 0 || tgt.md && tgt.md.type === 'bijuu' || tgt.boss && /bete|beast|bijuu/.test(tgt.type || ''))) mul *= trig(src, tgt, SP.senju);
+      else if (/^gaa_/.test(tid) && tgt.st.wet > 0) mul *= trig(src, tgt, SP.sandWater);
+      else if (/chidori|raikiri/.test(tid) && tgt.st.wet > 0) mul *= trig(src, tgt, SP.chidoriWet);
+      else if (/^(spirale|bj_rasen|nar_)/.test(tid) && tgt.mk && tgt.mk.el === 'vent' && /rasen|spirale|lancer/.test(tid)) mul *= trig(src, tgt, SP.rasenVortex);
+      else if (NORM[o.el] === 'feu' && tgt._exT > G.t) mul *= trig(src, tgt, SP.chainBoom);
+      else if (T && T.sus42 && tgt.st.seal > 0) mul *= trig(src, tgt, SP.susSeal);
+      else if (o.el === 'glace' && (tgt.st.slow > 0 || (tgt.heat || 0) < -30)) { if (!tgt._imT || tgt._imT < G.t) { tgt._imT = G.t + 3; mul *= trig(src, tgt, SP.iceMirror); } }
+      else if (/kaiten/.test(tid)) mul *= trig(src, tgt, SP.gentleKaiten);
+    } catch (x) {}
+    if (o.el === 'explosion') tgt._exT = G.t + 4;
+    // — chaînes de réactions : 3e, 4e, 5e élément différent pendant la fenêtre
+    const C = tgt._rx43; const before = tgt.mk && tgt.mk.t > 0 ? tgt.mk : null;
+    if (e && C && C.until > G.t && !C.els.has(e)) {
+      const els = [...C.els, e].sort(); const key = els.join('|'); const Rx = els.length === 3 ? TRI[key] : els.length === 4 ? QUAD[key] : els.length >= 5 ? QUINT : null;
+      if (Rx) { C.els.add(e); C.until = G.t + 5; tgt.mk = null; mul *= trig(src, tgt, Rx); SE43.ev.chain = els.length; return baseDD.call(this, src, tgt, amt * mul, Object.assign({}, o, { noReact: 1 })); }
+    }
+    const r = baseDD.call(this, src, tgt, amt * mul, o);
+    // une réaction double vient d'avoir lieu ? (marque consommée par un élément différent)
+    if (e && before && before.el !== e && !tgt.mk && SE31.RX[[before.el, e].sort().join('|')]) tgt._rx43 = { els: new Set([before.el, e]), until: G.t + 5 };
+    return r; };
+  /* ---------- Guide : tables de réactions ---------- */
+  const row = (o) => `<tr><td style="color:${o.c}"><b>${o.k} ${esc(o.n)}</b></td><td>${esc(o.d)}</td></tr>`;
+  const ELN = { feu: '炎 Feu', vent: '風 Vent', eau: '水 Eau', foudre: '雷 Foudre', terre: '土 Terre' };
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody');
+    g.insertAdjacentHTML('afterbegin', `<section><h4>発 Réactions 4.3 : chaînes et dōjutsu</h4><p>Après une réaction double, la cible garde les deux éléments 5 s : un 3e élément différent déclenche une <b>réaction triple</b>, un 4e une <b>quadruple</b>, les cinq natures la <b>quintuple</b>.</p>
+      <table><tr><th colspan="2">Triples</th></tr>${Object.entries(TRI).map(([k, o]) => row(Object.assign({}, o, { n: o.n + ' (' + k.split('|').map((x) => ELN[x]).join(' + ') + ')' }))).join('')}
+      <tr><th colspan="2">Quadruples et quintuple</th></tr>${Object.entries(QUAD).map(([k, o]) => row(Object.assign({}, o, { n: o.n + ' (' + k.split('|').map((x) => ELN[x]).join(' + ') + ')' }))).join('')}${row(QUINT)}
+      <tr><th colspan="2">Dōjutsu, kekkei genkai et techniques</th></tr>${Object.values(SP).map(row).join('')}</table></section>`); };
+  SE3.NOTES.unshift({ v: '4.3 — Reactions Expansion', d: '20 octobre 2026', tag: `${SE43.count} nouvelles réactions : chaînes triples, quadruples et dōjutsu.`, s: [
+    ['Chaînes', ['Après une réaction double, un 3e élément déclenche une réaction triple (10), un 4e une quadruple (5), les cinq natures « Six Voies : Création de Toute Chose » (cinématique).']],
+    ['Dōjutsu & kekkei genkai', ['Vent + Amaterasu = tornade de flammes noires, Kamui + explosion = distorsion explosive, Byakugan + Poing Souple = sceau des 64 points, Sharingan + genjutsu, Rinnegan + gravité, Mokuton contre les Bijū, sable + eau, Chidori conducteur, vortex Rasen, détonation en chaîne, scellement de Totsuka, miroirs de glace, renvoi céleste.']],
+    ['Codex', ['Toutes les nouvelles réactions apparaissent dans le Codex (onglet Réactions) et dans le Guide avec leur tableau.']],
   ] });
 })();
 

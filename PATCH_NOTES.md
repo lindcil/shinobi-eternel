@@ -1,3 +1,8 @@
+- 29 nouvelles réactions : 10 triples, 5 quadruples, 1 quintuple (Six Voies, cinématique)
+- Chaînes : après une réaction double, la cible garde ses éléments 5 s ; un 3e/4e/5e élément enchaîne
+- Interactions dōjutsu / kekkei genkai / techniques : Vent + Amaterasu, Kamui + explosion, Byakugan + Poing Souple, Sharingan + genjutsu, Rinnegan + gravité, Mokuton vs Bijū, sable + eau, Chidori conducteur, vortex Rasen, détonation en chaîne, Totsuka, miroirs de glace, renvoi céleste
+- Codex (onglet Réactions) et tableau complet dans le Guide
+
 - Sceaux : incantation 0,3–0,6 s avec kanji (Tora, Mi, Inu…) ; 2e technique pendant les sceaux = fusion (26 fusions nommées + générique, Codex des fusions)
 - Rasengan / Chidori / Raikiri : course avec boost, détonation au premier ennemi, plus de téléportation
 - Impact frames, cinématique Bijūdama pour les ultimes, chocs QTE (techniques lourdes, ruées, Susanoo vs Bijūdama)
