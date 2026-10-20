@@ -1,3 +1,4 @@
+> ✅ v3.8 Maîtres Update : livrée. v3.8 Maîtres Update (fait)
 > ✅ v3.7.4 Kage Bunshin : livrée. v3.7.4 Kage Bunshin (fait)
 > ✅ v3.7.3 Roue fluide : livrée. v3.7.3 Roue fluide (fait)
 > ✅ v3.7.2 Animation Update : livrée. v3.7.2 Animation Update (fait)

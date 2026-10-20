@@ -1,3 +1,10 @@
+- 32 maîtres itinérants (+5 fixes) : 4 présents à la fois, rotation chaque jour / visite / 4 min, losanges sur la mini-carte
+- Épreuves QTE selon le palier (Genin → Ōtsutsuki), réessai après repos
+- 17 nouveaux modes à paliers + Sharingan/Byakugan/Rinnegan ; mode actif choisi dans l'onglet Monde (E · R3 · 瞳)
+- Contrats d'invocation ajoutés aux invocations (V · 召, −5 % PV)
+- Menus : grilles responsives, recherche fixe, panneau de détails, zones défilantes
+- Correctifs QTE : martèlement impossible à réussir, maxMiss 0 ignoré
+
 - Correctif : plantage des clones (clonage récursif exponentiel) — un clone ne peut plus se cloner
 - 5 clones max par ninja, 20 au total, durée 12 s, rendu allégé
 - Les clones imitent vos coups M1 ; relancer = échange de place ; C + relancer = explosion des clones

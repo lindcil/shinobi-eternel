@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v3.7.4 Kage Bunshin</title>
+<title>Shinobi Éternel II — v3.8 Maîtres Update</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '3.7.4';
+  const VERSION = '3.8';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -8597,10 +8597,10 @@ const Net = {
       else if (G.mode === 'monde' && !G.paused && ed(8)) act(); 
       padPrev[gp.index] = Object.fromEntries([0, 1, 8, 12, 13, 14, 15].map((n) => [n, !!b(n)])); } } catch (x) {}
     if (!Q) return; Q.t += dt; const st = qte.querySelector('#qst'); const left = Math.max(0, Q.dur - Q.t);
-    if (Q.type === 'mash') { Q.fill = Math.max(0, Q.fill - dt * (Q.decay || 0.12)); const f = qte.querySelector('.fill'); if (f) f.style.width = Q.fill * 100 + '%'; const z = qte.querySelector('.zone'); if (z) z.style.display = 'none'; const c = qte.querySelector('.cur'); if (c) c.style.display = 'none'; if (st) st.textContent = `${Math.round(Q.fill * 100)} % · ${left.toFixed(1)} s`; if (Q.fill >= 1) return endQ(true); }
+    if (Q.type === 'mash') { Q.fill = Math.max(0, Q.fill - dt * (Q.decay || 0.12)); const f = qte.querySelector('.fill'); if (f) f.style.width = Q.fill * 100 + '%'; const z = qte.querySelector('.zone'); if (z) z.style.display = 'none'; const c = qte.querySelector('.cur'); if (c) c.style.display = 'none'; if (st) st.textContent = `${Math.round(Q.fill * 100)} % · ${left.toFixed(1)} s`; if (Q.fill >= 0.97) return endQ(true); }
     else if (Q.type === 'timing') { Q.cur += dt * (Q.spd || 0.9) * Q.dir; if (Q.cur > 1) { Q.cur = 1; Q.dir = -1; } if (Q.cur < 0) { Q.cur = 0; Q.dir = 1; } const z = qte.querySelector('.zone'); if (z) { z.style.left = Q.zx * 100 + '%'; z.style.width = Q.zw * 100 + '%'; } const c = qte.querySelector('.cur'); if (c) c.style.left = Q.cur * 100 + '%'; if (st) st.textContent = `${Q.ok} / ${Q.n} · erreurs ${Q.miss} / ${Q.maxMiss} · ${left.toFixed(1)} s`; if (Q.ok >= Q.n) return endQ(true); if (Q.miss > Q.maxMiss) return endQ(false); }
     else if (Q.type === 'hold') { Q.vel += (Q.hold ? 2.2 : -1.8) * dt; Q.vel *= Math.pow(0.04, dt); Q.v = clamp(Q.v + Q.vel * dt, 0, 1); if (Q.v <= 0 || Q.v >= 1) Q.vel = 0; const zw = 0.26; Q.zx = 0.37 + Math.sin(Q.t * 0.9) * 0.2; const inZ = Q.v >= Q.zx && Q.v <= Q.zx + zw; if (inZ) Q.in += dt; const z = qte.querySelector('.zone'); if (z) { z.style.left = Q.zx * 100 + '%'; z.style.width = zw * 100 + '%'; } const c = qte.querySelector('.cur'); if (c) c.style.left = Q.v * 100 + '%'; const f = qte.querySelector('.fill'); if (f) { f.style.width = (Q.in / Q.need) * 100 + '%'; f.style.opacity = 0.35; } if (st) st.textContent = `Énergie naturelle ${Math.round(Math.min(1, Q.in / Q.need) * 100)} % · ${left.toFixed(1)} s`; if (Q.in >= Q.need) return endQ(true); }
-    else if (Q.type === 'seq') { if (st) st.textContent = `${Q.idx} / ${Q.list.length} · ${left.toFixed(1)} s`; if (Q.idx >= Q.list.length) return endQ(true); if (Q.miss > (Q.maxMiss || 2)) return endQ(false); }
+    else if (Q.type === 'seq') { if (st) st.textContent = `${Q.idx} / ${Q.list.length} · ${left.toFixed(1)} s`; if (Q.idx >= Q.list.length) return endQ(true); if (Q.miss > (Q.maxMiss != null ? Q.maxMiss : 2)) return endQ(false); }
     if (Q && Q.t >= Q.dur) endQ(false);
   }
   requestAnimationFrame(qLoop);
@@ -9236,6 +9236,204 @@ const Net = {
     ['Correctif', ['Plantage du Multiclonage (Naruto) et des clones : les clones héritaient de la technique de clonage et se clonaient eux-mêmes à l’infini. Un clone ne peut plus créer de clone.']],
     ['Clones', ['5 clones max par ninja (le plus ancien disparaît), 20 au total, durée de vie 12 s, rendu allégé.', 'Les clones imitent vos coups au corps à corps.', 'Relancer la technique quand des clones sont là : échange de place avec le clone le plus proche de la visée. En chargeant le chakra (C · LT · bouton Chakra) : tous les clones explosent (Bunshin Daibakuha).']]
   ] });
+})();
+/* v3.8 — Maîtres Update : 30+ maîtres itinérants, modes et contrats d'invocation */
+(function () {
+  const SE38 = (window.SE38 = { ev: {}, present: [] }); const MODES = SE3.MODES; const SE35 = window.SE35;
+  const ok = (id) => (TECH[id] ? id : 'v_rush');
+  const S = (n, sub, sk, ult, extra) => Object.assign({ n, sub, sk: sk.map(ok), ult: ult ? ok(ult) : null }, extra || {});
+  /* ---------- Nouveaux modes (s'insèrent dans le système à paliers) ---------- */
+  const NM = {
+    ermite_crapaud: ['Mode Ermite Crapaud', '蝦', '#ff9a2a', [S('Énergie naturelle', 'Frappes amplifiées', ['ow_ermite', 'tai_roc', 'tai_ouragan', 'terre_poing'], null), S('Kumite de Grenouille', 'Portée invisible', ['ow_ermite', 'tai_roc', 'vent_balles', 'tai_dragon'], 'tai_dragon'), S('Fusion Fukasaku-Shima', 'Genjutsu sonore', ['ow_ermite', 'eau_canon', 'vent_balles', 'feu_meteores'], 'feu_meteores'), S('Ermite parfait', 'Sphère des sages', ['spirale', 'ow_ermite', 'eau_canon', 'feu_meteores'], 'feu_meteores', { aura: 'halo' })]],
+    ermite_serpent: ['Mode Ermite Serpent', '蛇', '#a8e070', [S('Écailles blanches', 'Régénération', ['oro_kusanagi', 'iryo_scalpel', 'terre_crocs', 'eau_brume'], null), S('Hydre', 'Serpents multiples', ['oro_kusanagi', 'terre_crocs', 'eau_dragon', 'iryo_regen'], 'eau_dragon'), S('Sage des grottes', 'Perception totale', ['oro_kusanagi', 'terre_crocs', 'eau_dragon', 'gen_prison'], 'gen_prison'), S('Dragon blanc', 'Mue parfaite', ['oro_kusanagi', 'terre_seisme', 'eau_marees', 'iryo_regen'], 'terre_seisme', { aura: 'halo' })]],
+    ermite_bois: ['Mode Ermite du Bois', '木', '#7ad85a', [S('Marques Senju', 'Racines', ['bois_racines', 'bois_cage', 'iryo_regen', 'terre_mur'], null), S('Forêt naissante', 'Bosquet', ['bois_racines', 'bois_foret', 'bois_cage', 'iryo_regen'], 'bois_foret'), S('Dragon de bois', 'Absorption', ['bois_dragon', 'bois_foret', 'bois_cage', 'iryo_regen'], 'bois_dragon'), S('Mille bras', 'Bouddha', ['bois_dragon', 'bois_foret', 'sec_bosquet', 'terre_seisme'], 'sec_bosquet'), S('Dieu des shinobi', 'Ermite parfait', ['bois_dragon', 'sec_bosquet', 'bois_foret', 'terre_seisme'], 'sec_bosquet', { aura: 'halo' })]],
+    byakugo: ['Sceau Byakugō', '百', '#7dffb0', [S('Sceau chargé', 'Force colossale', ['tsu_poing', 'iryo_paume', 'terre_poing', 'iryo_regen'], null), S('Régénération', 'Soins continus', ['tsu_poing', 'iryo_regen', 'terre_eboulement', 'iryo_aura'], 'tsu_byakugo'), S('Création-Renaissance', 'Immortelle', ['tsu_byakugo', 'tsu_poing', 'iryo_aura', 'terre_eboulement'], 'tsu_byakugo', { aura: 'halo' })]],
+    portes: ['Huit Portes', '門', '#ff5a3a', [S('Porte de l’Ouverture', 'Vitesse', ['tai_lotus', 'tai_ouragan', 'tai_pas', 'tai_cent'], null), S('Porte de la Vue', 'Lotus caché', ['tai_lotus', 'gai_paon', 'tai_pas', 'tai_cent'], 'gai_paon'), S('Porte de la Mort', 'Nuit de la Mort', ['gai_portes', 'gai_paon', 'gai_elephant', 'tai_meteore'], 'gai_portes', { aura: 'halo' })]],
+    otsutsuki: ['Réceptacle Ōtsutsuki', '桃', '#e8e4f0', [S('Marque Kāma', 'Absorption', ['ow_karma', 'grav_repousse', 'div_lances', 'rin_preta'], null), S('Corne naissante', 'Lances divines', ['ow_karma', 'div_lances', 'rin_shinra', 'grav_attire'], 'div_lances'), S('Réceptacle éveillé', 'Orbes de vérité', ['div_lances', 'rin_shinra', 'byk_orbes', 'rin_chibaku'], 'rin_chibaku'), S('Ōtsutsuki complet', 'Divinité', ['div_jugement', 'byk_orbes', 'rin_shinra', 'div_lances'], 'div_jugement'), S('Céleste', 'Ascension', ['div_jugement', 'byk_ciel', 'rin_chibaku', 'byk_orbes'], 'div_jugement', { aura: 'halo' })]],
+    chakra_bijuu: ['Chakra de Bijū', '九', '#ffb13d', [S('Lien naissant', 'Chakra partagé', ['spirale', 'tai_ouragan', 'vent_lame', 'feu_boule'], null), S('Confiance', 'Bras de chakra', ['spirale', 'vent_tornade', 'tai_dragon', 'feu_dragon'], 'feu_dragon'), S('Fusion', 'Bijūdama', ['bj_bijudama', 'spirale', 'vent_tornade', 'tai_dragon'], 'bj_bijudama'), S('Lien parfait', 'Avatar', ['bj_bijudama', 'feu_meteores', 'vent_tornade', 'tai_meteore'], 'bj_bijudama', { aura: 'halo' })]],
+    v2: ['Contrôle V2', '八', '#ffe23f', [S('Manteau V1', 'Rythme', ['bee_encre', 'ow_lariat', 'foudre_lame', 'ken_danse'], null), S('Manteau V2', 'Lariat V2', ['ow_lariat', 'bee_encre', 'foudre_armure', 'ken_tourbillon'], 'ow_lariat'), S('Contrôle total', 'Octo-sabres', ['ow_lariat', 'ken_tourbillon', 'foudre_dragon', 'bj_bijudama'], 'bj_bijudama'), S('Bee & Gyūki', 'Fusion parfaite', ['bj_bijudama', 'ow_lariat', 'foudre_dragon', 'ken_eclipse'], 'bj_bijudama', { aura: 'halo' })]],
+    coeurs: ['Cinq Cœurs', '心', '#4a8a6a', [S('Cœur de Feu', 'Masque brûlant', ['feu_dragon', 'feu_boule', 'terre_mur', 'fuin_chaines'], null), S('Cœur de Vent', 'Masque tranchant', ['vent_percee', 'feu_dragon', 'terre_mur', 'fuin_chaines'], 'vent_percee'), S('Cœur de Foudre', 'Masque électrique', ['foudre_lance', 'vent_percee', 'feu_dragon', 'terre_mur'], 'foudre_lance'), S('Cœur d’Eau', 'Masque liquide', ['eau_requins', 'foudre_lance', 'vent_percee', 'feu_dragon'], 'eau_requins'), S('Cinq cœurs', 'Immortel', ['feu_meteores', 'foudre_tonnerre', 'vent_faux', 'eau_marees'], 'foudre_tonnerre', { aura: 'halo' })]],
+    izanagi: ['Izanagi', '凪', '#c04040', [S('Bras implanté', 'Réalité réécrite', ['eye_copie', 'ken_iai', 'vent_lame', 'gen_prison'], null), S('Œil sacrifié', 'Esquive du destin', ['eye_copie', 'vent_percee', 'ken_iai', 'gen_effroi'], 'vent_percee'), S('Mille illusions', 'Cauchemar', ['vent_faux', 'gen_effroi', 'bois_racines', 'ken_vide'], 'vent_faux'), S('Fondation', 'Racine absolue', ['vent_faux', 'bois_dragon', 'ken_vide', 'gen_prison'], 'bois_dragon'), S('Izanagi parfait', 'Destin réécrit', ['vent_faux', 'bois_dragon', 'ken_eclipse', 'gen_prison'], 'ken_eclipse', { aura: 'halo' })]],
+    kaguya: ['Écho de Kaguya', '輝', '#f2f2ff', [S('Os du clan', 'Lances d’os', ['div_lances', 'terre_crocs', 'grav_attire', 'byk_vide'], null), S('Dimensions', 'Portails', ['div_lances', 'rin_bansho', 'byk_vide', 'grav_repousse'], 'rin_bansho'), S('Cendres', 'Os tout-puissants', ['div_lances', 'rin_chibaku', 'byk_orbes', 'grav_attire'], 'rin_chibaku'), S('Mère du chakra', 'Divinité', ['div_jugement', 'rin_chibaku', 'byk_orbes', 'rin_shinra'], 'div_jugement'), S('Lune infinie', 'Tsukuyomi', ['div_jugement', 'byk_ciel', 'rin_chibaku', 'rin_gudo'], 'div_jugement', { aura: 'halo' })]],
+    hiraishin: ['Dieu de la Foudre', '飛', '#ffe23f', [S('Kunaï marqués', 'Téléportation', ['min_hiraishin', 'fuin_kunais', 'spirale', 'fuin_eclair'], null), S('Éclair jaune', 'Sceaux éclair', ['min_hiraishin', 'fuin_eclair', 'spirale', 'fuin_kunais'], 'fuin_eclair'), S('Barrière', 'Téléportation de zone', ['min_hiraishin', 'fuin_barriere', 'spirale', 'fuin_grand'], 'fuin_grand'), S('Éclair de Konoha', 'Partout à la fois', ['min_hiraishin', 'fuin_grand', 'fuin_eclair', 'spirale'], 'fuin_grand', { aura: 'halo' })]],
+    papier: ['Ange de Papier', '紙', '#c8a8ff', [S('Feuilles', 'Papillons', ['vent_lame', 'fuin_explosifs', 'vent_aiguilles', 'vent_bond'], null), S('Ailes de papier', 'Vol', ['fuin_explosifs', 'vent_lame', 'vent_croix', 'vent_bond'], 'vent_croix'), S('Mer de papier', '600 milliards de feuilles', ['fuin_explosifs', 'vent_croix', 'vent_tornade', 'fuin_grand'], 'fuin_grand'), S('Ange de Dieu', 'Chute divine', ['fuin_grand', 'fuin_explosifs', 'vent_faux', 'vent_tornade'], 'fuin_grand', { aura: 'halo' })]],
+    requin: ['Fusion Samehada', '鮫', '#4f7aa8', [S('Samehada', 'Vol de chakra', ['ken_croissant', 'eau_requins', 'eau_balle', 'ken_parade'], null), S('Requins', 'Banc de requins', ['eau_requins', 'ken_croissant', 'eau_vague', 'eau_prison'], 'eau_requins'), S('Grand Requin', 'Mer intérieure', ['eau_requins', 'eau_marees', 'ken_tourbillon', 'eau_prison'], 'eau_marees'), S('Fusion', 'Monstre sans queue', ['eau_marees', 'eau_requins', 'ken_tourbillon', 'eau_canon'], 'eau_marees', { aura: 'halo' })]],
+    armure_foudre: ['Armure de Foudre', '雷', '#bfe8ff', [S('Armure', 'Vitesse foudre', ['foudre_armure', 'foudre_lame', 'tai_pas', 'tai_ouragan'], null), S('Lariat', 'Guillotine', ['foudre_armure', 'ow_lariat', 'foudre_lame', 'tai_meteore'], 'ow_lariat'), S('Armure totale', 'Raikage', ['foudre_armure', 'foudre_dragon', 'ow_lariat', 'tai_meteore'], 'foudre_dragon'), S('Quatrième Raikage', 'Coup d’enfer', ['foudre_tonnerre', 'foudre_dragon', 'ow_lariat', 'tai_meteore'], 'foudre_tonnerre', { aura: 'halo' })]],
+    sable: ['Armure de Sable', '砂', '#e0b870', [S('Bouclier de sable', 'Défense absolue', ['terre_mur', 'terre_marais', 'sas_kazekage', 'vent_aiguilles'], null), S('Cercueil', 'Funérailles', ['sas_kazekage', 'terre_marais', 'terre_crocs', 'terre_mur'], 'sas_kazekage'), S('Kazekage', 'Désert impérial', ['sas_kazekage', 'terre_seisme', 'terre_crocs', 'terre_eboulement'], 'terre_seisme', { aura: 'halo' })]],
+    iaido: ['Iaidō', '侍', '#c8d0dc', [S('Garde', 'Contre', ['ken_iai', 'ken_parade', 'ken_croissant', 'ken_danse'], null), S('Lame de chakra', 'Coupe nette', ['ken_iai', 'ken_ciel', 'ken_parade', 'ken_elem'], 'ken_ciel'), S('Dernier pas', 'Iai ultime', ['ken_vide', 'ken_iai', 'ken_ciel', 'ken_eclipse'], 'ken_eclipse', { aura: 'halo' })]],
+  };
+  for (const k in NM) { const [n, kj, c, st] = NM[k]; if (!MODES[k]) MODES[k] = { n, k: kj, c, stages: st }; if (!EYES[k]) EYES[k] = { n, k: kj, c, d: 'Mode appris auprès d’un maître : ' + st.map((s) => s.n).join(' → ') + '.', act: st[0].sk[0] }; }
+  /* ---------- Contrats d'invocation ---------- */
+  const B = (k) => MOBS[k] || MOBS.loup || Object.values(MOBS)[0];
+  Object.assign(MOBS, {
+    limace38: Object.assign({}, B('crapaud35'), { n: 'Katsuyu (limace)', c: '#e8f0f8', c2: '#7ac0ff', dmg: 8, hp: 160 }),
+    corbeau38: Object.assign({}, B('faucon35'), { n: 'Corbeau d’Itachi', c: '#1a1a22', c2: '#ff3b3b' }),
+    poulpe38: Object.assign({}, B('serpent35'), { n: 'Tentacule de Gyūki', c: '#7a3a2a', c2: '#ffb090', hp: 180, dmg: 15 }),
+    singe38: Object.assign({}, B('ours35'), { n: 'Enma, roi des singes', c: '#4a4a52', c2: '#e8d8b0', dmg: 20 }),
+    ninken38: Object.assign({}, B('loup'), { n: 'Pakkun (ninken)', c: '#8a6a4a', c2: '#2a3a6a' }),
+    argile38: Object.assign({}, B('faucon35'), { n: 'Oiseau d’argile', c: '#f0ecdc', c2: '#a8a088', dmg: 14 }),
+    aigle38: Object.assign({}, B('faucon35'), { n: 'Faucon messager', c: '#6a4a2a', c2: '#ffe0a0', dmg: 10 }),
+  });
+  /* ---------- 32 maîtres itinérants (+ les 5 maîtres fixes de la 3.5) ---------- */
+  const L = (hair, outfit, scarf, x) => Object.assign({ hair, outfit, scarf }, x || {});
+  const R = [
+    ['fukasaku', 'Fukasaku', '蝦', '#ff9a2a', 3, 15, { mode: 'ermite_crapaud' }, L('#d8e0a0', '#4a7a3a', '#ff9a2a'), ['Petit, l’énergie naturelle est partout. Il suffit de rester immobile… et de ne pas devenir crapaud.'], 'Les marques orange autour de tes yeux… tu es un vrai Ermite !'],
+    ['shima', 'Shima', '蝦', '#ffb070', 1, 1, { contract: 'crapaud35' }, L('#d8e0a0', '#6a8a4a', '#ffb070'), ['Oh, un petit voyageur ! Tu veux signer le contrat des crapauds du Mont Myōboku ?'], 'Signe ici, avec ton sang. Les crapauds répondront à ton appel !'],
+    ['kabuto', 'Kabuto Yakushi', '蛇', '#a8e070', 4, 30, { mode: 'ermite_serpent' }, L('#d8d8e0', '#5a3a6a', '#a8e070', { glasses: 1 }), ['La grotte de Ryūchi m’a appris ce que Jiraiya ignorait.', 'Le Mode Ermite Serpent… Montre-moi que tu survivras à la mue.'], 'Intéressant… Tes écailles sont parfaites. Tu es devenu un dragon blanc.'],
+    ['orochimaru', 'Orochimaru', '蛇', '#8ac050', 3, 20, { contract: 'serpent35' }, L('#1a1a22', '#e8e4dc', '#6a3a8a'), ['Kukuku… Tu veux le pouvoir des serpents ? Il a un prix.'], 'Le contrat est scellé. Manda ne sera pas commode… mais ses enfants t’obéiront.'],
+    ['hashirama', 'Esprit de Hashirama', '木', '#7ad85a', 5, 45, { mode: 'ermite_bois' }, L('#2a1a10', '#a03a2a', '#7ad85a'), ['Ha ha ! Un jeune qui veut le Mode Ermite du Bois ? Personne ne l’a jamais maîtrisé à part moi !', 'Concentre ton chakra… et sois rapide, l’épreuve des Senju ne pardonne pas.'], 'Incroyable ! Le Bouddha aux mille mains t’accepte. Le Dieu des shinobi te salue !'],
+    ['katsuyu', 'Katsuyu', '蛞', '#7ac0ff', 2, 8, { contract: 'limace38' }, L('#e8f0f8', '#7ac0ff', '#ffffff'), ['Bonjour… je suis Katsuyu. Je soigne les ninjas de Konoha à travers mes clones.'], 'Je répondrai à ton appel. Mes fragments te soigneront.'],
+    ['tsunade38', 'Tsunade (Byakugō)', '百', '#7dffb0', 3, 25, { mode: 'byakugo', contract: 'limace38' }, L('#f2d870', '#3a6a3a', '#7dffb0'), ['Le Sceau Byakugō demande des années de chakra stocké. Tu as la patience ?'], 'Le losange sur ton front… tu l’as. Et Katsuyu répondra à ton appel aussi.'],
+    ['dai', 'Maito Dai', '門', '#ff5a3a', 2, 12, { mode: 'portes' }, L('#0e0e14', '#3fae6a', '#ff5a3a'), ['Je suis le génie de l’effort, Maito Dai ! Les Huit Portes s’ouvrent par la volonté !'], 'OUI ! Tu as ouvert les portes ! N’oublie pas : protège ce qui compte !'],
+    ['kakashi38', 'Kakashi (entraînement)', '写', '#ff3b3b', 2, 10, { mode: 'miroir' }, L('#d8d8e0', '#3a4a3a', '#2a2a30', { mask: 1 }), ['Yo. Obito m’a laissé cet œil. Je peux t’apprendre à éveiller le tien.'], 'Trois tomoe… Tu iras plus loin que moi.'],
+    ['itachi', 'Itachi Uchiha', '鴉', '#d63c3c', 4, 30, { mode: 'miroir', contract: 'corbeau38' }, L('#1a1a22', '#1a1a22', '#d63c3c'), ['Tu veux connaître le vrai sens du Sharingan ? Il naît de la perte.', 'Mes corbeaux veilleront sur toi… si tu réussis.'], 'Pardonne-moi… ce sera la dernière fois. Mes corbeaux sont à toi.'],
+    ['hagoromo', 'Hagoromo Ōtsutsuki', '仙', '#e8e4f0', 5, 50, { mode: 'otsutsuki' }, L('#e8e4f0', '#f2f2f2', '#c06bff', { horns: 1 }), ['Je suis l’Ermite des Six Chemins. Le chakra des Ōtsutsuki est un fardeau.', 'Montre-moi que ton esprit est assez fort pour ne pas être dévoré.'], 'Tu portes maintenant l’héritage céleste. Utilise-le pour la paix.'],
+    ['momo38', 'Vestige de Momoshiki', '桃', '#c06bff', 5, 50, { mode: 'otsutsuki' }, L('#f2f2f2', '#e8e4f0', '#c06bff', { horns: 1 }), ['Cette coquille vide attend un réceptacle. Toi, peut-être.'], 'La marque Kāma s’éveille. Tu es devenu… acceptable.'],
+    ['kurama38', 'Kurama', '九', '#ffb13d', 4, 30, { mode: 'chakra_bijuu', bond: 3 }, L('#ff8a2b', '#ff8a2b', '#ffd36b'), ['Hmph. Un humain qui veut mon chakra ? Prouve-moi que tu n’es pas comme les autres.'], 'Tu n’es pas si mal… gamin. Prends mon chakra. Et ne me fais pas regretter.'],
+    ['gyuki', 'Gyūki', '牛', '#a05a3a', 4, 35, { contract: 'poulpe38', bond: 3 }, L('#7a3a2a', '#a05a3a', '#ffb090'), ['Bee m’a parlé de toi. Mes tentacules peuvent combattre pour toi… si tu tiens le rythme.'], 'Bien joué. Appelle-moi, une tentacule viendra.'],
+    ['kirabi', 'Kirabi (V2)', '八', '#ffe23f', 4, 35, { mode: 'v2' }, L('#f2f2f2', '#e8e4dc', '#2a2a30', { skin: '#7a4a2a' }), ['Yo, la V2 c’est pas pour les zéros, faut contrôler le chakra du taureau, bro !'], 'Le contrôle total, wiii ! T’as le flow du Jinchūriki !'],
+    ['enma', 'Enma, roi des singes', '猿', '#e8d8b0', 3, 20, { contract: 'singe38' }, L('#e8e8e8', '#4a4a52', '#e8d8b0'), ['Je suis Enma, roi des singes. Je deviens bâton d’adamantium pour les plus dignes.'], 'Hô ! Tu es digne. Je répondrai à ton appel.'],
+    ['garuda', 'Garuda', '鷹', '#ffe0a0', 2, 8, { contract: 'aigle38' }, L('#6a4a2a', '#6a4a2a', '#ffe0a0'), ['Le faucon messager te jauge du regard… il attend un signe de ta main.'], 'Le faucon se pose sur ton épaule. Le contrat est conclu.'],
+    ['pakkun', 'Pakkun', '犬', '#8a6a4a', 1, 1, { contract: 'ninken38' }, L('#8a6a4a', '#2a3a6a', '#2a3a6a'), ['Yo. Moi c’est Pakkun. Kakashi m’envoie voir si tu mérites la meute.'], 'Pas mal, gamin. La meute des ninken te suivra.'],
+    ['kakuzu', 'Kakuzu', '心', '#4a8a6a', 4, 35, { mode: 'coeurs' }, L('#1a1a22', '#1a1a22', '#4a8a6a', { mask: 1 }), ['L’argent et les cœurs. Cinq cœurs, cinq vies. Tu en veux ? Paye en sueur.'], 'Tes cœurs battent au même rythme. Rentable.'],
+    ['nagato', 'Nagato', '輪', '#b7a3ff', 5, 45, { mode: 'neant' }, L('#c03030', '#1a1a22', '#b7a3ff'), ['Ressens la douleur. Comprends la douleur. Accepte la douleur.', 'Le Rinnegan ne pardonne aucune faiblesse.'], 'Les Six Voies se dévoilent à toi. Ne deviens pas un dieu aveugle.'],
+    ['danzo', 'Danzō', '凪', '#c04040', 4, 40, { mode: 'izanagi' }, L('#d8d8d8', '#2a2a30', '#2a2a30', { mask: 1 }), ['La Racine n’a pas de nom. Izanagi réécrit la réalité… pour un prix.'], 'Tu as le sang-froid de la Racine. Izanagi est à toi.'],
+    ['kaguya', 'Écho de Kaguya', '輝', '#f2f2ff', 5, 55, { mode: 'kaguya' }, L('#f2f2ff', '#f2f2ff', '#c06bff', { horns: 1 }), ['Tout le chakra me revient. Pourquoi te le confierais-je ?', 'Survis à mes dimensions, et peut-être…'], 'Une infime part de moi vit en toi. Ne la gaspille pas.'],
+    ['hinata', 'Hinata Hyūga', '白', '#d8f0ff', 2, 10, { mode: 'celeste' }, L('#2a2a4a', '#d8d0e8', '#7a7aa8'), ['Je… je peux t’apprendre le Byakugan, si tu veux. Concentre-toi sur les points de chakra.'], 'Tu vois les 64 points ! Je suis fière de toi.'],
+    ['neji', 'Neji Hyūga', '白', '#a8c8ff', 3, 20, { mode: 'celeste' }, L('#3a2a1a', '#e8e4dc', '#7a7aa8'), ['Le destin n’existe pas. Seuls comptent l’effort et la précision.'], 'Tu as dépassé ton destin. Le Byakugan est à toi.'],
+    ['sasori', 'Sasori', '傀', '#a86a3a', 2, 12, { contract: 'puppet' }, L('#c03030', '#3a2a2a', '#a86a3a'), ['L’art est éternel. Mes marionnettes peuvent combattre pour toi.'], 'Le fil de chakra est noué. Ma marionnette t’obéira.'],
+    ['deidara', 'Deidara', '爆', '#f0ecdc', 3, 20, { contract: 'argile38' }, L('#f2d870', '#1a1a22', '#d63c3c'), ['L’art, c’est une explosion, hm ! Tu veux mes oiseaux d’argile ?'], 'Katsu ! Mes oiseaux t’accompagnent, hm !'],
+    ['minato38', 'Minato Namikaze', '飛', '#ffe23f', 4, 35, { mode: 'hiraishin' }, L('#f2d870', '#e8e4dc', '#ff8a2b'), ['Le Dieu de la Foudre volante demande une précision absolue dans les sceaux.'], 'L’éclair jaune de Konoha a un successeur !'],
+    ['konan', 'Konan', '紙', '#c8a8ff', 3, 22, { mode: 'papier' }, L('#6a5aa8', '#1a1a22', '#c8a8ff'), ['Le papier peut devenir ange… ou arme. Suis le vol des feuilles.'], 'Tu es une fleur de papier qui ne fanera pas.'],
+    ['kisame', 'Kisame Hoshigaki', '鮫', '#4f7aa8', 3, 25, { mode: 'requin' }, L('#3a5a8a', '#1a1a22', '#d63c3c', { skin: '#7a9ab8' }), ['Samehada a faim de chakra. Voyons si elle t’accepte.'], 'Samehada t’a goûté… et elle aime ça, héhé.'],
+    ['raikage', 'A, le Quatrième Raikage', '雷', '#bfe8ff', 3, 25, { mode: 'armure_foudre' }, L('#f2f2f2', '#f2f2f2', '#ffe23f', { skin: '#7a4a2a' }), ['La foudre sur la peau, la vitesse au-delà de l’œil ! Tiens le rythme !'], 'Tu as l’armure de Kumo ! Hah !'],
+    ['gaara38', 'Gaara', '砂', '#e0b870', 3, 20, { mode: 'sable' }, L('#c03030', '#8a5a3a', '#e0b870'), ['Le sable me protégeait sans que je le veuille. Toi, tu dois le vouloir.'], 'Le sable te reconnaît. Il te protégera.'],
+    ['mifune', 'Mifune', '侍', '#c8d0dc', 2, 12, { mode: 'iaido' }, L('#d8d8d8', '#6a7a8a', '#c8d0dc'), ['Le samouraï dégaine une seule fois. Une seule.'], 'Ta lame est juste. L’Iaidō est à toi.'],
+  ];
+  const ROSTER = R.map(([id, n, k, c, tier, lv, give, look, intro, won]) => ({ id, n, k, c, tier, lv, give, look, intro, won, bond: give.bond || 0 }));
+  SE38.ROSTER = ROSTER;
+  const TIERN = ['', 'Genin', 'Chūnin', 'Jōnin', 'Kage', 'Ōtsutsuki'];
+  const o38 = () => { const o = SE35.prof(); if (!o) return null; o.m38 = o.m38 || { learned: {}, modes: [], contracts: [], cd: {}, visits: 0, active: null }; return o.m38; };
+  SE38.o = o38;
+  /* ---------- Rotation : 4 maîtres présents, changent chaque jour, à chaque visite et toutes les 4 minutes ---------- */
+  function rot(seed) { let s = hashStr(String(seed)) >>> 0; const R = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); const ids = ROSTER.slice(); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; }
+    const Z = SE35.ZONES; const off = Math.floor(R() * Z.length); return ids.slice(0, 4).map((M, i) => { const z = Z[(off + i) % Z.length]; return { M, x: z.x0 + 260 + R() * (1600 - 520), y: z.y0 + 260 + R() * (1500 - 520), z }; }); }
+  SE38.rot = rot;
+  function clearMasters() { for (const u of G.units) if (u._m38) { u.dead = true; u.hp = 0; } G.units = G.units.filter((u) => !u._m38); }
+  function placeMasters(seed) { clearMasters(); SE38.present = rot(seed); SE38.seed = seed; SE38.rotT = 240;
+    for (const P0 of SE38.present) { const u = spawnMob('moine', P0.x, P0.y, 0, { team: -1 }); if (!u) continue; u.name = P0.M.n; u.look = Object.assign({ skin: '#f0c8a0', hs: 1 }, P0.M.look); u.ai = null; u.maxHp = u.hp = 1e9; u.mass = 99; u.spd = 0; u._m38 = P0.M; u.face = -1; P0.u = u; FX.smoke(P0.x, P0.y, 16, '#e8e4f0', 10, 18, 100); } }
+  SE38.place = placeMasters;
+  const baseStart = SE35.start;
+  SE35.start = function () { const r = baseStart.apply(this, arguments); const m = o38(); m.visits = (m.visits || 0) + 1; SE38.rc = 0; placeMasters(todayKey() + ':' + m.visits);
+    for (const c of m.contracts) if (!SE35.prof().tamed.includes(c)) SE35.prof().tamed.push(c);
+    const D = G.director; if (D) { const up = D.update; SE38.met = {}; D.update = (dt) => { up(dt); tick(dt); }; }
+    return r; };
+  function tick(dt) { const u = G.players[0]; if (!u || G.paused) return; SE38.rotT -= dt;
+    if (SE38.rotT <= 0) { SE38.rc = (SE38.rc || 0) + 1; placeMasters(SE38.seed + ':r' + SE38.rc); if (SE35.say) toast('Maîtres', 'Les maîtres itinérants ont changé', 'Regarde la mini-carte (師).', '#ffd27a', '師'); }
+    const m = o38(); const tam = SE35.prof().tamed; for (const c of m.contracts) if (!tam.includes(c)) tam.push(c);
+    for (const P0 of SE38.present) { const n = P0.u; if (!n || !alive(n)) continue; n.hp = n.maxHp; n.vx = n.vy = 0; const d = dist(u.x, u.y, n.x, n.y); if (d < 110 && !SE38.met[n.id]) { SE38.met[n.id] = 1; n.face = u.x > n.x ? 1 : -1; talk(P0.M); } else if (d > 240) SE38.met[n.id] = 0; } }
+  /* ---------- QTE selon le palier de puissance ---------- */
+  const QT = {
+    1: [{ type: 'mash', dur: 9, k: 0.09, decay: 0.07 }],
+    2: [{ type: 'timing', dur: 14, n: 3, maxMiss: 2, zw: 0.2, spd: 0.7 }, { type: 'seq', n: 4, dur: 10, maxMiss: 2 }],
+    3: [{ type: 'hold', dur: 12, need: 4 }, { type: 'timing', dur: 12, n: 4, maxMiss: 2, zw: 0.15, spd: 0.9 }, { type: 'seq', n: 6, dur: 9, maxMiss: 1 }],
+    4: [{ type: 'seq', n: 8, dur: 8, maxMiss: 1 }, { type: 'timing', dur: 11, n: 5, maxMiss: 1, zw: 0.12, spd: 1.1 }, { type: 'mash', dur: 5, k: 0.055, decay: 0.16 }, { type: 'hold', dur: 11, need: 5 }],
+    5: [{ type: 'seq', n: 10, dur: 7, maxMiss: 0 }, { type: 'timing', dur: 10, n: 6, maxMiss: 1, zw: 0.08, spd: 1.35 }, { type: 'hold', dur: 11, need: 6 }, { type: 'mash', dur: 5, k: 0.045, decay: 0.2 }, { type: 'seq', n: 12, dur: 7, maxMiss: 0 }],
+  };
+  SE38.QT = QT;
+  function chain(M, cb) { const L = QT[M.tier] || QT[1]; let i = 0; const next = () => { if (i >= L.length) return cb(true); const c = Object.assign({}, L[i], { title: `${M.n} · épreuve ${TIERN[M.tier]} ${i + 1}/${L.length}` }); i++; SE35.runQTE(c, (w) => (w ? setTimeout(next, 250) : cb(false))); }; next(); }
+  SE38.chain = chain;
+  const giveTxt = (M) => [M.give.mode ? 'Mode : ' + MODES[M.give.mode].n : '', M.give.contract ? 'Contrat : ' + (MOBS[M.give.contract] ? MOBS[M.give.contract].n : M.give.contract) : ''].filter(Boolean).join(' · ');
+  SE38.giveTxt = giveTxt;
+  function reqFail(M) { const p = P(); if ((p.lv || 1) < M.lv) return 'niveau ' + M.lv + ' requis'; if (M.bond) { const b = p.bond ? Math.max(0, ...Object.values(p.bond).map((v) => (window.SE32 && SE32.bondLv ? SE32.bondLv(v) : typeof v === 'number' ? v : 0))) : 0; if (b < M.bond && !(p.beasts || []).length) return 'lien de bête ' + M.bond + ' requis (scelle une bête)'; } return null; }
+  SE38.reqFail = reqFail;
+  function learn(M) { const m = o38(); m.learned[M.id] = 1; const p = P();
+    if (M.give.mode && !m.modes.includes(M.give.mode)) { m.modes.push(M.give.mode); if (!m.active) m.active = M.give.mode; }
+    if (M.give.contract && !m.contracts.includes(M.give.contract)) { m.contracts.push(M.give.contract); const t = SE35.prof().tamed; if (!t.includes(M.give.contract)) t.push(M.give.contract); }
+    Profile.save(); const u = G.players[0]; if (u && M.give.mode && m.active === M.give.mode && u.isPlayer && !u.md) u.eye = M.give.mode;
+    banner(M.n, 'ENSEIGNEMENT REÇU', M.c, giveTxt(M) + (M.give.mode ? ' · E pour l’activer' : '') + (M.give.contract ? ' · V pour invoquer (−5 % PV)' : '')); Audio.play('rare'); SE38.ev.learn = M.id; }
+  SE38.learn = learn;
+  function talk(M) { const m = o38(); const W = { who: M.n + ' · ' + TIERN[M.tier], k: M.k, c: M.c }; const say = SE35.say;
+    if (m.learned[M.id]) return say([Object.assign({ t: 'Tu as déjà reçu mon enseignement (' + giveTxt(M) + '). Continue ton chemin.' }, W)]);
+    const why = reqFail(M); if (why) return say([Object.assign({ t: M.intro[0] }, W), Object.assign({ t: 'Reviens quand tu seras prêt : ' + why + '.' }, W)]);
+    const cd = (m.cd[M.id] || 0) - Date.now(); if (cd > 0) return say([Object.assign({ t: 'Tu as échoué tout à l’heure. Repose-toi encore ' + Math.ceil(cd / 1000) + ' s.' }, W)]);
+    say([...M.intro.map((t) => Object.assign({ t }, W)), Object.assign({ t: 'J’enseigne : ' + giveTxt(M) + '. Épreuve de palier ' + M.tier + ' (' + TIERN[M.tier] + ', ' + QT[M.tier].length + ' étape' + (QT[M.tier].length > 1 ? 's' : '') + '). Prêt ?', ch: [{ t: 'Commencer l’épreuve', f: () => setTimeout(() => chain(M, (win) => {
+      if (!win) { m.cd[M.id] = Date.now() + (15 + M.tier * 15) * 1000; Profile.save(); SE38.ev.fail = M.id; return say([Object.assign({ t: 'Raté ! Tu pourras réessayer dans ' + (15 + M.tier * 15) + ' s.' }, W)]); }
+      say([Object.assign({ t: M.won }, W)], () => learn(M)); }), 60) }, { t: 'Plus tard' }] }, W)]); }
+  SE38.talk = talk;
+  /* ---------- Le mode actif remplace la pupille (touche E · R3 · bouton 瞳) ---------- */
+  const baseMPU = makePlayerUnit;
+  makePlayerUnit = function (b, team, idx, human) { const u = baseMPU.apply(this, arguments); try { const m = o38(); if (human && (idx || 0) === 0 && m && m.active && MODES[m.active] && EYES[m.active]) u.eye = m.active; } catch (x) {} return u; };
+  /* ---------- Rendu : étiquettes, mini-carte ---------- */
+  const baseHUD = drawHUD;
+  drawHUD = function (ctx) { const r = baseHUD.apply(this, arguments); if (G.mode !== 'monde') return r; try {
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const S = (x, y) => [(x - Cam.x) * Cam.zoom + VW / 2, (y - Cam.y) * Cam.zoom + VH / 2]; ctx.textAlign = 'center'; const m = o38();
+    const mw = Math.min(220, VW * 0.22), MW = 4800, MH = 3000, mh = mw * MH / MW, x0 = VW - mw - 14, y0 = 56;
+    for (const P0 of SE38.present) { const n = P0.u; if (!n || !alive(n)) continue; const M = P0.M; const [sx, sy] = S(n.x, n.y - 92);
+      if (sx > -60 && sx < VW + 60 && sy > -60 && sy < VH + 60) { ctx.font = '800 12px "Dela Gothic One", sans-serif'; ctx.fillStyle = M.c; ctx.fillText('師 ' + M.n, sx, sy); ctx.font = '700 10px sans-serif'; ctx.fillStyle = '#ffd27a'; ctx.fillText('★'.repeat(M.tier) + ' ' + TIERN[M.tier], sx, sy + 12); if (!m.learned[M.id]) { ctx.font = '900 20px sans-serif'; ctx.fillText('!', sx, sy - 16 + Math.sin(G.t * 5) * 3); } }
+      const mx = x0 + n.x / MW * mw, my = y0 + n.y / MH * mh; ctx.fillStyle = M.c; ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(mx, my - 5); ctx.lineTo(mx + 5, my); ctx.lineTo(mx, my + 5); ctx.lineTo(mx - 5, my); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    ctx.font = '700 10px sans-serif'; ctx.fillStyle = '#ffd27a'; ctx.textAlign = 'left'; ctx.fillText('◆ maîtres itinérants · relève ' + Math.max(0, Math.ceil(SE38.rotT || 0)) + ' s', x0, y0 + mh + 32);
+    ctx.restore(); } catch (e) {} return r; };
+  /* ---------- Onglet Monde : cartes des maîtres ---------- */
+  const css = document.createElement('style'); css.textContent = `.m38grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;max-height:56vh;overflow:auto;padding-right:4px;align-content:start}
+  .m38{border:1px solid #3a3048;border-left:4px solid var(--mc);border-radius:8px;padding:8px 10px;background:rgba(20,14,28,.65);min-width:0;display:flex;flex-direction:column;gap:3px}
+  .m38 .h{display:flex;gap:8px;align-items:center}.m38 .k{font-family:var(--f-kan);font-size:1.3rem;color:var(--mc);width:1.5em;text-align:center}.m38 b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .m38 .t{font-size:11px;color:#ffd27a}.m38 small{color:var(--muted);font-size:11px;line-height:1.3}.m38.here{box-shadow:0 0 0 2px #ffd27a}.m38.done{opacity:.7}.m38 .tb{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:9px;border:1px solid var(--mc);color:var(--mc);white-space:nowrap}
+  .m38modes{display:flex;flex-wrap:wrap;gap:6px}`; document.head.appendChild(css);
+  const baseTab = UI.tab_monde;
+  UI.tab_monde = function () { baseTab.apply(this, arguments); const m = o38(); const pres = rot(todayKey() + ':' + ((m.visits || 0) + 1)).map((x) => x.M.id); const now = Date.now();
+    const card = (M) => { const cd = (m.cd[M.id] || 0) - now; const why = reqFail(M); return `<div class="m38 ${pres.includes(M.id) ? 'here' : ''} ${m.learned[M.id] ? 'done' : ''}" style="--mc:${M.c}"><div class="h"><span class="k">${M.k}</span><b>${esc(M.n)}</b><span class="tb">${'★'.repeat(M.tier)} ${TIERN[M.tier]}</span></div><span class="t">${esc(giveTxt(M))}</span><small>Niv. ${M.lv}${M.bond ? ' · lien de bête ' + M.bond : ''} · épreuve ${QT[M.tier].length} étape(s)</small><small>${m.learned[M.id] ? '✓ appris' : cd > 0 ? '⏳ réessai dans ' + Math.ceil(cd / 1000) + ' s' : why ? '🔒 ' + esc(why) : pres.includes(M.id) ? '◆ présent à ta prochaine visite' : 'absent pour l’instant'}</small></div>`; };
+    const fixed = SE35.MASTERS.map((M) => `<div class="m38" style="--mc:${M.c}"><div class="h"><span class="k">${M.k}</span><b>${esc(M.n)}</b><span class="tb">fixe</span></div><span class="t">Technique : ${esc(TECH[M.teach].n)}</span><small>${SE35.prof().learn[M.teach] ? '✓ appris' : 'toujours présent'}</small></div>`).join('');
+    const modes = m.modes.length ? m.modes.map((k) => `<button class="${m.active === k ? 'primary' : ''}" data-m38="${k}">${MODES[k].k} ${esc(MODES[k].n)}</button>`).join('') + `<button data-m38="">Pupille du clan</button>` : '<small>Aucun mode appris. Réussis l’épreuve d’un maître.</small>';
+    $('#tabbody').insertAdjacentHTML('beforeend', `<section class="panel" id="m38panel"><h3>師 Maîtres itinérants (${Object.keys(m.learned).length}/${ROSTER.length})</h3><p class="small">4 maîtres présents à la fois, au hasard ; ils changent chaque jour, à chaque visite et toutes les 4 minutes (◆ sur la mini-carte). Palier 1 (Genin) : épreuve lente et courte · palier 5 (Ōtsutsuki) : longues séquences rapides et précises.</p>
+      <h4>Mode actif (touche E · R3 · bouton 瞳)</h4><div class="m38modes">${modes}</div><h4>Contrats d’invocation</h4><small>${m.contracts.length ? m.contracts.map((c) => esc(MOBS[c] ? MOBS[c].n : c)).join(' · ') + ' — invoqués avec V (−5 % PV)' : 'Aucun.'}</small>
+      <h4>Maîtres</h4><div class="m38grid">${fixed}${ROSTER.map(card).join('')}</div></section>`);
+    document.querySelectorAll('[data-m38]').forEach((b) => (b.onclick = () => { m.active = b.dataset.m38 || null; Profile.save(); Audio.play('ui'); this.hub('monde'); })); };
+  /* ---------- Guide ---------- */
+  const baseGuide = UI.tab_guide;
+  UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody'); g.insertAdjacentHTML('beforeend', `<section><h4>師 Maîtres itinérants (3.8)</h4><table><tr><td>Où</td><td>Monde ouvert : 4 maîtres au hasard parmi ${ROSTER.length}, losanges ◆ sur la mini-carte. Ils changent chaque jour, à chaque visite et toutes les 4 minutes. Les 5 maîtres fixes restent.</td></tr><tr><td>Épreuve</td><td>Approche-toi pour parler. Palier 1 à 5 : de 1 étape lente à 5 étapes rapides (séquences, timing, équilibre, martèlement). Échec : nouvel essai après 30 à 90 s.</td></tr><tr><td>Récompenses</td><td>Modes (activés avec E · R3 · 瞳, paliers comme les pupilles ; choix du mode actif dans l’onglet Monde) et contrats d’invocation (V · 召, −5 % PV).</td></tr></table></section>`); };
+  SE3.NOTES.unshift({ v: '3.8 — Maîtres Update', d: '20 octobre 2026', tag: '32 maîtres itinérants qui enseignent modes et invocations.', s: [
+    ['Maîtres', ['32 nouveaux maîtres itinérants (Fukasaku, Kabuto, Orochimaru, Hashirama, Tsunade, Maito Dai, Itachi, Hagoromo, Kurama, Gyūki, Kirabi, Enma, Pakkun, Kakuzu, Nagato, Danzō, Kaguya, Minato, Konan, Kisame…) en plus des 5 maîtres fixes.', '4 présents à la fois, au hasard : ils changent chaque jour, à chaque visite et toutes les 4 minutes. Losanges ◆ sur la mini-carte.', 'Fiche de chaque maître (onglet Monde) : palier, conditions (niveau, lien de bête), ce qu’il enseigne.']],
+    ['Épreuves', ['QTE selon le palier : Genin = une épreuve lente ; Ōtsutsuki = cinq épreuves rapides et précises (séquences, timing, équilibre, martèlement). Réessai après un temps de repos.']],
+    ['Récompenses', ['17 nouveaux modes à paliers (Ermite Crapaud/Serpent/Bois, Byakugō, Huit Portes, Ōtsutsuki, Chakra de Bijū, V2, Cinq Cœurs, Izanagi, Kaguya, Dieu de la Foudre, Ange de Papier, Samehada, Armure de Foudre, Sable, Iaidō) + Sharingan, Byakugan, Rinnegan.', 'Le mode actif se choisit dans l’onglet Monde et s’active avec E · R3 · bouton 瞳.', 'Contrats d’invocation (crapauds, serpents, Katsuyu, corbeaux, Gyūki, Enma, ninken, faucon, marionnette, oiseau d’argile) ajoutés aux invocations (V · 召, −5 % PV).']],
+  ] });
+})();
+/* v3.8 — Menus : grilles de cartes responsives, recherche, panneau de détails */
+(function () {
+  const css = document.createElement('style'); css.textContent = `
+  #tabbody .lib,#tabbody .codexgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));grid-auto-rows:auto;gap:8px;max-height:min(58vh,640px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;align-content:start;padding:2px 6px 8px 2px}
+  #tabbody .lib .tcard,#tabbody .codexgrid .tcard{min-height:62px;min-width:0;height:auto;align-content:center;margin:0}
+  #tabbody .tcard .tn,#tabbody .tcard .tm{min-width:0}
+  #tabbody .tcard .tgs33{position:static;grid-column:1/-1;display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;justify-content:flex-start}
+  #tabbody .grid33{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));max-height:min(60vh,680px);overflow-y:auto;overscroll-behavior:contain;align-content:start;padding-right:6px}
+  #tabbody .s33{min-width:0}#tabbody .s33 p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .srch38{grid-column:1/-1;position:sticky;top:-2px;z-index:3;display:flex;gap:8px;align-items:center;padding:6px 0;background:linear-gradient(var(--bg,#140f1c) 80%,transparent)}
+  .srch38 input{flex:1;min-width:0;padding:6px 10px;border-radius:8px;border:1px solid var(--line,#3a3048);background:#120d1c;color:inherit;font:inherit}
+  .srch38 small{white-space:nowrap;color:var(--muted)}
+  .det38{position:fixed;right:14px;bottom:14px;width:300px;max-width:calc(100vw - 28px);max-height:46vh;overflow:auto;z-index:40;background:rgba(14,10,22,.96);border:1px solid var(--line,#3a3048);border-left:4px solid var(--ec,#ffd27a);border-radius:10px;padding:10px 12px;box-shadow:0 12px 30px -10px #000;display:none}
+  .det38.on{display:block}.det38 h4{margin:0 0 4px}.det38 p{margin:4px 0;font-size:12.5px;line-height:1.4}.det38 dl{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0 0;font-size:11px}.det38 dt{color:var(--muted)}.det38 dd{margin:0;font-weight:700}
+  @media (max-width:760px){#tabbody .lib,#tabbody .codexgrid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));max-height:52vh}#tabbody .grid33{grid-template-columns:1fr}.det38{left:8px;right:8px;width:auto;bottom:8px;max-height:38vh}}
+  `; document.head.appendChild(css);
+  const det = document.createElement('div'); det.className = 'det38'; document.body.appendChild(det);
+  function show(id) { const T = TECH[id]; if (!T) return; const E = EL[T.el] || {}; det.style.setProperty('--ec', E.c || '#ffd27a');
+    const tg = window.SE33 && SE33.tagsOf ? SE33.tagsOf(id) : [];
+    det.innerHTML = `<h4>${esc(T.n)}</h4><small>${esc((RAR[T.rar] || {}).n || '')} · ${esc(T.cat || '')} · ${esc(E.n || T.el || '')}${tg.length ? ' · ' + tg.map(esc).join(', ') : ''}</small><p>${esc(T.desc || '')}</p><dl><div><dt>Chakra</dt><dd>${T.cost}</dd></div><div><dt>Recharge</dt><dd>${T.cd} s</dd></div><div><dt>Puissance</dt><dd>${T.dmg || '—'}</dd></div><div><dt>Mudras</dt><dd>${T.seals || 0}</dd></div></dl>`; det.classList.add('on'); }
+  SE3.det38 = show;
+  function enhance(tab) { det.classList.remove('on'); const body = $('#tabbody'); if (!body) return;
+    body.querySelectorAll('.lib, .codexgrid').forEach((g) => { if (g.querySelector(':scope > .srch38')) return;
+      const bar = document.createElement('div'); bar.className = 'srch38'; bar.innerHTML = `<input type="search" placeholder="Rechercher une technique (nom, élément, type)…" aria-label="Rechercher"><small></small>`; g.insertBefore(bar, g.firstChild);
+      const inp = bar.querySelector('input'), cnt = bar.querySelector('small'); const cards = () => [...g.querySelectorAll('.tcard')];
+      const upd = () => { const q = inp.value.trim().toLowerCase(); let n = 0; for (const c of cards()) { const T = TECH[c.dataset.tech]; const txt = (c.textContent + ' ' + (T ? T.n + ' ' + T.el + ' ' + T.cat + ' ' + T.kind : '')).toLowerCase(); const v = !q || txt.includes(q); if (!v) c.style.display = 'none'; else if (c.style.display === 'none') c.style.display = ''; if (c.style.display !== 'none') n++; } cnt.textContent = n + ' / ' + cards().length; };
+      inp.oninput = upd; inp.onkeydown = (e) => e.stopPropagation(); upd();
+      if (tab !== 'prep') { g.addEventListener('mouseover', (e) => { const c = e.target.closest('.tcard'); if (c && c.dataset.tech) show(c.dataset.tech); }); g.addEventListener('click', (e) => { const c = e.target.closest('.tcard'); if (c && c.dataset.tech) show(c.dataset.tech); }); g.addEventListener('mouseleave', () => { if (!IS_TOUCH) det.classList.remove('on'); }); } });
+    body.querySelectorAll('.grid33').forEach((g) => { g.querySelectorAll('.s33').forEach((s) => { const p = s.querySelector('p'); if (p && !s.title) s.title = p.textContent; }); }); }
+  SE3.enhance38 = enhance;
+  const baseHub = UI.hub;
+  UI.hub = function (tab) { const r = baseHub.apply(this, arguments); try { enhance(this.tab); } catch (e) { console.warn(e); } return r; };
+  // re-rendus internes (filtres d'onglets) : on réapplique après chaque changement du contenu
+  const mo = new MutationObserver(() => { clearTimeout(mo.t); mo.t = setTimeout(() => { try { if ($('#tabbody') && $('#tabbody .lib:not(.x38), #tabbody .codexgrid') ) enhance(UI.tab); } catch (e) {} }, 30); });
+  const hook = () => { const b = $('#tabbody'); if (b) mo.observe(b, { childList: true }); else setTimeout(hook, 500); }; hook();
+  SE3.NOTES[0] && SE3.NOTES[0].s && SE3.NOTES[0].s.push(['Menus', ['Bibliothèque, Préparation, Codex, techniques secrètes, movesets et maîtres : grilles de cartes à taille minimale fixe, texte tronqué proprement, zones défilantes qui ne débordent plus, barre de recherche fixe en haut, panneau de détails au survol ou au toucher.']]);
 })();
 
 </script>
