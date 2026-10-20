@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.0 Living Open World</title>
+<title>Shinobi Éternel II — v4.1 Skill Tree Constellation</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.0';
+  const VERSION = '4.1';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -9548,7 +9548,7 @@ const Net = {
   if (typeof damageObstacle === 'function') { const baseDmg = damageObstacle; damageObstacle = function (o) { if (o && BLD[o.t]) return; return baseDmg.apply(this, arguments); }; }
   /* ---------- PNJ avec trajets : gardes en patrouille, villageois, marchands itinérants ---------- */
   const NAMES = { garde: ['Garde de la porte', 'Chūnin de garde', 'Patrouille ANBU'], villageois: ['Villageoise', 'Vieil artisan', 'Enfant du village', 'Pêcheur', 'Marchande de fruits'], marchand: ['Marchand itinérant', 'Caravane de Suna', 'Colporteur'] };
-  function spawnNPC(kind, route, vil) { const [x, y] = route[0]; const u = spawnMob('moine', x, y, 0, { team: -1 }); if (!u) return null; u.ai = null; u.maxHp = u.hp = 1e9; u.mass = 50; u._npc40 = { kind, route, i: 1, wait: 0, spd: kind === 'garde' ? 70 : kind === 'marchand' ? 85 : 55 + Math.random() * 25 };
+  function spawnNPC(kind, route, vil) { for (const pt of route) { let k = 0; while (SE40.inBld && SE40.inBld(pt[0], pt[1], 20) && k++ < 12) pt[1] += 30; } const [x, y] = route[0]; const u = spawnMob('moine', x, y, 0, { team: -1 }); if (!u) return null; u.ai = null; u.maxHp = u.hp = 1e9; u.mass = 50; u._npc40 = { kind, route, i: 1, wait: 0, spd: kind === 'garde' ? 70 : kind === 'marchand' ? 85 : 55 + Math.random() * 25 };
     u.name = pick(NAMES[kind]); u.look = Object.assign({}, u.look, kind === 'garde' ? { outfit: '#3a5a3a', scarf: '#2a2a30', hair: '#2a2a30', band: '#9a9aa4' } : kind === 'marchand' ? { outfit: '#8a6a3a', scarf: '#ffd27a', hair: '#5a3a24' } : { outfit: pick(['#a86a5a', '#5a7aa8', '#c8a050', '#7a5a8a', '#6a8a5a']), scarf: pick(['#e8d8b8', '#ffd27a', '#7dffb0']), hair: pick(['#2a1a10', '#5a3a24', '#c8c8c8', '#f2d870']) }); SE40.npcs.push(u); return u; }
   function populate() { SE40.npcs = []; for (const vil of SE40.villages) { const V = vil.V, cx = vil.cx, cy = vil.cy;
       // gardes : porte est ↔ porte ouest par la place
@@ -9562,7 +9562,15 @@ const Net = {
       if (N.wait > 0) { N.wait -= dt; u.vx = u.vy = 0; continue; }
       const dx = tgt[0] - u.x, dy = tgt[1] - u.y, d = Math.hypot(dx, dy); const sp = N.spd * (night && N.kind === 'garde' ? 1.3 : 1);
       if (d < 24) { if (!(night && N.kind === 'villageois')) { N.i++; N.wait = N.kind === 'villageois' ? rand(1.5, 4) : N.kind === 'marchand' ? rand(3, 6) : 0.6; } u.vx = u.vy = 0; continue; }
-      u.vx = (dx / d) * sp; u.vy = (dy / d) * sp; u.face = dx >= 0 ? 1 : -1; u.pose = 'run'; } }
+      let ux = dx / d, uy = dy / d; const st = steer(u, ux, uy, N); ux = st[0]; uy = st[1];
+      u.vx = ux * sp; u.vy = uy * sp; u.face = ux >= 0 ? 1 : -1; u.pose = 'run'; } }
+  // v4.1 : évitement des bâtiments (rectangle de la maison + marge), contournement par le côté le plus court
+  function bRect(b) { const s = b.s || 1; return { x0: b.x - 56 * s, x1: b.x + 56 * s, y0: b.y - 64 * s, y1: b.y + 16 }; }
+  SE40.inBld = (x, y, m = 0) => { for (const b of G.obstacles) { if (b.t !== 'house40' && b.t !== 'shop40') continue; const R = bRect(b); if (x > R.x0 - m && x < R.x1 + m && y > R.y0 - m && y < R.y1 + m) return b; } return null; };
+  function steer(u, ux, uy, N) { const M = 14; for (const b of G.obstacles) { if (b.t !== 'house40' && b.t !== 'shop40') continue; if (Math.abs(b.x - u.x) > 200 || Math.abs(b.y - u.y) > 200) continue; const R = bRect(b);
+      if (u.x > R.x0 - 4 && u.x < R.x1 + 4 && u.y > R.y0 - 4 && u.y < R.y1 + 4) { const dl = u.x - R.x0, dr = R.x1 - u.x, dt = u.y - R.y0, db = R.y1 - u.y, m = Math.min(dl, dr, dt, db); if (m === dl) u.x = R.x0 - 6; else if (m === dr) u.x = R.x1 + 6; else if (m === dt) u.y = R.y0 - 6; else u.y = R.y1 + 6; continue; }
+      const px = u.x + ux * 46, py = u.y + uy * 46; if (px > R.x0 - M && px < R.x1 + M && py > R.y0 - M && py < R.y1 + M) { const cx = (R.x0 + R.x1) / 2, cy = (R.y0 + R.y1) / 2; const side = N.side || ((cx - u.x) * uy - (cy - u.y) * ux > 0 ? -1 : 1); N.side = side; N.sideT = 0.6; SE40.ev.avoid = (SE40.ev.avoid || 0) + 1; return [-uy * side, ux * side]; } }
+    if (N.sideT > 0) N.sideT -= 1 / 60; else N.side = 0; return [ux, uy]; }
   SE40.hour = () => { const D = G.director; const t = (D && D.t40) || 0; return (8 + t / 30) % 24; }; // 1 h de jeu = 30 s
   /* ---------- Boutiques (entrée avec transition) ---------- */
   function shop(o) { const p = P(); const say = SE35.say; if (window.SE39) SE39.wipe(); SE40.ev.shop = o.n; const W = { who: o.n, k: o.k, c: '#ffd27a' };
@@ -9590,6 +9598,181 @@ const Net = {
     ['Villages', ['Konoha (26 maisons, 4 boutiques), Sunagakure (maisons rondes), Kirigakure et le hameau des crapauds : portes avec kanji, remparts, rues et place centrale.', 'Boutiques : ramen (PV et chakra), soins, accessoires, parchemins. On y entre en s’approchant de la porte.']],
     ['PNJ', ['Gardes qui patrouillent d’une porte à l’autre, villageois qui vont de maison en maison et rentrent la nuit, marchands itinérants sur les routes. Cycle jour/nuit (1 h = 30 s).']],
   ] });
+})();
+/* v4.1 — Skill Tree Constellation : arbres de voies par technique, vue constellation, points de maîtrise */
+(function () {
+  const SE41 = (window.SE41 = { ev: {}, TREES: {} });
+  const ELC = { feu: '#ff7a2b', vent: '#9fe8c8', foudre: '#9ad8ff', eau: '#5aa8ff', terre: '#c8a070', noir: '#b070ff', explosion: '#ffb04a', neutre: '#ffd27a', gravite: '#c890ff', illusion: '#ff6aa8', bois: '#6ac86a', glace: '#bfe8ff', lave: '#ff5a2a' };
+  const STF = { feu: { heat: 25 }, foudre: { shock: 0.7 }, eau: { wet: 40 }, vent: { bleed: 20 }, terre: { slow: 1.2 }, noir: { black: 3 }, explosion: { heat: 20 }, glace: { slow: 1.5 }, lave: { heat: 35 }, bois: { root: 0.8 }, gravite: { slow: 1 }, illusion: { slow: 0.8 }, neutre: { knockup: 0.3 } };
+  /* Gabarit : noyau → 3 branches (Puissance / Forme / Élément) → 2 nœuds profonds. Positions en coordonnées polaires de la constellation. */
+  function tree(id, o = {}) {
+    const T = TECH[id]; if (!T) return; const el = T.el || 'neutre'; const proj = T.kind === 'proj' || T.kind === 'orb';
+    const N = [
+      { id: 'core', n: o.core || 'Fondamentaux', d: 'Puissance +15 %.', fx: { dmg: 1.15 }, a: 0, r: 0, req: null, cost: 1 },
+      { id: 'a1', n: o.a1 || 'Intensité', d: 'Puissance +20 %.', fx: { dmg: 1.2 }, a: -2.2, r: 1, req: 'core', cost: 1 },
+      { id: 'a2', n: o.a2 || 'Flux continu', d: 'Recharge −20 %.', fx: { cd: 0.8 }, a: -2.35, r: 2, req: 'a1', cost: 1 },
+      { id: 'b1', n: o.b1 || (proj ? 'Multiplication' : 'Ampleur'), d: o.b1d || (proj ? '+2 exemplaires en éventail.' : 'Taille et portée +35 %.'), fx: o.b1fx || (proj ? { cnt: 2, spr: 0.4 } : { r: 1.35, rng: 1.25 }), a: -0.9, r: 1, req: 'core', cost: 1 },
+      { id: 'b2', n: o.b2 || 'Élan', d: 'Vitesse et durée +30 %.', fx: { spd: 1.3, life: 1.3 }, a: -0.75, r: 2, req: 'b1', cost: 1 },
+      { id: 'c1', n: o.c1 || 'Affinité', d: o.c1d || 'Ajoute un état élémentaire.', fx: o.c1fx || { st: STF[el] || STF.neutre }, a: 0.9, r: 1, req: 'core', cost: 1 },
+      { id: 'c2', n: o.c2 || 'Économie', d: 'Coût en chakra −25 %.', fx: { cost: 0.75 }, a: 1.05, r: 2, req: 'c1', cost: 1 },
+      { id: 'd1', n: o.d1 || 'Écho', d: o.d1d || 'La technique se relance une 2e fois à 55 % de puissance.', fx: o.d1fx || { beh: 'echo' }, a: -2.25, r: 3, req: 'a2', cost: 2, deep: 1 },
+      { id: 'd2', n: o.d2 || 'Déchaînement', d: o.d2d || 'Taille ×2, puissance ×1,5, coût ×1,4.', fx: o.d2fx || { r: 2, rng: 1.4, dmg: 1.5, cost: 1.4 }, a: -0.6, r: 3, req: 'b2', cost: 2, deep: 1 },
+      { id: 'd3', n: o.d3 || 'Résonance', d: o.d3d || 'Explosion élémentaire au point d’impact (rayon 140).', fx: o.d3fx || { beh: 'burst' }, a: 1.15, r: 3, req: 'c2', cost: 2, deep: 1 },
+    ];
+    for (const n of o.extra || []) N.push(n);
+    if (o.ex) for (const n of N) if (o.ex[n.id]) Object.assign(n, o.ex[n.id]);
+    SE41.TREES[id] = { id, el, nodes: N, title: o.title || T.n, k: o.k || '星' };
+  }
+  const ELN = (e, n, d, a, extraFx) => ({ id: 'e_' + e, n, d, fx: Object.assign({ el: e, st: STF[e], dmg: 1.1 }, extraFx || {}), a, r: 4, req: 'c2', cost: 2, deep: 1, grp: 'elem' });
+  function build() {
+    SE41.TREES = {};
+    // Rasengan (Sphère Tourbillon) : l'exemple complet
+    tree('spirale', { title: 'Rasengan', k: '螺', core: 'Rotation, Puissance, Confinement', a1: 'Rotation dense', a2: 'Rasengan instantané', b1: 'Multi-Rasengan', b1d: '3 Rasengan à la fois (clones de soutien).', b1fx: { cnt: 2, spr: 0.5, dmg: 0.85 }, b2: 'Grand Rasengan', d1: 'Rasengan en série', d2: 'Ōdama Rasengan', d2d: 'Pas de boost de vitesse, mais une sphère 11× plus grosse. Puissance ×2,2.', d2fx: { beh: 'odama', r: 11, dmg: 2.2, spd: 0.55, cost: 1.5, noBoost: 1 },
+      d3: 'Rasenshuriken', d3d: 'Deux Rasengan orbitent autour de toi, puis filent et détonent en une sphère de vent bien plus grande.', d3fx: { beh: 'rshur', el: 'vent', dmg: 1.6 }, c1: 'Nature du chakra', c2: 'Contrôle de forme',
+      extra: [ELN('feu', 'Rasengan Katon', 'Élément Feu : brûlure.', 1.55), ELN('foudre', 'Rasengan Raiton', 'Élément Foudre : paralysie.', 1.85), ELN('eau', 'Rasengan Suiton', 'Élément Eau : trempe.', 2.15), ELN('vent', 'Rasengan Fūton', 'Élément Vent : lacère, +20 % portée.', 0.95, { rng: 1.2 })] });
+    tree('nar_rasenshuriken', { title: 'Fūton : Rasenshuriken', k: '風', b1: 'Rasenshuriken lancé', d1: 'Rasenshuriken en série', d2: 'Chō Ōdama Rasenshuriken', d2fx: { beh: 'odama', r: 4, dmg: 2, cost: 1.5 }, d3: 'Rasenshuriken orbital', d3fx: { beh: 'rshur', dmg: 1.5 }, extra: [ELN('feu', 'Rasenshuriken embrasé', 'Vent + Feu : tempête de flammes.', 1.6)] });
+    const chid = { title: 'Chidori', k: '千', core: 'Mille oiseaux', b1: 'Chidori Nagashi', b1d: 'Décharge circulaire autour de toi (rayon +35 %).', b2: 'Chidori Eisō', b2d: 'Lame d’éclair allongée.', d1: 'Double Chidori', d2: 'Chidori noir', d2fx: { el: 'noir', st: { black: 3, shock: 0.7 }, dmg: 1.6, r: 1.6, cost: 1.3 }, d2d: 'Chidori teinté de chakra noir (Susanoo) : brûle et paralyse.', d3: 'Chidori Senbon', d3d: 'Explosion d’aiguilles d’éclair à l’impact.', extra: [ELN('vent', 'Chidori de vent', 'Raiton + Fūton : lame tranchante.', 1.7)] };
+    tree('ow_chidori', chid); tree('kak_raikiri', Object.assign({}, chid, { title: 'Raikiri', k: '雷', b1: 'Raikiri en chaîne', d2: 'Raikiri violet', d2fx: { st: { shock: 1.2 }, dmg: 1.7, r: 1.5 }, d2d: 'Shiden : paralysie prolongée.' }));
+    const ama = { title: 'Amaterasu', k: '天', core: 'Flammes noires', a1: 'Brasier inextinguible', b1: 'Pluie de flammes noires', d1: 'Regard persistant', d2: 'Kagutsuchi', d2d: 'Mise en forme des flammes : lames noires géantes.', d2fx: { r: 2.2, dmg: 1.6, cost: 1.4 }, d3: 'Bouclier noir', d3d: 'Les flammes explosent en dôme autour de la cible.', extra: [ELN('vent', 'Tornade noire', 'Amaterasu + Vent : tornade de flammes noires.', 1.6, { r: 1.4 })] };
+    tree('shr_amaterasu', ama); tree('ita_amaterasu', ama); tree('sas_kagutsuchi', Object.assign({}, ama, { title: 'Kagutsuchi' }));
+    tree('feu_boule', { title: 'Katon : Gōkakyū', k: '火', b1: 'Hōsenka (multiples)', d1: 'Boules successives', d2: 'Gōka Mekkyaku', d2d: 'Mur de feu colossal : taille ×2,4.', d2fx: { r: 2.4, dmg: 1.7, cost: 1.5 }, d3: 'Gōryūka', d3d: 'La boule éclate en dragons à l’impact.', extra: [ELN('vent', 'Tempête de feu', 'Feu + Vent : flammes attisées, +40 % taille.', 1.6, { r: 1.4 })] });
+    tree('feu_dragon', { title: 'Katon : Dragon de Flammes', k: '龍', d2: 'Dragon ancestral' }); tree('feu_phenix', { title: 'Hōsenka', k: '鳳' });
+    const sand = { k: '砂', core: 'Sable de Shukaku', c1: 'Sable compressé', c1fx: { st: { slow: 1.5 } }, d2: 'Sable impérial', d3: 'Funérailles', d3d: 'Le sable implose au point d’impact.' };
+    tree('gaa_cercueil', Object.assign({ title: 'Sabaku Kyū / Sōsō' }, sand)); tree('gaa_tsunami', Object.assign({ title: 'Tsunami de sable' }, sand)); tree('gaa_bouclier', Object.assign({ title: 'Bouclier de sable' }, sand, { d1: 'Armure de sable' }));
+    const art = (t, k, deep) => ({ title: t, k, core: 'L’art est une explosion', c1: 'Argile détonante', d2: deep, d3: 'Katsu !', d3d: 'Seconde détonation retardée au point d’impact.' });
+    tree('dei_c1', art('C1 : Araignées', '壱', 'Essaim C1')); tree('dei_c2', art('C2 : Dragon', '弐', 'Dragon d’argile géant')); tree('dei_c3', art('C3 : Bombe', '参', 'C3 ×3')); tree('dei_c4', art('C4 : Karura', '四', 'C0 — autodestruction'));
+    const kam = { title: 'Kamui', k: '神', core: 'Dimension de Kamui', b1: 'Intangibilité', d1: 'Kamui répété', d2: 'Kamui à distance', d2d: 'Aspiration dimensionnelle à grande portée.', d3: 'Retour explosif', d3d: 'Ce qui est aspiré ressort en explosion.' };
+    tree('shr_kamui', kam); tree('tob_kamui', kam);
+    const shin = { title: 'Shinra Tensei', k: '神', core: 'Répulsion', a1: 'Force absolue', b1: 'Onde élargie', d1: 'Double répulsion', d2: 'Shinra Tensei de Konoha', d2d: 'Répulsion qui rase un village : rayon ×2.', d3: 'Chibaku Tensei', d3d: 'Attraction puis implosion au centre.' };
+    tree('rin_shinra', shin); tree('pai_shinra', shin); tree('rin_chibaku', { title: 'Chibaku Tensei', k: '地' });
+    tree('nar_clones', { title: 'Kage Bunshin', k: '影', d1: 'Bunshin en chaîne', d2: 'Tajū Kage Bunshin', d3: 'Bunshin Daibakuha' }); tree('clones', { title: 'Clones de Chakra', k: '分' });
+    tree('sas_kirin', { title: 'Kirin', k: '麒', d2: 'Kirin céleste' }); tree('bj_bijudama', { title: 'Bijūdama', k: '尾', d2: 'Bijūdama massive', d2fx: { beh: 'odama', r: 3, dmg: 2, cost: 1.5 }, d3: 'Rafale de Bijūdama' });
+    tree('nej_kaiten', { title: 'Hakkeshō Kaiten', k: '回', d2: 'Grand Kaiten' }); tree('ita_tsukuyomi', { title: 'Tsukuyomi', k: '月' }); tree('mad_meteore', { title: 'Tengai Shinsei', k: '隕', d2: 'Double météore' }); tree('mad_arbres', { title: 'Jukai Kōtan', k: '樹' });
+    for (const id of ['eau_dragon', 'eau_vague', 'vent_lame', 'vent_tornade', 'foudre_chaine', 'foudre_lame', 'terre_mur', 'terre_lances', 'tai_cent', 'tai_ouragan', 'ken_iai', 'ken_croissant', 'ken_danse', 'gen_prison', 'glace_lances', 'lave_globes', 'bois_dragon', 'kunai_ex', 'shuriken', 'onde', 'sas_nagashi', 'ita_corbeaux', 'kak_ninken', 'tai_lotus']) tree(id);
+    SE41.count = Object.keys(SE41.TREES).length;
+  }
+  /* ---------- Profil, points, maîtrise ---------- */
+  const creaUI = () => G.mode === 'creative' || SE41.crea;
+  function store() { const p = P(); if (!p) return {}; p.cst41 = p.cst41 || {}; p.cst41c = p.cst41c || {}; p.mastC = p.mastC || {}; return creaUI() ? p.cst41c : p.cst41; }
+  function mastXP(id) { const p = P(); if (!p) return 0; if (creaUI() && p.mastC && p.mastC[id] != null) return p.mastC[id]; let x = (p.mast && p.mast[id]) || 0; if (p.sec33 && p.sec33.use && p.sec33.use[id]) x = Math.max(x, p.sec33.use[id] * 20); return x; }
+  SE41.mlv = (id) => masteryLv(mastXP(id));
+  SE41.points = function () { const p = P(); if (!p) return { tot: 0, spent: 0, left: 0 }; if (creaUI()) return { tot: 999, spent: 0, left: 999, crea: 1 };
+    let tot = Math.floor((p.lv || 1) / 3); for (const id in SE41.TREES) tot += SE41.mlv(id); const s = store(); let spent = 0; for (const id in s) for (const nid of s[id]) { const n = nodeOf(id, nid); spent += n ? n.cost : 0; }
+    return { tot, spent, left: tot - spent }; };
+  const nodeOf = (tid, nid) => { const t = SE41.TREES[tid]; return t && t.nodes.find((n) => n.id === nid); };
+  SE41.has = (tid, nid) => (store()[tid] || []).includes(nid);
+  SE41.learn = function (tid, nid) { const t = SE41.TREES[tid], n = nodeOf(tid, nid); if (!n) return 'inconnu'; const s = store(); const L = (s[tid] = s[tid] || []);
+    if (L.includes(nid)) { // désapprendre (et tout ce qui en dépend)
+      const rm = new Set([nid]); let ch = 1; while (ch) { ch = 0; for (const m of t.nodes) if (!rm.has(m.id) && m.req && rm.has(m.req) && L.includes(m.id)) { rm.add(m.id); ch = 1; } } s[tid] = L.filter((x) => !rm.has(x)); Profile.save(); return 'oublié'; }
+    if (n.req && !L.includes(n.req)) return 'verrouillé'; if (n.deep && !creaUI() && SE41.mlv(tid) < 2) return 'maîtrise II requise';
+    if (SE41.points().left < n.cost) return 'points insuffisants';
+    if (n.grp) s[tid] = L.filter((x) => { const m = nodeOf(tid, x); return !m || m.grp !== n.grp; });
+    s[tid].push(nid); Profile.save(); SE41.ev.learned = (SE41.ev.learned || 0) + 1; return 'appris'; };
+  /* ---------- Application en combat ---------- */
+  function shaped(u, T) { if (!u || !u.isPlayer || !T || !SE41.TREES[T.id]) return null; const p = P(); if (!p) return null; const s = G.mode === 'creative' ? p.cst41c || {} : p.cst41 || {}; const L = s[T.id] || [];
+    const ml = G.mode === 'creative' && p.mastC && p.mastC[T.id] != null ? masteryLv(p.mastC[T.id]) : SE41.mlv(T.id); if (!L.length && ml < 3) return null;
+    const X = Object.assign({}, T); X.st = Object.assign({}, T.st || {}); X._beh = [];
+    // la maîtrise transforme la technique : III = +15 % taille, V = +1 exemplaire / +15 % puissance
+    if (ml >= 3 && X.r) X.r *= 1.15; if (ml >= 5) { X.dmg *= 1.15; if (X.kind === 'proj') X.cnt = (X.cnt || 1) + 1; }
+    for (const nid of L) { const n = nodeOf(T.id, nid); if (!n) continue; const f = n.fx;
+      if (f.dmg) X.dmg *= f.dmg; if (f.r && X.r) X.r *= f.r; if (f.r && X.ex) X.ex *= Math.min(f.r, 3); if (f.rng && X.rng) X.rng *= f.rng; if (f.cnt) { X.cnt = (X.cnt || 1) + f.cnt; X.spr = Math.max(X.spr || 0, f.spr || 0.4); }
+      if (f.spd && X.spd) X.spd *= f.spd; if (f.life && X.life) X.life *= f.life; if (f.life && X.dur) X.dur *= f.life; if (f.el) X.el = f.el; if (f.st) Object.assign(X.st, f.st); if (f.beh) X._beh.push(f.beh); if (f.noBoost) X.noBoost = 1; if (f.cd) X._cd = (X._cd || 1) * f.cd; if (f.cost) X._cost = (X._cost || 1) * f.cost; }
+    X._shaped = 1; return X; }
+  SE41.shaped = shaped;
+  const baseCost = techCost; techCost = function (u, T) { const c = baseCost.apply(this, arguments); const X = shaped(u, T); return X && X._cost ? c * X._cost : c; };
+  const baseTry = tryCast; tryCast = function (u, id, ang, tgt) { const ok = baseTry.apply(this, arguments); if (ok && u && u.isPlayer) { const X = shaped(u, TECH[id]); if (X && X._cd && u.cds[id]) u.cds[id] *= X._cd; } return ok; };
+  function burst(u, X, x, y, R, k) { const E = ELC[X.el] || '#ffd27a'; for (const v of enemiesOf(u)) if (dist(x, y, v.x, v.y) < R + v.r) dealDamage(u, v, X.dmg * techPower(u, X) * k, { el: X.el, st: X.st, kb: 260, kbA: Math.atan2(v.y - y, v.x - x), tech: X.id });
+    FX.ring(x, y, E, 10, R, 0.45, 9); FX.glow(x, y, 30, E, R * 0.8, 0.35); Post.shock(x, y, 0.5, R * 1.4); Audio.play('boom', 0.7); }
+  SE41.burst = burst;
+  const baseExec = execTech; execTech = function (u, T, ang, tgt) { if (T && T._shaped) return baseExec.apply(this, arguments); const X = shaped(u, T); if (!X) return baseExec.apply(this, arguments);
+    SE41.ev.cast = X.id; SE41.ev.beh = X._beh.join(',');
+    if (X._beh.includes('rshur')) { // deux sphères orbitent puis détonent plus grand
+      const E = ELC[X.el] || '#9fe8c8'; const t0 = performance.now(); const pt = aimPoint(u, ang, 520, tgt); SE41.ev.rshur = (SE41.ev.rshur || 0) + 1;
+      for (let i = 0; i < 2; i++) { let k = 0; const step = () => { if (u.dead) return; k += 0.05; const a = k * 9 + i * Math.PI; const fly = Math.max(0, (k - 0.7) / 0.35); const ox = u.x + Math.cos(a) * 60, oy = u.y + Math.sin(a) * 40; const x = ox + (pt.x - ox) * Math.min(1, fly), y = oy + (pt.y - oy) * Math.min(1, fly);
+          FX.glow(x, y, 40, E, 70, 0.14); FX.glow(x, y, 40, '#ffffff', 26, 0.1); FX.ring && i === 0 && Math.random() < 0.3 && FX.ring(x, y, E, 40, 60, 0.2, 3); FX.spark && FX.add({ type: 'spark', x, y, z: 40, vx: rand(-80, 80), vy: rand(-80, 80), c: '#ffffff', size: 3, life: 0.2 });
+          if (k < 1.05) G.delayed.push({ t: 0.05, f: step }); else if (i === 0) { burst(u, X, pt.x, pt.y, 150, 0.8); G.delayed.push({ t: 0.18, f: () => burst(u, X, pt.x, pt.y, 280, 1) }); } };
+        step(); }
+      u.pose = 'cast'; u.poseT = 0.8; return; }
+    const r = baseExec.call(this, u, X, ang, tgt);
+    if (X._beh.includes('odama')) { SE41.ev.odama = X.r; Post.shock && Post.shock(u.x, u.y, 0.4, 260); }
+    if (X._beh.includes('echo')) G.delayed.push({ t: 0.45, f: () => { if (!u.dead) { const Y = Object.assign({}, X, { dmg: X.dmg * 0.55, _beh: [] }); baseExec.call(this, u, Y, u.aim != null ? u.aim : ang, tgt); SE41.ev.echo = (SE41.ev.echo || 0) + 1; } } });
+    if (X._beh.includes('burst')) { const pt = aimPoint(u, ang, X.rng || 420, tgt); G.delayed.push({ t: 0.35, f: () => { if (!u.dead) { burst(u, X, pt.x, pt.y, 140, 0.5); SE41.ev.burst = (SE41.ev.burst || 0) + 1; } } }); }
+    return r; };
+  /* ---------- Vue constellation ---------- */
+  const css = document.createElement('style'); css.textContent = `#cst41{position:fixed;inset:0;z-index:90;display:none;background:radial-gradient(ellipse at center,#141a3a 0%,#05060f 70%);color:#e8e4dc;font-family:inherit;overflow:hidden}
+#cst41.on{display:block;animation:cst41in .55s cubic-bezier(.2,.9,.2,1)} @keyframes cst41in{0%{clip-path:circle(0% at var(--ox,50%) var(--oy,50%));filter:brightness(3)}100%{clip-path:circle(150% at var(--ox,50%) var(--oy,50%));filter:none}}
+#cst41 canvas{position:absolute;inset:0;width:100%;height:100%} #cst41 .hd{position:absolute;left:24px;top:18px;right:24px;display:flex;gap:16px;align-items:center;pointer-events:none} #cst41 .hd b{font-size:1.5rem;font-family:"Yuji Syuku",serif;color:#ffd27a} #cst41 .hd .pts{margin-left:auto;background:#1a2040cc;border:1px solid #ffd27a66;padding:6px 12px;border-radius:8px}
+#cst41 .info41{position:absolute;left:24px;bottom:24px;max-width:min(440px,80vw);background:#0c1028e0;border:1px solid #ffd27a55;border-radius:10px;padding:12px 14px;min-height:64px} #cst41 .info41 h5{margin:0 0 4px;color:#ffd27a;font-size:1rem} #cst41 .info41 p{margin:0;font-size:.85rem;opacity:.9}
+#cst41 .bar41{z-index:2;position:absolute;right:24px;bottom:24px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:50vw} #cst41 button{all:unset;box-sizing:border-box;display:inline-block;line-height:1.2;background:#1a2040;color:#e8e4dc;border:1px solid #ffd27a66;border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer} #cst41 button.on{background:#5a4a14}
+#cst41 .ml{position:absolute;right:24px;top:64px;background:#0c1028e0;border:1px solid #ffd27a44;border-radius:10px;padding:8px 12px;font-size:.85rem} #cst41 input[type=range]{width:160px}
+@media (max-width:700px){#cst41 .hd b{font-size:1.1rem}#cst41 .bar41{max-width:100vw;left:12px;right:12px;bottom:12px}#cst41 .info41{bottom:70px;left:12px}}`;
+  document.head.appendChild(css);
+  const root = document.createElement('div'); root.id = 'cst41'; root.innerHTML = `<canvas></canvas><div class="hd"><b></b><span class="sub"></span><span class="pts"></span></div><div class="ml"></div><div class="info41"><h5></h5><p></p></div><div class="bar41"><button data-a="prev">◀ Tech.</button><button data-a="next">Tech. ▶</button><button data-a="crea">Créatif : libre</button><button data-a="reset">Réinitialiser</button><button data-a="close">Fermer (Échap)</button></div>`;
+  document.body.appendChild(root); const cv = root.querySelector('canvas'); const ctx = cv.getContext('2d');
+  const V = { id: null, sel: 0, t0: 0, list: [], wasPaused: false, stars: [] };
+  for (let i = 0; i < 260; i++) V.stars.push([Math.random(), Math.random(), Math.random() * 1.6 + 0.3, Math.random() * 6]);
+  function layout() { const t = SE41.TREES[V.id]; const W = cv.clientWidth, H = cv.clientHeight, cx = W * 0.52, cy = H * 0.46, s = Math.min(W * 0.9, H) * 0.098; return t.nodes.map((n) => ({ n, x: cx + Math.cos(n.a - Math.PI / 2 + Math.PI / 2) * n.r * s * 1.05, y: cy + Math.sin(n.a) * n.r * s * 0.82 - (n.r ? 0 : 0) })); }
+  function stateOf(n) { const L = store()[V.id] || []; if (L.includes(n.id)) return 'on'; if (!n.req || L.includes(n.req)) return 'open'; return 'lock'; }
+  function draw() { if (!root.classList.contains('on')) return; requestAnimationFrame(draw); const W = (cv.width = cv.clientWidth * DPR) / DPR, H = (cv.height = cv.clientHeight * DPR) / DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const T = performance.now() / 1000; const k = Math.min(1, (T - V.t0) / 0.8);
+    for (const [x, y, r, ph] of V.stars) { ctx.globalAlpha = 0.35 + 0.35 * Math.sin(T * 1.5 + ph); ctx.fillStyle = '#cfd8ff'; ctx.fillRect(x * W, y * H, r, r); } ctx.globalAlpha = 1;
+    const t = SE41.TREES[V.id]; if (!t) return; const P_ = layout(); const E = ELC[t.el] || '#ffd27a'; const ease = 1 - Math.pow(1 - k, 3);
+    const c0 = P_[0]; // halo central
+    const g = ctx.createRadialGradient(c0.x, c0.y, 0, c0.x, c0.y, 280); g.addColorStop(0, E + '55'); g.addColorStop(1, 'transparent'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#ffd27a22'; for (let i = 1; i <= 4; i++) { ctx.beginPath(); ctx.ellipse(c0.x, c0.y, i * Math.min(W, H) * 0.126 * ease, i * Math.min(W, H) * 0.108 * ease, 0, 0, TAU); ctx.stroke(); }
+    const pos = (q) => ({ x: c0.x + (q.x - c0.x) * ease, y: c0.y + (q.y - c0.y) * ease });
+    for (const q of P_) { if (!q.n.req) continue; const pr = P_.find((z) => z.n.id === q.n.req); const a = pos(pr), b = pos(q); const on = stateOf(q.n) === 'on'; ctx.strokeStyle = on ? E : '#8890b866'; ctx.lineWidth = on ? 3 : 1.5; ctx.setLineDash(on ? [] : [4, 6]); ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.setLineDash([]);
+      if (on) { const f = (T * 0.8) % 1; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, 2.5, 0, TAU); ctx.fill(); } }
+    P_.forEach((q, i) => { const p = pos(q), st = stateOf(q.n), sel = i === V.sel, R = (q.n.deep ? 17 : q.n.r ? 12 : 22) * (sel ? 1.25 + 0.08 * Math.sin(T * 6) : 1);
+      if (st === 'on') { ctx.shadowColor = E; ctx.shadowBlur = 24; } ctx.fillStyle = st === 'on' ? E : st === 'open' ? '#e8e4dc' : '#3a4060'; ctx.beginPath();
+      for (let j = 0; j < 10; j++) { const a = -Math.PI / 2 + j * Math.PI / 5, rr = j % 2 ? R * 0.48 : R; ctx.lineTo(p.x + Math.cos(a + T * (q.n.deep ? 0.4 : 0.1)) * rr, p.y + Math.sin(a + T * (q.n.deep ? 0.4 : 0.1)) * rr); } ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+      if (sel) { ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, R + 8, 0, TAU); ctx.stroke(); }
+      ctx.globalAlpha = ease; ctx.fillStyle = st === 'lock' ? '#8890b8' : '#e8e4dc'; ctx.font = `${q.n.deep ? 700 : 500} ${q.n.deep ? 13 : 12}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText(q.n.n, p.x, p.y + R + 16); ctx.globalAlpha = 1; });
+    if (k < 1) { ctx.fillStyle = `rgba(255,255,255,${(1 - k) * 0.5})`; ctx.fillRect(0, 0, W, H); } }
+  function refresh() { const t = SE41.TREES[V.id]; const pts = SE41.points(); const n = t.nodes[V.sel]; const st = stateOf(n);
+    root.querySelector('.hd b').textContent = `${t.k} ${t.title}`; root.querySelector('.hd .sub').textContent = `${TECH[V.id].n} · ${t.nodes.length} étoiles`;
+    root.querySelector('.pts').textContent = pts.crea ? 'Créatif : points illimités' : `Points de voie : ${pts.left} / ${pts.tot}`;
+    root.querySelector('.info41 h5').textContent = `${n.n}${n.deep ? ' ✦ nœud profond' : ''} — ${st === 'on' ? 'appris' : st === 'open' ? 'coût ' + n.cost : 'verrouillé'}`; root.querySelector('.info41 p').textContent = n.d + (n.grp ? ' (un seul élément à la fois)' : '') + (n.deep && !creaUI() ? ' Nécessite Maîtrise II.' : '');
+    const ml = SE41.mlv(V.id); root.querySelector('.ml').innerHTML = `Maîtrise ${['0', 'I', 'II', 'III', 'IV', 'V'][ml]} · III : +15 % taille · V : +1 exemplaire, +15 % puissance` + (creaUI() ? `<br>Créatif — maîtrise : <input type="range" min="0" max="5" value="${ml}" data-a="ml">` : '');
+    root.querySelector('[data-a=crea]').classList.toggle('on', !!creaUI()); }
+  function idsAvail() { const p = P(); const own = new Set([...(p && p.techs) || [], ...(G.players && G.players[0] ? G.players[0].slots || [] : []), ...Object.keys((p && p.sec33 && p.sec33.un) || {})]); const ids = Object.keys(SE41.TREES); const a = ids.filter((i) => own.has(i)); return creaUI() || !a.length ? ids : a; }
+  SE41.open = function (id, ox, oy) { if (!SE41.count) build(); if (!SE41.TREES[id]) { const l = idsAvail(); id = l[0]; } V.id = id; V.sel = 0; V.t0 = performance.now() / 1000; V.list = idsAvail();
+    root.style.setProperty('--ox', (ox != null ? ox : innerWidth / 2) + 'px'); root.style.setProperty('--oy', (oy != null ? oy : innerHeight / 2) + 'px');
+    if (G && !G.over && G.mode) { V.wasPaused = G.paused; G.paused = true; } root.classList.add('on'); refresh(); draw(); SE41.ev.open = id; Audio.play && Audio.play('seal'); };
+  SE41.close = function () { root.classList.remove('on'); if (G && G.mode && !V.wasPaused) G.paused = false; };
+  SE41.isOpen = () => root.classList.contains('on');
+  function cycle(d) { const l = V.list; let i = l.indexOf(V.id); i = (i + d + l.length) % l.length; V.id = l[i]; V.sel = 0; V.t0 = performance.now() / 1000; refresh(); }
+  function act(a) { if (a === 'close') SE41.close(); else if (a === 'prev') cycle(-1); else if (a === 'next') cycle(1); else if (a === 'crea') { SE41.crea = !SE41.crea; V.list = idsAvail(); refresh(); } else if (a === 'reset') { store()[V.id] = []; Profile.save(); refresh(); }
+    else if (a === 'learn') { const n = SE41.TREES[V.id].nodes[V.sel]; const r = SE41.learn(V.id, n.id); toast && toast('Constellation', n.n, r, r === 'appris' ? '#ffd27a' : '#ff8a8a', '星'); refresh(); } }
+  SE41.act = act;
+  root.addEventListener('click', (e) => { const b = e.target.closest('button[data-a]'); if (b) return act(b.dataset.a); const rc = cv.getBoundingClientRect(); const x = e.clientX - rc.left, y = e.clientY - rc.top; const P_ = layout(); let bi = -1, bd = 40; P_.forEach((q, i) => { const d = Math.hypot(q.x - x, q.y - y); if (d < bd) { bd = d; bi = i; } }); if (bi >= 0) { V.sel = bi; act('learn'); } });
+  root.addEventListener('input', (e) => { if (e.target.dataset.a === 'ml') { const p = P(); p.mastC = p.mastC || {}; p.mastC[V.id] = [0, 12, 45, 110, 220, 400][+e.target.value]; Profile.save(); refresh(); } });
+  root.addEventListener('contextmenu', (e) => e.preventDefault());
+  function nav(dx, dy) { const P_ = layout(); const c = P_[V.sel]; let bi = V.sel, bd = 1e9; P_.forEach((q, i) => { if (i === V.sel) return; const vx = q.x - c.x, vy = q.y - c.y; const along = vx * dx + vy * dy; if (along <= 4) return; const d = along + Math.abs(vx * dy - vy * dx) * 2; if (d < bd) { bd = d; bi = i; } }); V.sel = bi; refresh(); }
+  addEventListener('keydown', (e) => { if (SE41.isOpen()) { const k = e.key; const m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1], q: [-1, 0], z: [0, -1] }[k];
+      if (m) nav(m[0], m[1]); else if (k === 'Enter' || k === ' ') act('learn'); else if (k === 'Escape' || k === 'k' || k === 'K') SE41.close(); else if (k === 'Tab' || k === ']') act('next'); else if (k === '[') act('prev'); e.preventDefault(); e.stopImmediatePropagation(); return; }
+    if ((e.key === 'k' || e.key === 'K') && G.mode && !G.over && G.players && G.players[0] && !document.querySelector('.say35:not([hidden])')) { const u = G.players[0]; SE41.open(u.lastTech && SE41.TREES[u.lastTech] ? u.lastTech : (u.slots || []).find((i) => SE41.TREES[i]) || 'spirale'); e.preventDefault(); } }, true);
+  // clic droit / appui long sur une carte de technique
+  document.addEventListener('contextmenu', (e) => { const c = e.target.closest && e.target.closest('[data-tech]'); if (!c || SE41.isOpen()) return; e.preventDefault(); SE41.open(c.dataset.tech, e.clientX, e.clientY); });
+  let lp = null; document.addEventListener('touchstart', (e) => { const c = e.target.closest && e.target.closest('[data-tech]'); if (!c) return; const t = e.touches[0]; lp = setTimeout(() => { lp = null; SE41.open(c.dataset.tech, t.clientX, t.clientY); SE41.ev.long = 1; }, 520); }, { passive: true });
+  ['touchend', 'touchmove', 'touchcancel'].forEach((ev) => document.addEventListener(ev, () => { if (lp) { clearTimeout(lp); lp = null; } }, { passive: true }));
+  // manette : Select/Back ouvre (technique survolée ou dernière lancée) ; croix/stick naviguent ; A apprend ; B ferme ; LB/RB changent de technique
+  let prevB = []; let lastNav = 0; (function poll() { requestAnimationFrame(poll); const gp = navigator.getGamepads ? [...navigator.getGamepads()].find((g) => g) : null; if (!gp) return; const B = gp.buttons.map((b) => b.pressed); const dn = (i) => B[i] && !prevB[i];
+      if (SE41.isOpen()) { const now = performance.now(); const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0; let dx = (B[15] ? 1 : B[14] ? -1 : Math.abs(ax) > 0.5 ? Math.sign(ax) : 0), dy = (B[13] ? 1 : B[12] ? -1 : Math.abs(ay) > 0.5 ? Math.sign(ay) : 0); if ((dx || dy) && now - lastNav > 220) { lastNav = now; nav(dx, dy); }
+        if (dn(0)) act('learn'); if (dn(1) || dn(8)) SE41.close(); if (dn(4)) act('prev'); if (dn(5)) act('next'); if (dn(3)) act('crea'); }
+      else if (dn(8)) { const h = document.querySelector('[data-tech]:hover') || (document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-tech]')); const u = G.players && G.players[0]; SE41.open(h ? h.dataset.tech : u && u.lastTech || 'spirale'); }
+      prevB = B; })();
+  /* ---------- Carte de technique : badge de voie ---------- */
+  const baseTC = techCard; techCard = function (id) { let h = baseTC.apply(this, arguments); if (!SE41.count) build(); if (SE41.TREES[id]) { const n = (store()[id] || []).length; h = h.replace(/<\/div>\s*$/, `<span class="cst41b" title="Clic droit / appui long : constellation">星 ${n}/${SE41.TREES[id].nodes.length}</span></div>`); } return h; };
+  css.textContent += `.cst41b{display:inline-block;margin-top:4px;font-size:.7rem;color:#ffd27a;border:1px solid #ffd27a55;border-radius:6px;padding:0 6px}`;
+  /* ---------- Guide, tutoriel, notes ---------- */
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody'); g.insertAdjacentHTML('afterbegin', `<section><h4>星 Constellations de techniques (4.1)</h4><table><tr><td>Ouvrir</td><td>Clic droit ou appui long sur une carte de technique, <b>K</b> en jeu (dernière technique lancée), bouton <b>Select</b> à la manette.</td></tr><tr><td>Points</td><td>1 point tous les 3 niveaux + 1 par palier de maîtrise de chaque technique. Les nœuds profonds coûtent 2 et demandent la Maîtrise II.</td></tr><tr><td>Exemple</td><td>Rasengan : Multi-Rasengan, Ōdama (11× plus gros, sans boost de vitesse), Rasenshuriken (2 sphères en orbite qui détonent), Rasengan élémentaire (Katon/Raiton/Suiton/Fūton).</td></tr><tr><td>Maîtrise</td><td>La technique change d’elle-même : III = +15 % taille, V = +1 exemplaire et +15 % puissance.</td></tr><tr><td>Créatif</td><td>Bouton « Créatif : libre » : points illimités et curseur de maîtrise, uniquement appliqués en mode Créatif.</td></tr><tr><td>Manette</td><td>Croix/stick : naviguer · A : apprendre/oublier · B : fermer · LB/RB : technique précédente/suivante · Y : créatif.</td></tr></table></section>`); };
+  SE3.NOTES.unshift({ v: '4.1 — Skill Tree Constellation', d: '20 octobre 2026', tag: 'Chaque grande technique devient une constellation.', s: [
+    ['Constellations', ['Plus de 45 techniques ont un arbre de voies (10 à 14 étoiles) : Rasengan, Rasenshuriken, Chidori, Raikiri, Amaterasu, Kagutsuchi, Gōkakyū, sable de Gaara, C1–C4, Kamui, Shinra Tensei, Chibaku Tensei, Kirin, Bijūdama…', 'Ouverture par clic droit, appui long, K en jeu ou Select à la manette, avec une transition en vue d’étoiles.']],
+    ['Rasengan', ['Multi-Rasengan, Ōdama Rasengan (11× plus gros, sans boost), Rasenshuriken (deux sphères en orbite qui détonent plus grand), Rasengan Katon / Raiton / Suiton / Fūton.']],
+    ['Progression', ['Points de voie : 1 tous les 3 niveaux + 1 par palier de maîtrise. La maîtrise transforme aussi la technique (III et V).', 'Créatif : points illimités et maîtrise réglable.']],
+    ['Monde', ['Les PNJ contournent maintenant les maisons et les boutiques au lieu de les traverser.']],
+  ] });
+  build();
 })();
 
 </script>

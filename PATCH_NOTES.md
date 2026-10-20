@@ -1,3 +1,9 @@
+- 54 techniques avec arbre de voies (10–14 étoiles) en vue constellation (clic droit, appui long, K, Select manette)
+- Rasengan : Multi-Rasengan, Ōdama (×11, sans boost), Rasenshuriken (2 sphères en orbite qui détonent), Rasengan Katon/Raiton/Suiton/Fūton
+- Chidori/Raikiri, Amaterasu/Kagutsuchi, Gōkakyū, sable, C1–C4, Kamui, Shinra/Chibaku Tensei, Kirin, Bijūdama…
+- Points de voie : niveaux + paliers de maîtrise ; la maîtrise transforme la technique ; Créatif libre (points et maîtrise)
+- PNJ : contournement des maisons et boutiques
+
 - Carte 7200×4500 (×2,4 surface)
 - Routes entre zones, villages réels : Konoha (maisons, Ichiraku, boutiques, portes), Suna, Kiri, hameau de Myoboku
 - 34 PNJ : gardes en patrouille, villageois, marchands, avec horaires jour/nuit (1 h = 30 s)
