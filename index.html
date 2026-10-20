@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.3 Reactions Expansion</title>
+<title>Shinobi Éternel II — v4.4 Creative Modes</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6488,7 +6488,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.3';
+  const VERSION = '4.4';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -8890,7 +8890,7 @@ const Net = {
   function duoOf(a, b) { const k1 = [a.ms33, b.ms33].sort().join('+'); if (a.ms33 && b.ms33 && DUO_MS[k1]) return { n: DUO_MS[k1][0], d: DUO_MS[k1][1], el: a.el || 'neutre' };
     const ea = a.jutsuEl || (a.elements && a.elements[0]) || a.el || 'feu', eb = b.jutsuEl || (b.elements && b.elements[0]) || b.el || 'vent'; const k2 = [ea, eb].sort().join('+');
     if (ea === eb) return { n: 'Double ' + ((EL[ea] || EL.neutre).n), d: 'Deux techniques identiques fusionnent.', el: ea }; const E = DUO_EL[k2]; return E ? { n: E[0], d: 'Fusion ' + (EL[ea] || EL.neutre).n + ' + ' + (EL[eb] || EL.neutre).n, el: E[1] } : { n: 'Assaut Combiné', d: 'Une attaque coordonnée.', el: ea }; }
-  SE36.duoOf = duoOf;
+  SE36.duoOf = duoOf; SE36.DUO_MS = DUO_MS; SE36.DUO_EL = DUO_EL; SE36.duoFx = (u, al, fo, D) => duo(u, al, fo, D);
   const allyFor = (u) => G.units.find((v) => alive(v) && v !== u && v.team === u.team && !v.down && (!v.body || v.body === 'ninja') && v.kind !== 'dummy' && !v.decoy && dist(u.x, u.y, v.x, v.y) < 320);
   SE36.allyFor = allyFor;
   const baseTC = tryCast;
@@ -9915,7 +9915,7 @@ const Net = {
     SE35.runQTE({ type: 'mash', title: 'Choc de techniques ! ' + T.n, dur: 3.2, k: 0.075, decay: 0.16, maxMiss: 0 }, (win) => { const w = win ? pl : op, l = win ? op : pl; ev('clashEnd', win ? 'win' : 'lose');
       if (alive(l)) dealDamage(w, l, Math.max(60, (T.dmg || 60) * 3 * techPower(w, T)), { el: T.el, kb: 1200, kbA: Math.atan2(l.y - w.y, l.x - w.x), tech: T.id, imp42: 1 });
       FX.ring(x, y, win ? '#ffd27a' : '#ff5a5a', 20, 320, 0.6, 12); Post.shock(x, y, 1.6, 500); banner(win ? 'Choc remporté !' : 'Choc perdu…', 'CHOC DE TECHNIQUES', win ? '#ffd27a' : '#ff5a5a'); }); return true; }
-  SE42.skillClash = skillClash;
+  SE42.skillClash = skillClash; SE42.resetClash = () => { clashT = 0; };
   // projectiles lourds qui se croisent (joueur impliqué) → QTE au lieu de s'annuler
   const baseUP = updateProjs;
   updateProjs = function (dt) { try { updCine(dt); const P_ = G.projs; if (P_.length > 1 && performance.now() - clashT > 6000 && window.SE34 && SE34.weight) {
@@ -10185,6 +10185,149 @@ const Net = {
     ['Chaînes', ['Après une réaction double, un 3e élément déclenche une réaction triple (10), un 4e une quadruple (5), les cinq natures « Six Voies : Création de Toute Chose » (cinématique).']],
     ['Dōjutsu & kekkei genkai', ['Vent + Amaterasu = tornade de flammes noires, Kamui + explosion = distorsion explosive, Byakugan + Poing Souple = sceau des 64 points, Sharingan + genjutsu, Rinnegan + gravité, Mokuton contre les Bijū, sable + eau, Chidori conducteur, vortex Rasen, détonation en chaîne, scellement de Totsuka, miroirs de glace, renvoi céleste.']],
     ['Codex', ['Toutes les nouvelles réactions apparaissent dans le Codex (onglet Réactions) et dans le Guide avec leur tableau.']],
+  ] });
+})();
+/* v4.4 — Creative Modes : choc de Bijūdama, entraîneur de chocs, créateur de moveset + simulation IA, simulateur de boss,
+   labo des réactions et des ultimes, éditeur de maîtrise et de voies */
+(function () {
+  const SE44 = (window.SE44 = { ev: {}, score: { w: 0, l: 0 } }); const SE3 = window.SE3;
+  const ev = (k, v) => { SE44.ev[k] = v != null ? v : (SE44.ev[k] || 0) + 1; };
+  if (typeof BIOME_ORDER !== 'undefined' && !BIOME_ORDER.includes('vallee') && BIOMES.vallee) BIOME_ORDER.push('vallee');
+  const BEA = () => (typeof BEASTS !== 'undefined' ? BEASTS : []);
+  const css = document.createElement('style'); css.textContent = `#crea44{position:fixed;inset:0;z-index:85;display:none;background:rgba(6,8,18,.94);color:#e8e4dc;overflow:auto;padding:max(14px,env(safe-area-inset-top)) 16px 20px}
+#crea44.on{display:block;animation:c44in .35s ease-out} @keyframes c44in{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
+#crea44 .hd44{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px} #crea44 h2{margin:0;font-family:"Yuji Syuku",serif;color:#5fe08a} #crea44 .x44{margin-left:auto}
+#crea44 .tabs44{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px} #crea44 .tabs44 button.on{background:#2a5a3a;border-color:#5fe08a}
+#crea44 button{all:unset;box-sizing:border-box;cursor:pointer;background:#1a2038;border:1px solid #5fe08a55;border-radius:8px;padding:7px 11px;font-size:.85rem;line-height:1.2} #crea44 button:hover,#crea44 button:focus{border-color:#5fe08a;outline:none}
+#crea44 button.go{background:#2a6a3a;border-color:#5fe08a;font-weight:700} #crea44 select,#crea44 input[type=text]{background:#10142a;color:#e8e4dc;border:1px solid #5fe08a44;border-radius:6px;padding:5px;max-width:100%}
+#crea44 .grid44{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px} #crea44 .card44{background:#121830;border:1px solid #ffffff18;border-radius:10px;padding:10px} #crea44 .card44 b{color:#ffd27a} #crea44 .card44 p{margin:4px 0 8px;font-size:.8rem;opacity:.85}
+#crea44 .row44{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0} #crea44 table{width:100%;border-collapse:collapse;font-size:.82rem} #crea44 td{padding:4px;border-bottom:1px solid #ffffff12} #crea44 input[type=range]{width:120px}
+#crea44 .muted{opacity:.7;font-size:.8rem} #c44hud{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:9;background:#0c1028d0;border:1px solid #5fe08a66;border-radius:8px;padding:4px 12px;font-size:.85rem;color:#e8e4dc;pointer-events:none;display:none}`;
+  document.head.appendChild(css);
+  const root = document.createElement('div'); root.id = 'crea44'; document.body.appendChild(root); const hud = document.createElement('div'); hud.id = 'c44hud'; document.body.appendChild(hud);
+  const TABS = [['bijuu', '尾 Choc de Bijūdama'], ['clash', '撃 Entraîneur de chocs'], ['moveset', '型 Créateur de moveset'], ['boss', '鬼 Simulateur de boss'], ['lab', '発 Labo réactions & ultimes'], ['mast', '星 Maîtrise & voies']];
+  let tab = 'bijuu'; let wasPaused = false;
+  const inCrea = (biome, then) => { if (G.mode === 'creative' && G.map && !G.over) { if (biome && G.map.biome !== biome) { const keep = G.players; const m = makeMap(biome, 2300, 1500); G.zones = []; loadMap(m); keep.forEach((u) => { u.x = m.w / 2; u.y = m.h / 2; }); } then(); return; }
+    UI.creaBiome = biome || UI.creaBiome || 'ruines'; Session.team = [{ dev: 'auto' }]; startGame('creative', { biome: UI.creaBiome }); setTimeout(then, 900); };
+  const clearFoes = () => { SE44.sim = null; SE44.boss = null; for (const v of G.units.slice()) if (v.team !== 0 && !v.dummy && alive(v)) killUnit(v, null); G.projs.length = 0; SE44.sim = null; SE44.boss = null; };
+  const P0 = () => G.players[0];
+  const hudSet = (t) => { hud.textContent = t; hud.style.display = t ? 'block' : 'none'; };
+  SE44.close = () => { root.classList.remove('on'); if (G.mode && !wasPaused) G.paused = false; };
+  SE44.open = (t) => { if (t) tab = t; wasPaused = !!G.paused; if (G.mode && !G.over) G.paused = true; root.classList.add('on'); render(); ev('open', tab); };
+  const run = (f) => { SE44.close(); try { f(); } catch (e) { console.warn('se44', e); } };
+  /* ---------- 1. Choc de Bijūdama ---------- */
+  function bijuuClash(beast) { inCrea('vallee', () => { clearFoes(); const u = P0(); u.x = G.map.w / 2 - 300; u.y = G.map.h / 2; G.cheats.god = true;
+      const e = (typeof spawnBeast === 'function' && beast) ? spawnBeast(beast, u.x + 600, u.y, 2) : spawnMob('deserteur', u.x + 600, u.y, 3); if (e) { e.ai = null; e.vx = e.vy = 0; }
+      G.obstacles = G.obstacles.filter((o) => Math.abs(o.y - u.y) > 140 || o.t === 'statue42');
+      banner('Choc de Bijūdama', 'MODE CRÉATIF', '#c06bff', 'Martèle Attaque quand les deux sphères se touchent'); hudSet('Choc de Bijūdama · victoires ' + SE44.score.w + ' / défaites ' + SE44.score.l + ' · relance depuis le panneau (Tab)');
+      const fire = () => { const T = TECH.bj_bijudama; if (!T) return; const n0 = G.projs.length; const a = spawnProj(u, Object.assign({}, T, { kind: 'proj' }), 0, techPower(u, T)); a._big = 1; a.r = 34; a.shape = 'bijuu'; a.c = '#ffb13d'; a.ex = 300; a.pierce = 99;
+        if (e) { const b = spawnProj(e, Object.assign({}, T, { kind: 'proj' }), Math.PI, 1); b._big = 1; b.r = 34; b.shape = 'bijuu'; b.c = '#c06bff'; b.ex = 300; b.pierce = 99; } };
+      G.delayed.push({ t: 0.8, f: fire }); ev('bijuu'); }); }
+  /* ---------- 2. Entraîneur de chocs de techniques ---------- */
+  function clashTrainer(id, n) { inCrea('ruines', () => { clearFoes(); const u = P0(); G.cheats.god = true; const e = spawnMob('deserteur', u.x + 520, u.y, 3); if (!e) return; e.ai = null; e.name = 'Rival d’entraînement'; e.maxHp = e.hp = 1e6;
+      let k = 0; const T = TECH[id] || TECH.feu_boule; banner('Entraîneur de chocs', 'MODE CRÉATIF', '#ffd27a', 'Les techniques lourdes se croisent : martèle Attaque !');
+      const round = () => { if (k++ >= n || !alive(e)) { hudSet('Entraînement terminé · ' + SE44.score.w + ' victoires / ' + SE44.score.l + ' défaites'); return; } hudSet(`Choc ${k}/${n} · ${T.n} · ${SE44.score.w} V / ${SE44.score.l} D`);
+        if (window.SE42) { SE42.ev.pclashEnd = null; SE42.resetClash && SE42.resetClash(); } const Y = Object.assign({}, T, { kind: 'proj', r: Math.max(24, T.r || 24), spd: 420, life: 2.2, ex: Math.max(140, T.ex || 0), shape: T.shape || 'orb' });
+        u.x = e.x - 520; u.y = e.y; const a = spawnProj(u, Y, 0, techPower(u, Y)); const b = spawnProj(e, Y, Math.PI, 1); a.pierce = b.pierce = 99; ev('clashRound');
+        const wait = () => { const r = window.SE42 && SE42.ev.pclashEnd; if (r) { SE44.score[r === 'win' ? 'w' : 'l']++; G.delayed.push({ t: 1.6, f: round }); } else if (!alive(e)) return; else setTimeout(wait, 300); }; setTimeout(wait, 600); };
+      if (window.SE42) SE42.clashReset = 1; G.delayed.push({ t: 0.8, f: round }); }); }
+  /* ---------- 3. Créateur de moveset + simulation contre l'IA ---------- */
+  const store = () => { const p = P(); p.cms44 = p.cms44 || []; return p.cms44; };
+  const techList = () => Object.keys(TECH).filter((k) => !TECH[k].beast && TECH[k].kind !== 'sig33' || TECH[k].s33).sort((a, b) => TECH[a].n.localeCompare(TECH[b].n));
+  function applyMoveset(u, M) { u.slots = M.sk.slice(0, 4); u.wheelExtra = M.sk.slice(4); u._nw = null; u.secret = M.ult; u.elements = [M.el]; u.elemMain = M.el; u.cds = {}; if (M.look) u.look = Object.assign({}, u.look, M.look); u.name = M.n; }
+  SE44.applyMoveset = applyMoveset;
+  function simulate(M, foeMs) { inCrea(M.biome || 'ruines', () => { clearFoes(); const u = P0(); applyMoveset(u, M); G.cheats.god = false; u.hp = u.maxHp; u.ch = u.maxCh;
+      const keys = Object.keys(SE33.MS); const fk = foeMs && SE33.MS[foeMs] ? foeMs : pick(keys); const F = SE33.MS[fk];
+      let b = null; try { b = makePlayerUnit(botBuild('hibana', 60, true), 1, 1, false); b.x = u.x + 420; b.y = u.y; b.slots = F.sk.slice(0, 4); b.secret = F.ult; b.ms33 = fk; b.look = Object.assign({}, b.look, F.look); b.name = F.n + ' (IA)'; b.elements = [F.el]; b.maxHp *= 1.5; b.hp = b.maxHp; addUnit(b); } catch (e) { b = spawnMob('deserteur', u.x + 420, u.y, 4); b.name = F.n + ' (IA)'; }
+      SE44.sim = { u, b, t0: performance.now(), M: M.n, F: F.n }; banner(M.n + ' vs ' + F.n, 'SIMULATION', '#5fe08a', 'Ton moveset contre l’IA'); hudSet(`Simulation : ${M.n} vs ${F.n}`); ev('sim', fk); }); }
+  SE44.simulate = simulate;
+  /* ---------- 4. Simulateur de boss ---------- */
+  function bossFight(id, tier) { inCrea(null, () => { clearFoes(); const u = P0(); G.cheats.god = false; u.hp = u.maxHp; u.ch = u.maxCh; const x = u.x + 420, y = u.y; let b;
+      if (id.startsWith('beast:')) b = spawnBeast(id.slice(6), x, y, tier); else if (id.startsWith('ms:')) { const F = SE33.MS[id.slice(3)]; b = makePlayerUnit(botBuild('hibana', 60, true), 1, 1, false); b.x = x; b.y = y; b.slots = F.sk.slice(0, 4); b.secret = F.ult; b.ms33 = id.slice(3); b.look = Object.assign({}, b.look, F.look); b.name = F.n; b.boss = true; b.maxHp *= 3 + tier; b.hp = b.maxHp; addUnit(b); } else b = spawnBoss(id, x, y, tier);
+      SE44.boss = { b, t0: performance.now(), id }; banner(b ? b.name : id, 'SIMULATEUR DE BOSS', '#ff5a5a', 'Rang ' + tier); hudSet('Boss : ' + (b ? b.name : id)); ev('boss', id); }); }
+  SE44.bossFight = bossFight;
+  /* ---------- 5. Labo des réactions et des ultimes ---------- */
+  function labReaction(key) { inCrea(null, () => { const u = P0(); G.cheats.god = true; G.zones = G.zones.filter((z) => z.natural); for (const v of G.units) if (v.dummy) v.dead = true; G.units = G.units.filter((v) => !v.dummy); let d = null; if (!d) { d = addUnit(makeUnit({ team: 1, kind: 'dummy', body: 'dummy', name: 'Mannequin', x: u.x + 220, y: u.y, maxHp: 1e9, hp: 1e9, mass: 99, r: 16 })); d.dummy = true; }
+      d.x = u.x + 220; d.y = u.y; d.mk = null; d._rx43 = null; d._rx43cd = {}; const all = labAll(); const R = all.find((r) => r.id === key); if (!R) return; if (R.els) { R.els.forEach((el, i) => G.delayed.push({ t: i * 0.45, f: () => dealDamage(u, d, 10, { el }) })); } else SE31.trigger(u, d, R.R, null); ev('labRx', key); }); }
+  function labAll() { const out = []; for (const k in SE31.RX) out.push({ id: SE31.RX[k].id, n: SE31.RX[k].n, c: SE31.RX[k].c, d: SE31.RX[k].d, els: k.split('|'), lvl: 'Double' });
+    if (window.SE43) { for (const k in SE43.TRI) out.push({ id: SE43.TRI[k].id, n: SE43.TRI[k].n, c: SE43.TRI[k].c, d: SE43.TRI[k].d, els: tri(k), lvl: 'Triple' }); for (const k in SE43.QUAD) out.push({ id: SE43.QUAD[k].id, n: SE43.QUAD[k].n, c: SE43.QUAD[k].c, d: SE43.QUAD[k].d, els: tri(k), lvl: 'Quadruple' });
+      out.push({ id: SE43.QUINT.id, n: SE43.QUINT.n, c: SE43.QUINT.c, d: SE43.QUINT.d, els: ['feu', 'vent', 'eau', 'foudre', 'terre'], lvl: 'Quintuple' }); for (const k in SE43.SP) out.push({ id: SE43.SP[k].id, n: SE43.SP[k].n, c: SE43.SP[k].c, d: SE43.SP[k].d, R: SE43.SP[k], lvl: 'Dōjutsu' }); }
+    for (const k in SE31.SPECIAL) out.push({ id: k, n: SE31.SPECIAL[k].n, c: SE31.SPECIAL[k].c, d: SE31.SPECIAL[k].d, R: Object.assign({ id: k, mul: 1 }, SE31.SPECIAL[k]), lvl: 'Spéciale' }); return out; }
+  // une chaîne : 2 premiers éléments font la double, le reste enchaîne
+  const tri = (k) => { const e = k.split('|'); return e; };
+  function labUlt(id) { inCrea(null, () => { const u = P0(); G.cheats.god = true; G.cheats.inf = true; let d = G.units.find((v) => v.dummy && alive(v)); if (d) { d.x = u.x + 200; d.y = u.y; } if (!d) { d = addUnit(makeUnit({ team: 1, kind: 'dummy', body: 'dummy', name: 'Mannequin', x: u.x + 200, y: u.y, maxHp: 1e9, hp: 1e9, mass: 99, r: 16 })); d.dummy = true; }
+      u.act = null; u.cds = {}; u.ch = u.maxCh; execTech(u, TECH[id], Math.atan2(d.y - u.y, d.x - u.x), d); ev('labUlt', id); }); }
+  function labDuo(key, kind) { inCrea(null, () => { const u = P0(); G.cheats.god = true; let d = G.units.find((v) => v.team !== 0 && alive(v)); if (!d) { d = addUnit(makeUnit({ team: 1, kind: 'dummy', body: 'dummy', name: 'Mannequin', x: u.x + 300, y: u.y, maxHp: 1e9, hp: 1e9, mass: 99, r: 16 })); d.dummy = true; }
+      let al = G.units.find((v) => v.team === 0 && v !== u && alive(v) && v.kind !== 'summon' && !v.isClone); if (!al) { try { al = makePlayerUnit(botBuild('hibana', 60, true), 0, 1, false); al.x = u.x - 80; al.y = u.y + 60; addUnit(al); } catch (e) { return; } }
+      const D = kind === 'ms' ? { n: SE36.DUO_MS[key][0], d: SE36.DUO_MS[key][1], el: 'neutre' } : { n: SE36.DUO_EL[key][0], d: 'Fusion ' + key, el: SE36.DUO_EL[key][1] }; al.x = u.x - 80; al.y = u.y + 40; SE36.duoFx(u, al, d, D); SE36.ev.duo = D.n; ev('labDuo', key); }); }
+  /* ---------- 6. Éditeur de maîtrise et de voies ---------- */
+  const MXP = [0, 12, 45, 110, 220, 400];
+  /* ---------- Rendu ---------- */
+  const opt = (v, n, sel) => `<option value="${v}" ${sel ? 'selected' : ''}>${esc(n)}</option>`;
+  function render() { const p = P() || {}; let body = '';
+    if (tab === 'bijuu') body = `<div class="card44"><b>Choc de Bijūdama</b><p>Ta Bijūdama contre celle d’une Bête (ou d’un rival) dans la Vallée de la Fin : quand elles se touchent, martèle Attaque au bon moment sur l’anneau. Score : ${SE44.score.w} V / ${SE44.score.l} D.</p>
+      <div class="row44"><select id="c44beast">${opt('', 'Rival ninja')}${BEA().map((b) => opt(b.id, b.n + ' (' + b.tails + ' queues)')).join('')}</select><button class="go" data-r="bijuu">Lancer le choc</button></div>
+      <div class="row44"><button data-r="endclash">Choc signature : Naruto × Sasuke (Vallée de la Fin)</button></div></div>`;
+    else if (tab === 'clash') body = `<div class="card44"><b>Entraîneur de chocs de techniques</b><p>Ton rival et toi lancez la même technique lourde : elles se croisent et déclenchent le QTE de choc. Enchaîne les manches.</p>
+      <div class="row44"><select id="c44tech">${['feu_boule', 'feu_dragon', 'eau_dragon', 'vent_lame', 'foudre_loup', 'terre_boulet', 'lave_globes', 'bois_dragon', 'tempete_dragon', 'nin_dragon_chakra', 'eau_requins'].filter((k) => TECH[k]).map((k) => opt(k, TECH[k].n)).join('')}</select><select id="c44n">${[3, 5, 10].map((n) => opt(n, n + ' manches')).join('')}</select><button class="go" data-r="clash">Commencer</button></div></div>`;
+    else if (tab === 'moveset') { const L = techList(); const ms = store(); const cur = SE44.cur || { n: 'Mon moveset', el: 'feu', sk: ['feu_boule', 'vent_lame', 'spirale', 'foudre_chaine', '', ''], ult: 'nar_rasen_nuke' };
+      body = `<div class="card44"><b>Créateur de moveset</b><p>Choisis jusqu’à 6 techniques (les 4 premières sur la roue, 2 en extra), un ultime (Espace) et un élément. Sauvegarde, puis simule contre un moveset IA.</p>
+        <div class="row44"><input type="text" id="c44name" value="${esc(cur.n)}" maxlength="28"><select id="c44el">${['feu', 'vent', 'eau', 'foudre', 'terre', 'neutre'].map((e) => opt(e, (EL[e] || {}).n || e, cur.el === e)).join('')}</select></div>
+        <div class="grid44">${[0, 1, 2, 3, 4, 5].map((i) => `<label>Technique ${i + 1}<br><select data-sk="${i}">${opt('', '—')}${L.map((k) => opt(k, TECH[k].n, cur.sk[i] === k)).join('')}</select></label>`).join('')}<label>Ultime (Espace)<br><select id="c44ult">${L.filter((k) => TECH[k].rar >= 4).map((k) => opt(k, TECH[k].n, cur.ult === k)).join('')}</select></label></div>
+        <div class="row44"><button data-r="mssave">Sauvegarder</button><select id="c44foe">${opt('', 'Adversaire IA au hasard')}${Object.keys(SE33.MS).map((k) => opt(k, SE33.MS[k].n)).join('')}</select><button class="go" data-r="mssim">Simuler contre l’IA</button></div>
+        ${ms.length ? `<table>${ms.map((m, i) => `<tr><td><b>${esc(m.n)}</b></td><td class="muted">${m.sk.filter(Boolean).map((k) => TECH[k] ? TECH[k].n : k).join(' · ')} · ult : ${TECH[m.ult] ? TECH[m.ult].n : m.ult}</td><td><button data-ld="${i}">Charger</button> <button data-rm="${i}">Suppr.</button></td></tr>`).join('')}</table>` : '<p class="muted">Aucun moveset sauvegardé.</p>'}</div>`; }
+    else if (tab === 'boss') body = `<div class="card44"><b>Simulateur de boss</b><p>Affronte n’importe quel boss, Bête à queues ou personnage (moveset en version boss) au rang choisi.</p><div class="row44"><select id="c44boss">${Object.keys(BOSSES).map((k) => opt(k, 'Boss · ' + BOSSES[k].n)).join('')}${BEA().map((b) => opt('beast:' + b.id, 'Bête · ' + b.n)).join('')}${Object.keys(SE33.MS).map((k) => opt('ms:' + k, 'Personnage · ' + SE33.MS[k].n)).join('')}</select>
+      <select id="c44tier">${[0, 1, 2, 3, 4, 5].map((t) => opt(t, 'Rang ' + Object.keys(MISSION_RANKS)[t], t === 2)).join('')}</select><button class="go" data-r="boss">Combattre</button></div></div>`;
+    else if (tab === 'lab') { const all = labAll(); const ults = [...new Set([...Object.values(SE33.MS).map((m) => m.ult), ...Object.keys(TECH).filter((k) => TECH[k].ult42 || TECH[k].sus42)])].filter((k) => TECH[k]);
+      body = `<div class="card44"><b>Labo des réactions (${all.length})</b><p>Un mannequin apparaît ; chaque bouton applique les éléments dans l’ordre (chaînes triples, quadruples…) ou déclenche directement l’interaction spéciale.</p><div class="grid44">${all.map((r) => `<button data-rx="${r.id}" style="border-color:${r.c}88" title="${esc(r.d)}"><span style="color:${r.c}">${esc(r.n)}</span> <span class="muted">· ${r.lvl}</span></button>`).join('')}</div></div>
+        <div class="card44" style="margin-top:10px"><b>Ultimes uniques (${ults.length})</b><div class="grid44">${ults.map((k) => `<button data-ul="${k}">${esc(TECH[k].n)}</button>`).join('')}</div></div>
+        <div class="card44" style="margin-top:10px"><b>Ultimes en duo</b><p>Un allié apparaît à côté de toi.</p><div class="grid44">${Object.keys(SE36.DUO_MS || {}).map((k) => `<button data-duo="${k}" data-k="ms">${esc(SE36.DUO_MS[k][0])} <span class="muted">· ${k}</span></button>`).join('')}${Object.keys(SE36.DUO_EL || {}).map((k) => `<button data-duo="${k}" data-k="el">${esc(SE36.DUO_EL[k][0])} <span class="muted">· ${k}</span></button>`).join('')}</div></div>`; }
+    else if (tab === 'mast') { p.mastC = p.mastC || {}; const ids = Object.keys((window.SE41 && SE41.TREES) || {}); body = `<div class="card44"><b>Éditeur de maîtrise et de voies (Créatif)</b><p>Règle la maîtrise de chaque technique (appliquée en mode Créatif) et ouvre sa constellation en mode libre. La progression normale n’est pas modifiée.</p>
+      <div class="row44"><button data-r="mastall5">Tout en Maîtrise V</button><button data-r="mastall0">Tout remettre à 0</button></div><table>${ids.map((id) => { const lv = masteryLv(p.mastC[id] != null ? p.mastC[id] : 0); const L = (p.cst41c && p.cst41c[id]) || []; return `<tr><td>${esc(TECH[id].n)}</td><td><input type="range" min="0" max="5" value="${lv}" data-ms="${id}"> <span>${['0', 'I', 'II', 'III', 'IV', 'V'][lv]}</span></td><td class="muted">${L.length}/${SE41.TREES[id].nodes.length} étoiles</td><td><button data-cst="${id}">Constellation</button></td></tr>`; }).join('')}</table></div>`; }
+    root.innerHTML = `<div class="hd44"><h2>創 Modes créatifs</h2><span class="muted">4.4 · tout est testable, rien n’affecte ta progression</span><button class="x44" data-r="close">Fermer (Échap)</button></div><div class="tabs44">${TABS.map(([k, n]) => `<button data-t="${k}" class="${k === tab ? 'on' : ''}">${n}</button>`).join('')}</div>${body}`;
+    bind(); }
+  function readMS() { const sk = [...root.querySelectorAll('[data-sk]')].map((s) => s.value); const M = { n: $('#c44name').value.trim() || 'Mon moveset', el: $('#c44el').value, sk: sk.filter(Boolean).length ? sk : ['feu_boule'], ult: $('#c44ult').value, look: null }; M.sk = M.sk.filter(Boolean); SE44.cur = Object.assign({}, M, { sk }); return M; }
+  function bind() {
+    root.querySelectorAll('[data-t]').forEach((b) => (b.onclick = () => { tab = b.dataset.t; render(); }));
+    root.querySelectorAll('[data-r]').forEach((b) => (b.onclick = () => { const r = b.dataset.r;
+      if (r === 'close') SE44.close(); else if (r === 'bijuu') { const bz = $('#c44beast').value; run(() => bijuuClash(bz)); } else if (r === 'endclash') run(() => inCrea('vallee', () => SE42.endClash()));
+      else if (r === 'clash') { const id = $('#c44tech').value, n = +$('#c44n').value; run(() => clashTrainer(id, n)); }
+      else if (r === 'mssave') { const M = readMS(); const L = store(); const i = L.findIndex((m) => m.n === M.n); if (i >= 0) L[i] = M; else L.push(M); Profile.save(); toast('Moveset', M.n, 'Sauvegardé', '#5fe08a', '型'); ev('msSave'); render(); }
+      else if (r === 'mssim') { const M = readMS(); const f = $('#c44foe').value; run(() => simulate(M, f)); }
+      else if (r === 'boss') { const id = $('#c44boss').value, t = +$('#c44tier').value; run(() => bossFight(id, t)); }
+      else if (r === 'mastall5' || r === 'mastall0') { const p = P(); p.mastC = p.mastC || {}; for (const id in SE41.TREES) p.mastC[id] = r === 'mastall5' ? 400 : 0; Profile.save(); render(); } }));
+    root.querySelectorAll('[data-ld]').forEach((b) => (b.onclick = () => { const M = store()[+b.dataset.ld]; SE44.cur = Object.assign({}, M, { sk: [...M.sk, '', '', '', '', '', ''].slice(0, 6) }); render(); }));
+    root.querySelectorAll('[data-rm]').forEach((b) => (b.onclick = () => { store().splice(+b.dataset.rm, 1); Profile.save(); render(); }));
+    root.querySelectorAll('[data-rx]').forEach((b) => (b.onclick = () => { const k = b.dataset.rx; run(() => labReaction(k)); }));
+    root.querySelectorAll('[data-ul]').forEach((b) => (b.onclick = () => { const k = b.dataset.ul; run(() => labUlt(k)); }));
+    root.querySelectorAll('[data-duo]').forEach((b) => (b.onclick = () => { const k = b.dataset.duo, kd = b.dataset.k; run(() => labDuo(k, kd)); }));
+    root.querySelectorAll('[data-ms]').forEach((s) => (s.oninput = () => { const p = P(); p.mastC = p.mastC || {}; p.mastC[s.dataset.ms] = MXP[+s.value]; s.nextElementSibling.textContent = ['0', 'I', 'II', 'III', 'IV', 'V'][+s.value]; Profile.save(); }));
+    root.querySelectorAll('[data-cst]').forEach((b) => (b.onclick = () => { SE41.crea = true; SE41.open(b.dataset.cst); }));
+    const f = root.querySelector('.tabs44 button.on'); if (f && !IS_TOUCH) f.focus(); }
+  SE44.labReaction = labReaction; SE44.labUlt = labUlt; SE44.labDuo = labDuo; SE44.bijuuClash = bijuuClash; SE44.clashTrainer = clashTrainer; SE44.labAll = labAll;
+  // clavier / manette dans le panneau
+  addEventListener('keydown', (e) => { if (!root.classList.contains('on') || (window.SE41 && SE41.isOpen && SE41.isOpen())) return; if (e.key === 'Escape') { SE44.close(); e.preventDefault(); e.stopImmediatePropagation(); } else if (e.key === 'Tab' && !e.target.closest('#crea44')) { e.preventDefault(); } e.stopPropagation(); }, true);
+  let prevB = []; (function poll() { requestAnimationFrame(poll); if (!root.classList.contains('on') || (window.SE41 && SE41.isOpen && SE41.isOpen())) { prevB = []; return; } const gp = navigator.getGamepads ? [...navigator.getGamepads()].find((g) => g) : null; if (!gp) return; const B = gp.buttons.map((b) => b.pressed); const dn = (i) => B[i] && !prevB[i];
+    const f = [...root.querySelectorAll('button,select,input')]; let i = f.indexOf(document.activeElement); if (dn(13) || dn(15)) { i = Math.min(f.length - 1, i + 1); f[i].focus(); } if (dn(12) || dn(14)) { i = Math.max(0, i - 1); f[i].focus(); } if (dn(0) && document.activeElement && document.activeElement.click) document.activeElement.click(); if (dn(1)) SE44.close();
+    if (dn(4) || dn(5)) { const k = TABS.findIndex((t) => t[0] === tab); tab = TABS[(k + (dn(5) ? 1 : -1) + TABS.length) % TABS.length][0]; render(); } prevB = B; })();
+  // accès : panneau créatif (in-game), écran titre et hub
+  const baseBC = UI.buildCreative; UI.buildCreative = function () { const r = baseBC.apply(this, arguments); try { $('#creative').insertAdjacentHTML('afterbegin', `<div class="row"><button class="primary" id="cr44">創 Modes créatifs (4.4)</button></div>`); $('#cr44').onclick = () => { this.toggleCreative(); SE44.open(); }; } catch (e) {} return r; };
+  const addBtn = () => { const b = document.querySelector('[data-go="creative"]'); if (b && !document.querySelector('[data-go44]')) { b.insertAdjacentHTML('afterend', `<button data-go44="1">${seal('創', '#5fe08a')}<span><b>Modes créatifs</b><small>Chocs, moveset, boss, labo</small></span></button>`); document.querySelector('[data-go44]').onclick = () => { Audio.init && Audio.init(); inCrea('ruines', () => SE44.open()); }; } };
+  new MutationObserver(addBtn).observe(document.body, { childList: true, subtree: true }); addBtn();
+  // résultat des simulations
+  const baseKU = killUnit; killUnit = function (v, src) { const r = baseKU.apply(this, arguments); try { if (SE44.sim && (v === SE44.sim.b || v === SE44.sim.u)) { const win = v === SE44.sim.b; const s = ((performance.now() - SE44.sim.t0) / 1000).toFixed(1); banner(win ? 'Victoire !' : 'Défaite', 'SIMULATION · ' + s + ' s', win ? '#5fe08a' : '#ff5a5a', SE44.sim.M + ' vs ' + SE44.sim.F); hudSet(''); ev('simEnd', win ? 'win' : 'lose'); SE44.sim = null; }
+      if (SE44.boss && v === SE44.boss.b) { const s = ((performance.now() - SE44.boss.t0) / 1000).toFixed(1); banner('Boss vaincu', 'TEMPS : ' + s + ' s', '#ffd27a'); hudSet(''); ev('bossEnd', s); SE44.boss = null; } } catch (e) {} return r; };
+  setInterval(() => { try { const S = SE44.sim; if (S && S.b && (S.b.dead || S.b.down || S.b.hp <= 0) && G.mode === 'creative') killUnit === killUnit && (function () { const s = ((performance.now() - S.t0) / 1000).toFixed(1); banner('Victoire !', 'SIMULATION · ' + s + ' s', '#5fe08a', S.M + ' vs ' + S.F); hudSet(''); ev('simEnd', 'win'); SE44.sim = null; })(); else if (S && S.u && (S.u.down || S.u.dead)) { banner('Défaite', 'SIMULATION', '#ff5a5a', S.M + ' vs ' + S.F); hudSet(''); ev('simEnd', 'lose'); SE44.sim = null; } } catch (e) {} }, 400);
+  // score du choc de Bijūdama
+  setInterval(() => { try { const r = window.SE34 && SE34.ev.bclashEnd; if (r && r !== SE44._lastB) { SE44._lastB = r; SE44.score[r === 'win' ? 'w' : 'l']++; SE34.ev.bclashEnd = null; SE44._lastB = null; } } catch (e) {} }, 500);
+  /* ---------- Guide et notes ---------- */
+  const baseGuide = UI.tab_guide; UI.tab_guide = function () { baseGuide.apply(this, arguments); const g = $('#tabbody .guide') || $('#tabbody'); g.insertAdjacentHTML('afterbegin', `<section><h4>創 Modes créatifs (4.4)</h4><table><tr><td>Accès</td><td>Écran titre/hub : « Modes créatifs », ou en Créatif : panneau (Tab) → « Modes créatifs ». Manette : croix pour naviguer, A valider, B fermer, LB/RB changer d’onglet.</td></tr><tr><td>Choc de Bijūdama</td><td>Ta Bijūdama contre celle d’une Bête ou du rival, avec QTE et score ; choc signature Naruto × Sasuke.</td></tr><tr><td>Entraîneur de chocs</td><td>3 à 10 manches de chocs de techniques lourdes.</td></tr><tr><td>Créateur de moveset</td><td>6 techniques + ultime + élément, sauvegarde, puis simulation contre un moveset IA.</td></tr><tr><td>Simulateur de boss</td><td>N’importe quel boss, Bête ou personnage, au rang choisi, chronométré.</td></tr><tr><td>Labo</td><td>Toutes les réactions (doubles à quintuple, dōjutsu) sur un mannequin, tous les ultimes uniques et en duo.</td></tr><tr><td>Maîtrise & voies</td><td>Maîtrise réglable par technique et constellation en mode libre (Créatif uniquement).</td></tr></table></section>`); };
+  SE3.NOTES.unshift({ v: '4.4 — Creative Modes', d: '20 octobre 2026', tag: 'Six nouveaux modes dans la section Créatif.', s: [
+    ['Chocs', ['Mode Choc de Bijūdama (contre une Bête ou un rival, score), choc signature Naruto × Sasuke, et entraîneur de chocs de techniques en manches.']],
+    ['Moveset', ['Créateur de moveset (6 techniques, ultime, élément), sauvegarde et simulation contre un moveset IA, chronométrée.']],
+    ['Boss', ['Simulateur de boss : tous les boss, les Bêtes à queues et chaque personnage en version boss, au rang choisi.']],
+    ['Labo', ['Toutes les réactions (doubles, triples, quadruples, quintuple, dōjutsu) en un clic, tous les ultimes uniques et en duo.']],
+    ['Maîtrise', ['Éditeur de maîtrise et de voies pour le Créatif, sans toucher à la progression normale.']],
   ] });
 })();
 
