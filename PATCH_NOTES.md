@@ -1,3 +1,5 @@
+v4.7 — Signes & Auras : les sceaux sont désormais de vrais signes de mains dessinés (deux mains formant le mudra), affichés brièvement au-dessus de la tête du lanceur, sans texte (fini les kanji et les noms en romaji). Halo doré sous ton personnage, repris de Shinobi 2 (anneau, anneau tournant, contre-jour, étiquette J1 dorée). Auras de mode plus légères et codées par couleur : orange pour les modes bête et jinchūriki (manteau, queues), violet pour les dōjutsu (Sharingan, Byakugan, Rinnegan, Susanoo…).
+
 Smears en croissant façon ZZZ (3 couches, contour encré, couleur par personnage, 4 images, plus grands sur les finisseurs, sans flash) ; plus de chevauchement joueur/cible pendant les combos.
 
 Rig entièrement remplacé : squelette hiérarchique (racine › hanches › colonne › poitrine › cou › tête, bras, jambes, pieds), FK + IK 2 os, une seule orientation pour tout le corps (600 cas testés, 8 directions, gauche/droite) ; accessoires rattachés aux nouveaux os ; animation façon ZZZ : anticipation, frappe éclair, pose tenue, retour avec dépassement, hit-stop léger sans flash, arcs, finisseurs, images rémanentes au dash, respiration, course en arcs, course ninja.

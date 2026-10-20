@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v4.6.1 Smears ZZZ</title>
+<title>Shinobi Éternel II — v4.7 Signes & Auras</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -6493,7 +6493,7 @@ const Net = {
 
 /* ===== Shinobi Éternel II · v3.0 « Voie des Modes » ===== */
 (function () {
-  const VERSION = '4.6.1';
+  const VERSION = '4.7';
   const SE3 = (window.SE3 = { ev: {}, wheelSteps: 0, version: VERSION, logs: [] });
   const ev = (k) => { SE3.ev[k] = (SE3.ev[k] || 0) + 1; };
   SE3.evf = ev;
@@ -6888,10 +6888,10 @@ const Net = {
   drawUnit = function (ctx, gl, u) {
     if (u.md && !u.dead) {
       const D = SE3.stageDef(u.md); const c = SE3.modeColor(u); const y = u.y - (u.z || 0) - 30 * u.size;
-      if (u.md.type === 'bijuu') { const k = (SE3.bjK(u.md) === 1 ? 0.18 : 0.3) + 0.03 * u.md.stage; ctx.fillStyle = rgba(c, k * (0.8 + Math.sin(G.t * 12) * 0.2)); ctx.beginPath(); ctx.ellipse(u.x, y, 26 * u.size, 40 * u.size, 0, 0, TAU); ctx.fill(); if (u._kcm) { ctx.strokeStyle = 'rgba(20,10,0,0.7)'; ctx.lineWidth = 2; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(u.x, y + 6, 10 + i * 4, 0.2, Math.PI - 0.2); ctx.stroke(); } } }
-      else if (D.aura === 'rib' || D.aura === 'colosse') { const big = D.aura === 'colosse'; const H = big ? 150 : 90, W = big ? 70 : 46; ctx.save(); ctx.globalAlpha = 0.45 + Math.sin(G.t * 6) * 0.08; ctx.strokeStyle = c; ctx.lineWidth = 4; for (let i = 0; i < (big ? 7 : 5); i++) { ctx.beginPath(); ctx.ellipse(u.x, u.y - 20 - i * 14, W - i * 3, 10, 0, Math.PI, TAU); ctx.stroke(); } if (big) { ctx.fillStyle = rgba(c, 0.25); ctx.beginPath(); ctx.ellipse(u.x, u.y - H * 0.6, W, H * 0.6, 0, 0, TAU); ctx.fill(); ctx.fillStyle = rgba(c, 0.6); ctx.beginPath(); ctx.arc(u.x, u.y - H * 1.15, 22, 0, TAU); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(u.x - 10, u.y - H * 1.18, 6, 3); ctx.fillRect(u.x + 4, u.y - H * 1.18, 6, 3); } ctx.restore(); }
-      else if (D.aura === 'rings') { ctx.strokeStyle = rgba(c, 0.5); ctx.lineWidth = 2; for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.ellipse(u.x, u.y, 30 * i + Math.sin(G.t * 3) * 4, 12 * i, 0, 0, TAU); ctx.stroke(); } }
-      else if (D.aura === 'halo') { ctx.strokeStyle = rgba(c, 0.6); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(u.x, y - 34 * u.size, 16, 0, TAU); ctx.stroke(); }
+      if (u.md.type === 'bijuu') { const k = (SE3.bjK(u.md) === 1 ? 0.09 : 0.15) + 0.012 * u.md.stage; ctx.fillStyle = rgba(c, k * (0.8 + Math.sin(G.t * 12) * 0.2)); ctx.beginPath(); ctx.ellipse(u.x, y, 26 * u.size, 40 * u.size, 0, 0, TAU); ctx.fill(); if (u._kcm) { ctx.strokeStyle = 'rgba(20,10,0,0.7)'; ctx.lineWidth = 2; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(u.x, y + 6, 10 + i * 4, 0.2, Math.PI - 0.2); ctx.stroke(); } } }
+      else if (D.aura === 'rib' || D.aura === 'colosse') { const big = D.aura === 'colosse'; const H = big ? 150 : 90, W = big ? 70 : 46; ctx.save(); ctx.globalAlpha = 0.26 + Math.sin(G.t * 6) * 0.05; ctx.strokeStyle = c; ctx.lineWidth = 3; for (let i = 0; i < (big ? 7 : 5); i++) { ctx.beginPath(); ctx.ellipse(u.x, u.y - 20 - i * 14, W - i * 3, 10, 0, Math.PI, TAU); ctx.stroke(); } if (big) { ctx.fillStyle = rgba(c, 0.25); ctx.beginPath(); ctx.ellipse(u.x, u.y - H * 0.6, W, H * 0.6, 0, 0, TAU); ctx.fill(); ctx.fillStyle = rgba(c, 0.6); ctx.beginPath(); ctx.arc(u.x, u.y - H * 1.15, 22, 0, TAU); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(u.x - 10, u.y - H * 1.18, 6, 3); ctx.fillRect(u.x + 4, u.y - H * 1.18, 6, 3); } ctx.restore(); }
+      else if (D.aura === 'rings') { ctx.strokeStyle = rgba(c, 0.28); ctx.lineWidth = 1.5; for (let i = 1; i <= 3; i++) { ctx.beginPath(); ctx.ellipse(u.x, u.y, 30 * i + Math.sin(G.t * 3) * 4, 12 * i, 0, 0, TAU); ctx.stroke(); } }
+      else if (D.aura === 'halo') { ctx.strokeStyle = rgba(c, 0.38); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(u.x, y - 34 * u.size, 16, 0, TAU); ctx.stroke(); }
     }
     baseDU(ctx, gl, u);
     if (u.isPlayer && u.aura > 1) { ctx.strokeStyle = '#7dffb0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(u.x, u.y - 110 * u.size, 14, -Math.PI / 2, -Math.PI / 2 + (TAU * u.aura) / 100); ctx.stroke(); ctx.fillStyle = '#7dffb0'; ctx.font = '800 10px "Zen Kaku Gothic New", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(u.md ? 'PALIER' : 'AURA', u.x, u.y - 128 * u.size); }
@@ -8880,10 +8880,10 @@ const Net = {
   }
   SE36.drawSus = drawSus;
   function drawCloak(ctx, u) { const md = u.md; const k = SE3.bjK(md); if (k >= 3 || u._kcm) return; const T = SE3.bjT(md), s = md.stage; const c = u.tailC || '#ff8a2b'; const y = u.y - (u.z || 0); const g = 1 + s / T * 0.6;
-    ctx.save(); ctx.globalAlpha = 0.25 + s / T * 0.25; ctx.fillStyle = k === 2 ? '#2a0606' : c; ctx.strokeStyle = c; ctx.lineWidth = 2;
+    ctx.save(); ctx.globalAlpha = 0.13 + s / T * 0.12; ctx.fillStyle = k === 2 ? '#2a0606' : c; ctx.strokeStyle = c; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.ellipse(u.x, y - 34 * u.size, 24 * g * u.size, 44 * g * u.size, 0, 0, TAU); ctx.fill(); ctx.stroke();
     // oreilles du manteau
-    ctx.globalAlpha = 0.6; ctx.fillStyle = c; for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(u.x + sd * 6, y - 68 * u.size * g); ctx.lineTo(u.x + sd * 14 * g, y - 86 * u.size * g); ctx.lineTo(u.x + sd * 16, y - 64 * u.size * g); ctx.fill(); }
+    ctx.globalAlpha = 0.32; ctx.fillStyle = c; for (const sd of [-1, 1]) { ctx.beginPath(); ctx.moveTo(u.x + sd * 6, y - 68 * u.size * g); ctx.lineTo(u.x + sd * 14 * g, y - 86 * u.size * g); ctx.lineTo(u.x + sd * 16, y - 64 * u.size * g); ctx.fill(); }
     if (k === 2) { ctx.globalAlpha = 0.7; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(u.x, y - 30 * u.size - i * 10, 10 + i * 2, 0.3, Math.PI - 0.3); ctx.stroke(); } }
     ctx.globalAlpha = 0.9; ctx.fillStyle = '#fff'; ctx.font = '800 11px "Dela Gothic One", sans-serif'; ctx.textAlign = 'center'; ctx.fillText(s + '/' + T, u.x, y - 96 * u.size * g);
     ctx.restore(); }
@@ -10796,6 +10796,97 @@ const Net = {
     return r; };
   SE3.NOTES.unshift({ v: '4.6.1 — Smears ZZZ', d: '20 octobre 2026', tag: 'Des arcs de frappe qu’on voit enfin.', s: [
     ['Combat', ['Smears en croissant façon ZZZ sur chaque coup du combo : arc épais en 3 couches (halo, couleur, cœur clair) avec contour encré, couleur propre au personnage (Naruto orange, Sasuke violet, Kakashi cyan, Itachi rouge, Gai/Lee vert…), durée de 4 images, plus grands sur les finisseurs. Aucun flash.', 'Le personnage ne se colle plus et ne passe plus à travers le mannequin ou l’ennemi pendant un combo.']]] });
+})();
+/* ===== v4.7 Signes & Auras — HandSigns (partagé avec Shinobi 2) ===== */
+/* Signes des mains (mudras) dessinés : 12 signes du zodiaque, deux mains, pictogrammes vectoriels. Partagé Shinobi 1 / Shinobi 2. */
+(function () {
+  // repère : boîte 40×40 centrée (0,0), y vers le bas. P = paume [cx, cy, w, h, angle], F = doigt [x1, y1, x2, y2, épaisseur]
+  const L = (pal, fing) => ({ pal, fing });
+  const S = {
+    // 子 Rat : main droite index+majeur levés, tenus dans le poing gauche
+    0: [L([[-3, 8, 14, 13, -0.1], [4, 6, 13, 14, 0.15]], [[2, 0, 2, -17, 3.6], [5.5, 0, 6, -15, 3.6], [-9, 4, -2, 2, 3.4], [-9, 8, -1, 6, 3.4], [-8, 12, 0, 10, 3.4]])],
+    // 丑 Bœuf : index+majeur gauches levés, main droite à plat en travers
+    1: [L([[-5, 6, 12, 14, 0], [5, 4, 16, 9, 0.05]], [[-8, -1, -8, -16, 3.4], [-4.5, -1, -4.5, -17, 3.4], [-3, 3, 14, 2, 3.2], [-3, 7, 14, 6, 3.2]])],
+    // 寅 Tigre : mains jointes, index+majeurs des deux mains levés et collés
+    2: [L([[-5, 8, 11, 15, 0.08], [5, 8, 11, 15, -0.08]], [[-2.2, 0, -2.2, -18, 3.4], [2.2, 0, 2.2, -18, 3.4], [-5.8, 1, -5.6, -16, 3.2], [5.8, 1, 5.6, -16, 3.2], [-9, 7, -3, 5, 3], [9, 7, 3, 5, 3]])],
+    // 卯 Lièvre : main gauche à plat verticale, main droite poing contre la paume
+    3: [L([[-5, 0, 9, 22, 0], [6, 6, 13, 12, 0]], [[-7, -10, -7, -19, 3.2], [-4, -10, -4, -20, 3.2], [3, 1, 12, 1, 3.4], [3, 5, 12, 5, 3.4], [3, 9, 11, 9, 3.4]])],
+    // 辰 Dragon : doigts entrelacés, pouces joints pointés vers le haut
+    4: [L([[0, 6, 22, 14, 0]], [[-1.6, -1, -1.6, -13, 3.4], [1.6, -1, 1.6, -13, 3.4], [-10, 1, 10, 3, 2.8], [-10, 5, 10, 7, 2.8], [10, 1, -10, 3, 2.8], [10, 5, -10, 7, 2.8]])],
+    // 巳 Serpent : mains serrées, doigts entrelacés à plat
+    5: [L([[0, 4, 24, 16, 0]], [[-12, -2, 8, -2, 3], [12, 1, -8, 1, 3], [-12, 4, 8, 4, 3], [12, 7, -8, 7, 3], [-12, 10, 8, 10, 3], [0, -4, 0, -10, 3.6]])],
+    // 午 Cheval : index et pouces formant un triangle pointe en haut
+    6: [L([[-8, 9, 11, 12, 0.3], [8, 9, 11, 12, -0.3]], [[-6, 3, -0.8, -16, 3.4], [6, 3, 0.8, -16, 3.4], [-5, 2, -0.6, -2, 3.2], [5, 2, 0.6, -2, 3.2]])],
+    // 未 Bélier : index+majeur gauches levés, main droite enveloppe (index+majeur levés derrière)
+    7: [L([[-2, 8, 13, 14, 0], [3, 7, 14, 13, 0]], [[-4, 0, -4, -17, 3.4], [-0.5, 0, -0.5, -18, 3.4], [4, 0, 4, -13, 3.2], [7.5, 1, 7.5, -12, 3.2], [-8, 9, 8, 9, 3]])],
+    // 申 Singe : paumes l’une sur l’autre, doigts tendus
+    8: [L([[0, 6, 12, 18, 0]], [[-4.5, -2, -4.5, -18, 3.2], [-1.5, -3, -1.5, -19, 3.2], [1.5, -3, 1.5, -19, 3.2], [4.5, -2, 4.5, -18, 3.2], [-5, 6, 7, 2, 3.4]])],
+    // 酉 Oiseau : bouts des doigts joints, pouces écartés en ailes
+    9: [L([[-7, 6, 10, 14, 0.4], [7, 6, 10, 14, -0.4]], [[-5, -1, 0, -15, 3.2], [5, -1, 0, -15, 3.2], [-10, 4, -17, -3, 3.2], [10, 4, 17, -3, 3.2]])],
+    // 戌 Chien : main droite à plat posée sur le poing gauche
+    10: [L([[0, 9, 14, 12, 0], [0, 0, 22, 7, 0]], [[-11, 0, 11, 0, 3.6], [-4, 8, 4, 8, 3.4], [-5, 12, 5, 12, 3.4]])],
+    // 亥 Sanglier : paumes vers le bas, bouts des doigts joints
+    11: [L([[-7, 4, 13, 10, 0.1], [7, 4, 13, 10, -0.1]], [[-1, 0, -12, 0, 3], [1, 0, 12, 0, 3], [-1, 4, -13, 5, 3], [1, 4, 13, 5, 3], [-1, 8, -12, 9, 3], [1, 8, 12, 9, 3]])],
+  };
+  const NAMES = ['Ne', 'Ushi', 'Tora', 'U', 'Tatsu', 'Mi', 'Uma', 'Hitsuji', 'Saru', 'Tori', 'Inu', 'I'];
+  const SKIN = '#f3d6b6', SH = '#d9b08a', OUT = '#2a1a14';
+  function rrect(c, cx, cy, w, h, a) { c.save(); c.translate(cx, cy); c.rotate(a || 0); const r = Math.min(w, h) * 0.42; c.beginPath(); c.moveTo(-w / 2 + r, -h / 2); c.arcTo(w / 2, -h / 2, w / 2, h / 2, r); c.arcTo(w / 2, h / 2, -w / 2, h / 2, r); c.arcTo(-w / 2, h / 2, -w / 2, -h / 2, r); c.arcTo(-w / 2, -h / 2, w / 2, -h / 2, r); c.closePath(); c.fill(); c.stroke(); c.restore(); }
+  function cap(c, x1, y1, x2, y2, t) { c.lineWidth = t + 1.6; c.strokeStyle = OUT; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.lineWidth = t; c.strokeStyle = SKIN; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); }
+  // dessine le signe idx (0..11) centré en (x, y), taille px ; col : couleur du halo ; a : opacité ; pop : 0..1 (échelle d’apparition)
+  function draw(c, x, y, size, idx, col, a, pop) {
+    const D = S[((idx % 12) + 12) % 12][0]; const k = (size / 40) * (pop == null ? 1 : 0.7 + 0.3 * pop);
+    c.save(); c.globalAlpha = a == null ? 1 : a; c.translate(x, y);
+    // médaillon discret
+    c.fillStyle = 'rgba(12,8,20,0.55)'; c.beginPath(); c.arc(0, 0, size * 0.62, 0, Math.PI * 2); c.fill();
+    if (col) { c.strokeStyle = col; c.lineWidth = 1.6; c.globalAlpha *= 0.85; c.stroke(); c.globalAlpha = a == null ? 1 : a; }
+    c.scale(k, k); c.lineCap = 'round'; c.lineJoin = 'round';
+    c.fillStyle = SKIN; c.strokeStyle = OUT; c.lineWidth = 1.4;
+    for (const p of D.pal) rrect(c, p[0], p[1], p[2], p[3], p[4]);
+    for (const f of D.fing) cap(c, f[0], f[1], f[2], f[3], f[4]);
+    // ombre de jointure
+    c.strokeStyle = SH; c.lineWidth = 1; c.globalAlpha *= 0.7; c.beginPath(); c.moveTo(0, -2); c.lineTo(0, 12); c.stroke();
+    c.restore();
+  }
+  window.HandSigns = { draw, NAMES, n: 12 };
+})();
+(function () {
+  const SE3 = window.SE3; const SE47 = window.SE47 = { ev: {} }; const ev = (k) => (SE47.ev[k] = (SE47.ev[k] || 0) + 1);
+  const ORANGE = '#ff9a3c', PURPLE = '#b47cff', GOLD = '#ffd23f';
+  const KJ = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '寅', '巳', '戌', '丑', '辰', '未', '申', '酉', '卯', '子', '亥', '午'];
+  const ROM = new Set(['Tora', 'Mi', 'Inu', 'Ushi', 'Tatsu', 'Hitsuji', 'Saru', 'Tori', 'U', 'Ne', 'I', 'Uma']);
+  const isLocal = (u) => !!(u && u.isPlayer && !u.net && !u.dead);
+  try { if (typeof P_COLORS !== 'undefined') P_COLORS[0] = GOLD; } catch (e) {}
+  // ---------- (c) couleurs de mode : orange bête/jinchūriki, violet dōjutsu ----------
+  if (SE3 && SE3.modeColor) SE3.modeColor = function (u) { const md = u && u.md; if (!md) return '#5a5068'; return md.type === 'bijuu' ? ORANGE : PURPLE; };
+  // ---------- (a) sceaux : signes de mains dessinés au-dessus de la tête, sans texte ----------
+  function nearest(x, y) { let b = null, bd = 60; for (const u of G.units) { if (!u || u.dead) continue; const d = Math.hypot(u.x - x, u.y - y); if (d < bd) { bd = d; b = u; } } return b; }
+  const bk = FX.kanji.bind(FX); FX.kanji = function (x, y, z, txt, c, size, life) {
+    const i = KJ.indexOf(txt); if (i >= 0 && (size || 28) <= 26 && z > 60 && z < 160) { const u = nearest(x, y); if (u) { u._hs = { t: G.t, idx: i % 12, c: c || '#ffd27a' }; ev('sealSwap'); return null; } }
+    return bk(x, y, z, txt, c, size, life); };
+  const bt = FX.text.bind(FX); FX.text = function (x, y, txt, c, s, b) { if (typeof txt === 'string' && ROM.has(txt)) { ev('romajiDrop'); return null; } return bt.apply(null, arguments); };
+  function signFor(u) {
+    if (u._wind && TECH[u._wind.id]) { const W = u._wind; const n = Math.max(0, W.n - 1); return { idx: (hashStr(W.id) + n) % 12, c: (EL[TECH[W.id].el] || EL.neutre).c, pop: Math.min(1, (W.t % 0.15) / 0.05) }; }
+    if (u._hs && G.t - u._hs.t < 0.28) return { idx: u._hs.idx, c: u._hs.c, pop: Math.min(1, (G.t - u._hs.t) / 0.06) };
+    return null; }
+  const bo = drawOverheads; drawOverheads = function (ctx, gl) { bo.apply(this, arguments);
+    try { for (const u of G.units) { if (!u || u.dead || (u.alpha != null && u.alpha < 0.3)) continue; const s = signFor(u); if (!s) continue;
+      const c = u.md ? (u.md.type === 'bijuu' ? ORANGE : PURPLE) : s.c; const loc = isLocal(u);
+      HandSigns.draw(ctx, u.x, u.y - (u.z || 0) - (loc ? 150 : 128) * (u.size || 1), loc ? 28 : 21, s.idx, c, 0.95, s.pop); ev('sign'); } } catch (e) {} };
+  // ---------- (b) halo doré du joueur local (repris de Shinobi 2) + atténuation du manteau ----------
+  const bu = drawUnit; drawUnit = function (ctx, gl, u) {
+    if (isLocal(u) && u.alpha > 0.05 && G.mode !== 'demo') { try { const s = Math.max(1, (u.size || 1) * 0.9), rx = 30 * s, ry = 12 * s;
+      gl.globalAlpha = 0.3; gl.drawImage(FX.glowSprite(GOLD), u.x - rx * 1.6, u.y - ry * 2, rx * 3.2, ry * 4); gl.globalAlpha = 1;
+      ctx.fillStyle = rgba(GOLD, 0.12); ctx.beginPath(); ctx.ellipse(u.x, u.y, rx, ry, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = rgba(GOLD, 0.9); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(u.x, u.y, rx, ry, 0, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = rgba(GOLD, 0.4); ctx.lineWidth = 1.5; ctx.setLineDash([7, 7]); ctx.lineDashOffset = -G.t * 30; ctx.beginPath(); ctx.ellipse(u.x, u.y, rx + 7, ry + 3, 0, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      gl.globalAlpha = 0.2; gl.drawImage(FX.glowSprite(GOLD), u.x - 34 * s, u.y - (u.z || 0) - 78 * s, 68 * s, 84 * s); gl.globalAlpha = 1; ev('halo'); } catch (e) {} }
+    // aura de mode légère (lueur douce colorée)
+    if (u.md && !u.dead) { try { const c = u.md.type === 'bijuu' ? ORANGE : PURPLE; const s = u.size || 1; gl.globalAlpha = 0.16 + Math.sin(G.t * 5) * 0.03; gl.drawImage(FX.glowSprite(c), u.x - 40 * s, u.y - (u.z || 0) - 90 * s, 80 * s, 100 * s); gl.globalAlpha = 1; ctx.save(); ctx.globalAlpha = 0.16 + Math.sin(G.t * 5) * 0.04; ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(u.x, u.y - (u.z || 0) - 34 * s, 22 * s, 40 * s, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 0.5; ctx.strokeStyle = c; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(u.x, u.y, 36 * s, 15 * s, 0, 0, TAU); ctx.stroke(); ctx.restore(); ev(u.md.type === 'bijuu' ? 'auraOr' : 'auraPu'); } catch (e) {} }
+    const tc = u.tailC; if (u.md && u.md.type === 'bijuu' && !u._kcm) u.tailC = ORANGE;
+    try { return bu.apply(this, arguments); } finally { if (u.md && u.md.type === 'bijuu') u.tailC = tc; } };
+  SE3.NOTES.unshift({ v: '4.7 — Signes & Auras', d: '20 octobre 2026', tag: 'Des mains, pas des mots.', s: [
+    ['Sceaux', ['Les sceaux sont désormais de vrais signes de mains dessinés (deux mains formant le mudra), affichés brièvement au-dessus de la tête du lanceur, sans aucun texte.']],
+    ['Lisibilité', ['Halo doré sous ton personnage (anneau, anneau tournant, contre-jour) pour te repérer instantanément.', 'Auras de mode plus légères et codées : orange pour les modes bête et jinchūriki, violet pour les dōjutsu (Sharingan, Byakugan, Rinnegan, Susanoo…).']]] });
 })();
 
 </script>
