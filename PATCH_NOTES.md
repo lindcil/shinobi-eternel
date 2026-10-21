@@ -1,3 +1,10 @@
+# v5.5.1 — PNJ naturels (21 octobre 2026)
+- PNJ entièrement refaits : plus d’amas sur la place, chacun apparaît là où il vit et travaille.
+- Rôles : gardes aux portes et à la tour, marchands devant leur boutique et à leur stand, enfants au nouveau parc (balançoire, bac à sable), anciens sur les bancs, membres de clan dans leur domaine, paysans aux rizières, porteurs, colporteurs sur les routes.
+- Routines : maison → boutique → marché → maison. Le soir ils rentrent ; la nuit il ne reste que les gardes et quelques promeneurs.
+- Espacement garanti, vitesses variées, actions (discuter à deux, balayer, porter une caisse, travailler la terre, s’asseoir).
+- Tailles, âges, coiffures, peaux et tenues variées ; répliques selon le rôle ; plus d’écharpes géantes sur les civils.
+
 # v5.5 — Villages vivants (21 octobre 2026)
 - Maisons refaites : toits de tuiles, maisons à étage avec balcon, citernes sur les toits, cheminées qui fument, lanternes, linge, jardinières. Couleurs et tailles variées.
 - Repères : tour du Hokage, rocher des Hokage, domaines de clan (Uchiha, Hyūga, Nara, Akimichi), Ichiraku avec comptoir, tour du Kazekage. Suna en dômes, Kiri sur pilotis, hameau des crapauds en champignons. Remparts et portes avec toits.

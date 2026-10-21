@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v5.5 Villages vivants</title>
+<title>Shinobi Éternel II — v5.5.1 PNJ naturels</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11789,6 +11789,96 @@ try { SE3.NOTES.unshift({ v: '4.9 — Chocs vivants', d: '20 octobre 2026', tag:
     ['Monde', ['Enfants qui jouent, marchands à leurs stands, plus de promeneurs, chats, pigeons et corbeaux qui s’envolent.', 'Rivière et pont, rizières, ruines, sanctuaires, lanternes de pierre et panneaux sur les routes.', 'Feuilles et pétales le jour, lucioles la nuit, sable à Suna, brume à Kiri.', 'La nuit tombe vraiment : fenêtres et lanternes s’allument.']],
     ['Ennemis', ['Ils sortent de camps (tentes, feu) et de tanières au lieu d’apparaître de nulle part.']],
   ] }); } catch (e) {}
+})();
+/* SE_VERSION = '5.5.1' — PNJ naturels : rôles, lieux, routines jour/nuit, espacement */
+(function () {
+  if (window.SE491) return; const SE35 = window.SE35, SE40 = window.SE40, SE49 = window.SE49; if (!SE35 || !SE40 || !SE49) return;
+  const S = (window.SE491 = { npcs: [], ev: {}, parks: [] }); const LOW = typeof IS_TOUCH !== 'undefined' && IS_TOUCH;
+  const OUTF = ['#a86a5a', '#5a7aa8', '#c8a050', '#7a5a8a', '#6a8a5a', '#8a4a3a', '#3a6a7a', '#b07a8a', '#6a6a72', '#9a8a5a'];
+  const HAIR = ['#2a1a10', '#5a3a24', '#1a1a22', '#8a5a2a', '#c84a2a', '#f2d870', '#6a3a5a'];
+  const SKIN = ['#f0c8a0', '#e0b088', '#c8946a', '#a8744a', '#f4d4b4'];
+  const LINES = {
+    guard: ['Rien à signaler.', 'Porte sous surveillance.', 'Avance, shinobi.'],
+    merchant: ['Tout frais ce matin !', 'Un prix d’ami pour toi.', 'Regarde, ça vient de Suna.'],
+    kid: ['Tu peux pas m’attraper !', 'Je serai Hokage !', 'Montre-moi un jutsu !'],
+    elder: ['De mon temps…', 'Le Troisième était un grand homme.', 'Repose-toi un peu, jeune.'],
+    farmer: ['La récolte sera bonne.', 'Ces corbeaux, alors…'],
+    clan: ['Le clan veille sur les siens.', 'Notre domaine est fermé aux étrangers.'],
+    walker: ['Belle journée.', 'Je vais au marché.', 'Les ramen d’Ichiraku, il n’y a rien de mieux.'],
+    worker: ['Ces caisses pèsent une tonne…', 'Encore une livraison.', 'Faut balayer devant la boutique.'],
+  };
+  const hr = () => SE40.hour();
+  const free = (x, y) => !SE40.inBld(x, y, 18);
+  function spot(x, y, r) { for (let k = 0; k < 14; k++) { const a = Math.random() * TAU, d = k ? r * Math.random() : 0; const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d; if (free(px, py)) return [px, py]; } return [x, y + 40]; }
+  function mk(role, home, opts) { const [x, y] = home; const u = spawnMob('moine', x, y, 0, { team: -1 }); if (!u) return null; u.ai = null; u.maxHp = u.hp = 1e9; u.mass = 50; u.name = opts.name;
+    const age = opts.age || 'adult'; u.size = age === 'kid' ? 0.7 + Math.random() * 0.08 : age === 'old' ? 0.9 + Math.random() * 0.05 : 0.92 + Math.random() * 0.16;
+    u.look = Object.assign({}, u.look, { bald: age === 'old' && Math.random() < 0.4 ? 1 : 0, hs: Math.floor(Math.random() * 4), skin: pick(SKIN), hair: age === 'old' ? pick(['#c8c8c8', '#e8e8e8', '#9a9a9a']) : pick(HAIR), outfit: pick(OUTF), scarf: pick(['#e8d8b8', '#ffd27a', '#3a3a40', '#c8281e', '#5a8ad8']) }, opts.look || {}); u.look.noScarf = 1; if (role !== 'guard') u.look.band = null;
+    const N = { role, home: [x, y], pts: opts.pts || [], i: 0, wait: Math.random() * 3, spd: (opts.spd || 55) * (0.8 + Math.random() * 0.4), act: opts.act || null, night: opts.night || 'home', vil: opts.vil, tgt: null, hidden: false };
+    u._n491 = N; S.npcs.push(u); return u; }
+  function populate() { for (const u of SE40.npcs) if (u) { u.dead = true; u.hp = 0; } G.units = G.units.filter((u) => !(u._npc40)); SE40.npcs = []; S.npcs = [];
+    for (const vil of SE40.villages) { const V = vil.V, cx = vil.cx, cy = vil.cy, big = V.z === 'village', K = LOW ? 0.6 : 1; const hs = vil.houses.filter((h) => h.st !== 'hokage' && h.st !== 'kaze'); const door = (h) => spot(h.x + (h.flip || 1) * 10, h.y + 30, 10);
+      const shops = G.obstacles.filter((o) => o.t === 'shop40' && o.vil === V.n); const tower = vil.houses.find((h) => h.st === 'hokage' || h.st === 'kaze');
+      const benches = G.obstacles.filter((o) => o.d === 'bench' && dist(o.x, o.y, cx, cy) < V.R); const clans = hs.filter((h) => h.st === 'clan');
+      // parc / aire de jeux : un coin libre de la couronne intérieure, loin de la place
+      let park = null; for (let k = 0; k < 30 && !park; k++) { const a = Math.random() * TAU, r = V.R * (0.5 + Math.random() * 0.2); const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r * 0.72; if (!SE40.inBld(px, py, 70)) park = [px, py]; } if (!park) park = [cx + V.R * 0.5, cy + 60];
+      S.parks.push({ x: park[0], y: park[1] }); G.obstacles.push({ x: park[0], y: park[1] - 10, r: 3, t: 'deco49', d: 'swing', s: 1, seed: 0 }, { x: park[0] + 50, y: park[1] + 20, r: 3, t: 'deco49', d: 'sandbox', s: 1, seed: 0 });
+      // gardes : un par porte, deux à la tour (rondes courtes)
+      for (const g of ['east', 'west', 'north', 'south']) if (vil[g]) { const [gx, gy] = vil[g]; const inX = cx + (gx - cx) * 0.9, inY = cy + (gy - cy) * 0.9; mk('guard', spot(inX, inY, 10), { name: pick(['Garde de la porte', 'Chūnin de garde']), look: { outfit: '#3a5a3a', scarf: '#2a2a30', hair: '#2a2a30', band: '#9a9aa4' }, pts: [[inX, inY], [inX + (gy - cy ? 60 : 0), inY + (gx - cx ? 50 : 0)]], spd: 45, night: 'stay', vil }); }
+      if (tower) for (const sd of [-1, 1]) mk('guard', spot(tower.x + sd * 70, tower.y + 50, 6), { name: 'Garde de la tour', look: { outfit: '#2a3a2a', scarf: '#2a2a30', band: '#9a9aa4' }, act: 'stand', night: 'stay', vil });
+      // marchands : devant chaque boutique et derrière chaque stand
+      for (const o of shops) mk('merchant', spot(o.x + 50, o.y + 50, 8), { name: 'Commis de ' + o.n, act: pick(['sweep', 'stand']), night: 'home', vil });
+      for (const [x, y] of vil.stalls || []) mk('merchant', [x, y], { name: pick(['Marchande de fruits', 'Poissonnier', 'Vendeur de tissus', 'Potier']), act: 'stand', vil });
+      // enfants : au parc
+      for (let i = 0; i < Math.round((big ? 4 : 2) * K); i++) { const pts = []; for (let k = 0; k < 4; k++) pts.push(spot(park[0], park[1], 90)); mk('kid', spot(park[0], park[1], 60), { name: 'Enfant du village', age: 'kid', look: { outfit: pick(['#ff8a3a', '#3a8aff', '#ff5a8a', '#7ad04a', '#f2d870']) }, pts, spd: 105, vil }); }
+      // anciens : sur les bancs
+      for (const b of benches.slice(0, big ? 3 : 1)) mk('elder', [b.x, b.y + 6], { name: pick(['Vieil artisan', 'Vieille dame', 'Ancien du village']), age: 'old', act: 'sit', spd: 30, vil });
+      // membres de clan : dans leur domaine
+      for (const h of clans) for (let i = 0; i < 2; i++) mk('clan', spot(h.x + (i ? 60 : -60), h.y + 34, 12), { name: 'Membre du clan ' + h.clan[0], look: { outfit: h.clan[0] === 'うちは' ? '#2a2a3a' : h.clan[0] === '日向' ? '#e8e4dc' : h.clan[0] === '奈良' ? '#3a5a3a' : '#a85a2a', hair: h.clan[0] === '日向' ? '#2a1a3a' : '#1a1a22' }, pts: [door(h), spot(h.x + (i ? 70 : -70), h.y + 40, 10)], spd: 40, vil });
+      // habitants : maison → boutique → stand → maison (routes réparties dans tout le village)
+      const nw = Math.round((big ? 10 : 4) * K); for (let i = 0; i < nw; i++) { const h = hs[(i * 7) % hs.length]; if (!h) break; const sh = shops.length ? shops[i % shops.length] : null; const st = (vil.stalls || [])[i % Math.max(1, (vil.stalls || []).length)]; const h2 = hs[(i * 7 + 5) % hs.length];
+        const pts = [door(h), sh ? spot(sh.x, sh.y + 70, 20) : spot(cx, cy, 200), st ? spot(st[0], st[1] + 30, 20) : door(h2), door(h2)]; const role = i % 4 === 3 ? 'worker' : 'walker';
+        mk(role, door(h), { name: role === 'worker' ? pick(['Porteur', 'Livreur', 'Apprenti']) : pick(['Habitante', 'Ninja en repos', 'Mère de famille', 'Artisan']), age: i % 5 === 4 ? 'old' : 'adult', pts, act: role === 'worker' ? 'carry' : null, spd: role === 'worker' ? 45 : 60, vil }); }
+      // discussions à deux, dans les rues
+      for (let i = 0; i < (big ? 2 : 1); i++) { const h = hs[(i * 11 + 3) % hs.length]; if (!h) continue; const [x, y] = spot(h.x, h.y + 70, 10); const a = mk('walker', [x - 16, y], { name: 'Habitante', act: 'chat', vil }); const b = mk('walker', [x + 16, y], { name: 'Habitant', act: 'chat', vil }); if (a) a.face = 1; if (b) b.face = -1; }
+      // paysans aux rizières (Konoha)
+      if (big) { const fx = cx + V.R + 220, fy = cy + 260; for (let i = 0; i < 3; i++) mk('farmer', [fx + 60 + i * 130, fy + 40 + i * 60], { name: 'Paysan', look: { outfit: '#8a7a4a', scarf: '#d8b070' }, pts: [[fx + 20 + i * 130, fy + 30 + i * 60], [fx + 100 + i * 130, fy + 30 + i * 60]], spd: 25, act: 'work', vil }); }
+    }
+    for (const r of (SE40.roads || []).slice(0, 4)) mk('walker', r.a.slice(), { name: pick(['Marchand itinérant', 'Caravane de Suna', 'Colporteur']), look: { outfit: '#8a6a3a', scarf: '#ffd27a' }, pts: [r.a, r.m, r.b, r.m], spd: 80, act: 'carry', night: 'stay' });
+    SE40.npcs = S.npcs; // mini-carte + compat
+    for (const u of S.npcs) u._npc40 = { kind: u._n491.role === 'guard' ? 'garde' : u._n491.role === 'merchant' ? 'marchand' : 'villageois', route: [u._n491.home], i: 0, wait: 1e9, spd: 0, talk: 1e9 };
+    S.ev.n = S.npcs.length; }
+  // l'ancien moteur de PNJ ne pilote plus rien (talk = ∞) ; on prend la main
+  function tick(dt) { const h = hr(); const out = h >= 6.5 && h < 20.5, late = h >= 20.5 || h < 6.5; const u0 = G.players[0];
+    for (const u of S.npcs) { if (!u || u.dead) continue; const N = u._n491; u.hp = u.maxHp; if (u._npc40) u._npc40.talk = 1e9; if (SE40.near) SE40.near[u.id] = 1;
+      const goHome = late && N.night === 'home' && !(N.role === 'walker' && u.id % 5 === 0); // quelques promeneurs restent dehors le soir
+      if (N.hidden) { if (!goHome) { N.hidden = false; u.alpha = 1; if (!G.units.includes(u)) G.units.push(u); } else continue; }
+      if (N.talk > 0) { N.talk -= dt; u.vx = u.vy = 0; continue; }
+      let tgt; if (goHome) tgt = N.home; else if (N.pts.length && N.act !== 'sit' && N.act !== 'stand' && N.act !== 'chat') tgt = N.pts[N.i % N.pts.length]; else tgt = N.home;
+      const dx = tgt[0] - u.x, dy = tgt[1] - u.y, d = Math.hypot(dx, dy);
+      if (d < 14) { u.vx = u.vy = 0; u.pose = 'idle'; if (goHome) { N.hidden = true; u.alpha = 0; G.units = G.units.filter((v) => v !== u); continue; }
+        if (N.wait > 0) { N.wait -= dt; } else { N.i++; N.wait = N.role === 'kid' ? rand(0.3, 1.5) : N.role === 'guard' ? rand(4, 8) : rand(2, 6); } }
+      else { if (N.wait > 0 && N.pts.length < 2) { N.wait -= dt; } let ux = dx / d, uy = dy / d; const px = u.x + ux * 30, py = u.y + uy * 30; const b = SE40.inBld(px, py, 6); if (b) { const s = (b.x - u.x) * uy - (b.y - u.y) * ux > 0 ? -1 : 1; const t = ux; ux = -uy * s; uy = t * s; }
+        const sp = N.spd * (N.role === 'guard' && late ? 1.2 : 1); u.vx = ux * sp; u.vy = uy * sp; u.face = ux >= 0 ? 1 : -1; u.pose = 'run'; }
+      if (N.act === 'chat') { const o = S.npcs.find((v) => v !== u && v._n491.act === 'chat' && dist(v.x, v.y, u.x, u.y) < 60); if (o) u.face = o.x > u.x ? 1 : -1; } }
+    // espacement : jamais d'amas
+    const L = S.npcs; for (let i = 0; i < L.length; i++) { const a = L[i]; if (!a || a._n491.hidden) continue; for (let j = i + 1; j < L.length; j++) { const b = L[j]; if (!b || b._n491.hidden) continue; let dx = b.x - a.x, dy = b.y - a.y; if (dx * dx + dy * dy < 0.25) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; } if (Math.abs(dx) > 30 || Math.abs(dy) > 30) continue; const d = Math.hypot(dx, dy) || 0.01; const minD = a._n491.act === 'chat' && b._n491.act === 'chat' ? 26 : 30; if (d < minD) { const k = (minD - d) / 2 / d; a.x -= dx * k; a.y -= dy * k; b.x += dx * k; b.y += dy * k; } } }
+    // dialogues par rôle
+    if (u0 && !G.paused) for (const n of L) { if (!n || n._n491.hidden) continue; const d = dist(u0.x, u0.y, n.x, n.y), N = n._n491; if (d < 55 && !N.met) { N.met = 1; N.talk = 2.5; n.face = u0.x > n.x ? 1 : -1; FX.text(n.x, n.y - 80 * n.size, pick(LINES[N.role] || LINES.walker), '#e8e4dc', 13); } else if (d > 140) N.met = 0; } }
+  // petites actions visibles : balai, caisse, assis, bulle de discussion, houe
+  const baseOH = drawOverheads; drawOverheads = function (ctx, gl) { try { if (G.mode === 'monde') { const t = G.t || 0; for (const u of S.npcs) { if (!u || u.dead || u._n491.hidden || u.alpha < 0.5) continue; const N = u._n491, x = u.x, y = u.y, s = u.size; ctx.strokeStyle = OUT; ctx.lineWidth = 1.5;
+          if (N.act === 'carry') { ctx.fillStyle = '#a07a4a'; ctx.fillRect(x - 8 * s, y - 92 * s, 16 * s, 12 * s); ctx.strokeRect(x - 8 * s, y - 92 * s, 16 * s, 12 * s); }
+          else if (N.act === 'sweep' && u.vx === 0) { const a = Math.sin(t * 5 + u.id) * 0.4; ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 6 * s, y - 40 * s); ctx.lineTo(x + 14 * s + a * 14, y); ctx.stroke(); ctx.fillStyle = '#d8b070'; ctx.fillRect(x + 8 * s + a * 14, y - 4, 12, 4); }
+          else if (N.act === 'work' && u.vx === 0) { const a = Math.sin(t * 3 + u.id); ctx.strokeStyle = '#6a4a2a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 4, y - 40 * s); ctx.lineTo(x + 16, y - 6 + a * 6); ctx.stroke(); }
+          else if (N.act === 'chat' && Math.sin(t * 0.9 + u.id) > 0.4) { ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(x, y - 92 * s, 12, 7, 0, 0, TAU); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#3a2a1a'; ctx.font = '700 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('…', x, y - 89 * s); } } } } catch (e) {} return baseOH.apply(this, arguments); };
+  // les anciens assis : on les affiche plus bas (assis sur le banc)
+  const baseDU = drawUnit; drawUnit = function (ctx, gl, u) { if (u && u._n491 && u._n491.act === 'sit' && u.vx === 0 && u.vy === 0) { const y = u.y; u.y += 0; u.pose = 'idle'; const z = u.z; u.z = -8; const r = baseDU.apply(this, arguments); u.z = z; u.y = y; return r; } return baseDU.apply(this, arguments); };
+  // décor du parc
+  const baseDO = drawObstacle; drawObstacle = function (ctx, gl, o) { if (o.t === 'deco49' && (o.d === 'swing' || o.d === 'sandbox')) { const x = o.x, y = o.y; ctx.strokeStyle = OUT; ctx.lineWidth = 2;
+      if (o.d === 'swing') { ctx.fillStyle = '#8a5a34'; ctx.fillRect(x - 26, y - 50, 4, 50); ctx.fillRect(x + 22, y - 50, 4, 50); ctx.fillRect(x - 28, y - 52, 56, 4); const a = Math.sin((G.t || 0) * 2.2) * 8; ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 6, y - 48); ctx.lineTo(x - 6 + a, y - 14); ctx.moveTo(x + 6, y - 48); ctx.lineTo(x + 6 + a, y - 14); ctx.stroke(); ctx.fillStyle = '#c8281e'; ctx.fillRect(x - 8 + a, y - 15, 16, 4); }
+      else { ctx.fillStyle = '#7a5434'; ctx.fillRect(x - 24, y - 10, 48, 14); ctx.strokeRect(x - 24, y - 10, 48, 14); ctx.fillStyle = '#e8d098'; ctx.fillRect(x - 21, y - 8, 42, 9); } return; } return baseDO.apply(this, arguments); };
+  const baseStart = SE35.start;
+  SE35.start = function () { const r = baseStart.apply(this, arguments); try { populate(); const D = G.director; if (D) { const up = D.update; D.update = (dt) => { up(dt); try { tick(dt); } catch (e) {} }; } } catch (e) { console.warn('SE491', e); } return r; };
+  try { SE3.NOTES.unshift({ v: '5.5.1 — PNJ naturels', d: '21 octobre 2026', tag: 'Chacun à sa place.', s: [['PNJ', ['Fini l’amas sur la place : chacun apparaît là où il vit et travaille.', 'Gardes aux portes et à la tour, marchands devant leur boutique, enfants au parc, anciens sur les bancs, membres de clan dans leur domaine, paysans aux rizières.', 'Routines : maison → boutique → marché → maison. Le soir, ils rentrent ; la nuit, il ne reste que les gardes et quelques promeneurs.', 'Ils ne se marchent plus dessus, vont à des vitesses différentes, discutent à deux, balaient, portent des caisses, s’assoient.', 'Tailles, âges, coiffures et tenues variés, répliques selon le rôle.']]] }); } catch (e) {}
 })();
 
 </script>
