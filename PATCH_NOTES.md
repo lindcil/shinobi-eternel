@@ -1,3 +1,11 @@
+# v5.5 — Villages vivants (21 octobre 2026)
+- Maisons refaites : toits de tuiles, maisons à étage avec balcon, citernes sur les toits, cheminées qui fument, lanternes, linge, jardinières. Couleurs et tailles variées.
+- Repères : tour du Hokage, rocher des Hokage, domaines de clan (Uchiha, Hyūga, Nara, Akimichi), Ichiraku avec comptoir, tour du Kazekage. Suna en dômes, Kiri sur pilotis, hameau des crapauds en champignons. Remparts et portes avec toits.
+- Monde rempli : enfants qui jouent, marchands à leurs stands, plus de promeneurs, chats, oiseaux qui s’envolent, rivière et pont, rizières, ruines, sanctuaires (祠 : ryō + soins), lanternes de pierre et panneaux.
+- Ambiance : pétales et feuilles le jour, lucioles la nuit, sable à Suna, brume à Kiri. La nuit assombrit vraiment le monde et les fenêtres s’allument.
+- Ennemis : ils sortent de camps (tentes, feu) et de tanières au lieu d’apparaître de nulle part.
+- Mobile : moins de décor et de particules.
+
 # v5.4.2 — Retour aux jeux (21 octobre 2026)
 - Menu Pause : nouveau bouton « Retour à la sélection des jeux ». Il sauvegarde puis ramène au menu des jeux, avec une confirmation si un combat est en cours.
 
