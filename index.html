@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v5.3 Boutique & Défis</title>
+<title>Shinobi Éternel II — v5.4 Quatrième Grande Guerre</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11548,6 +11548,27 @@ try { SE3.NOTES.unshift({ v: '4.9 — Chocs vivants', d: '20 octobre 2026', tag:
     const bd = drawUnit; drawUnit = function (ctx, gl, u) { try { if (u && u._gold53 && G.t < u._gold53 && !u.dead) { const s = Math.max(1, u.size || 1), a = Math.min(1, (u._gold53 - G.t) * 1.6); gl.globalAlpha = 0.28 * a; gl.drawImage(FX.glowSprite('#ffd23f'), u.x - 46 * s, u.y - (u.z || 0) - 100 * s, 92 * s, 112 * s); gl.globalAlpha = 1; ctx.strokeStyle = rgba('#ffd23f', 0.55 * a); ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(u.x, u.y, 30 * s, 11 * s, 0, 0, TAU); ctx.stroke(); } } catch (e) { } return bd.apply(this, arguments); }; } catch (e) { }
   SE40.gacha = 1;
   try { SE3.NOTES.unshift({ v: '5.3 — Boutique & Défis', d: '21 octobre 2026', tag: 'Tout se paie, tout se gagne.', s: [['Boutiques', ['Approche-toi d’un comptoir et appuie sur G : boutique plein écran avec aperçu animé (techniques, accessoires portés, repas).']], ['Défi du jour', ['Créatif : un boss du jour tiré au sort, mêmes options de fin.']], ['Auras', ['Auras or, orange et violet unifiées avec Shinobi 2.']], ['Équilibrage', ['Techniques secrètes : dégâts par point de chakra ramenés dans une même fourchette.']]] }); } catch (e) { }
+})();
+/* SE_VERSION = '5.4' — Quatrième Grande Guerre, front 1 + 20 constellations
+   - Nouveau chapitre d'histoire : la Division de Kakashi contre l'armée Edo Tensei de Kabuto (Zetsu blancs, Sept Épéistes, Hanzō, Kakuzu).
+   - 20 nouvelles constellations pour les techniques secrètes et de rang 5 qui n'en avaient pas (formes uniques générées par technique). */
+(function () {
+  if (window.__SE54) return; window.__SE54 = 1;
+  try {
+    BOSSES.kakuzu_edo = Object.assign({}, BOSSES.seigneur_tempete, { n: 'Kakuzu (Edo Tensei)', el: 'terre', hp: 1700, look: { hair: '#2a2a2a', outfit: '#121018', scarf: '#3a7a4a', mask: 1 }, _edo: 1 });
+    BOSSES.hanzo_edo = Object.assign({}, BOSSES.ronin, { n: 'Hanzō la Salamandre (Edo Tensei)', el: 'poison', hp: 1600, sword: 0, look: { hair: '#3a3a3a', outfit: '#3a3a42', scarf: '#8a8a40', mask: 1 }, _edo: 1 });
+    const bs = spawnBoss; spawnBoss = function (id) { const b = bs.apply(this, arguments); try { if (b && BOSSES[id] && BOSSES[id]._edo) b._edo = 1; } catch (e) { } return b; };
+    const ST = (t, biome, type, boss, txt, mods) => ({ t, biome, type, boss, txt, mods: mods || [] });
+    if (window.STORY && !STORY.some((c) => c.k === '戦')) STORY.push({ n: 'Quatrième Grande Guerre — Front 1', k: '戦', tier: 5, lv: 50, rew: {}, st: [
+      ST('La Division de Kakashi', 'foret', 'extermination', null, 'Les Zetsu blancs surgissent des arbres. Tiens la ligne avec la 3e Division.', ['elites']),
+      ST('Les Sept Épéistes', 'brumes', 'survie', null, 'Kabuto a ramené les Épéistes de la Brume. Survis dans le brouillard.', ['brume']),
+      ST('Hanzō la Salamandre', 'marais', 'boss', 'hanzo_edo', 'Le légendaire Hanzō, réanimé. Son poison ronge l’air.'),
+      ST('Kakuzu, cinq cœurs', 'ruines', 'boss', 'kakuzu_edo', 'Kakuzu revient avec ses masques. Le corps se reforme une fois.', ['nuit'])] });
+  } catch (e) { console.warn('se54 story', e); }
+  // 20 constellations
+  try { if (window.SE41) { SE41.more = SE41.more || []; SE41.more.push((tree) => { const have = new Set(Object.keys(SE41.TREES)); const ids = Object.keys(TECH).filter((k) => { const T = TECH[k]; return T && !have.has(k) && !T.beast && !T.mode && T.dmg > 0 && (T.cat === 'secret' || T.rar >= 5); }).sort().slice(0, 20); SE41.ev54 = ids;
+      for (const id of ids) { const T = TECH[id]; tree(id, { title: T.n, k: '星' }); } }); SE41.rebuild(); } } catch (e) { console.warn('se54 cst', e); }
+  try { SE3.NOTES.unshift({ v: '5.4 — Quatrième Grande Guerre', d: '21 octobre 2026', tag: 'Le front s’ouvre.', s: [['Histoire', ['Nouveau chapitre : Quatrième Grande Guerre — Front 1 (Zetsu blancs, Sept Épéistes, Hanzō et Kakuzu réanimés).']], ['Constellations', ['20 nouvelles constellations pour des techniques secrètes et de rang 5.']]] }); } catch (e) { }
 })();
 
 </script>
