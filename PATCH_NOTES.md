@@ -1,3 +1,23 @@
+# v5.4.1 — Chocs plus riches (21 octobre 2026)
+- Les chocs gagnent des volutes en orbite, des éclats en rotation et des fissures au sol, aux couleurs de chaque camp. « Réduire les flashs » est respecté.
+
+# v5.4 — Quatrième Grande Guerre (21 octobre 2026)
+- Nouveau chapitre d’histoire « Quatrième Grande Guerre — Front 1 » (niv. 50) : Division de Kakashi contre les Zetsu blancs, survie face aux Sept Épéistes dans la brume, puis Hanzō la Salamandre et Kakuzu réanimés par Edo Tensei (fissures, reformation unique).
+- 20 nouvelles constellations (formes uniques par technique) pour des techniques secrètes et de rang 5 qui n’en avaient pas : 92 au total.
+
+# v5.3 — Boutique & Défis (21 octobre 2026)
+- Boutiques gacha plein écran : approche-toi d’un comptoir (Konoha, Suna…) et appuie sur G. Grille de cartes par rareté, aperçu animé (technique lancée sur un mannequin, accessoire porté, repas). L’ancien menu de dialogue ne s’ouvre plus tout seul.
+- Créatif : « Défi : boss du jour » (boss et rang tirés au sort chaque jour, record du jour enregistré), mêmes options de fin que les autres jeux.
+- Auras : même palette que Shinobi 2 (orange bijū, violet pupilles) plus une aura dorée au lancement des techniques secrètes et de rang 5.
+- Équilibrage : 27 techniques secrètes recalées pour que les dégâts par point de chakra restent entre 0,6× et 2,5× la médiane (ex. Lotus 120→74, Raikiri 140→127, Lame du Susanoo 300→200 ; les plus faibles légèrement relevées).
+
+# v5.2 — Rencontres & Edo Tensei (21 octobre 2026)
+- 6 rencontres canon en monde ouvert : Jiraiya (150 ryō), Tsunade (soins complets), Kabuto + serpents, Zetsu blancs, Maito Gai (vitesse +25 % 30 s), Orochimaru (rare, moveset complet).
+- Edo Tensei (rare) : Kabuto réanime Hashirama, Tobirama, Hanzō ou Kakuzu. Fissures sur le corps, reformation unique à 15 % PV.
+- « Réduire les flashs » : tous les flashs plein écran sont plafonnés (0,22) et le blanc est adouci, y compris Six Voies et Bijūdama.
+- Ennemis : « ! » doré au-dessus de celui qui appelle à l’aide, flèche violette sur celui qui recule.
+- Codex : recherche et filtre « possédé ». Rappel des touches AZERTY en haut à gauche au début d’une partie (F2 pour l’épingler).
+
 v5.1 — Tactique & tactile : Ennemis plus malins : un ennemi qui te repère alerte jusqu’à 4 alliés proches, et un sbire à moins de 25 % de PV recule un instant pour se regrouper (une fois). Les boss et les bêtes ne reculent pas. Tactile : boutons et joystick agrandis sur écran tactile.
 
 v5.0 — Cut-ins Storm : un ultime, une technique secrète ou une technique de rareté 5 lancée par toi déclenche un cut-in façon Storm. Bandes noires, panneau incliné à la couleur de l'élément, ton personnage en buste, nom de la technique, lignes de vitesse, coup de pinceau. 1,3 s, une fois par technique et par combat, sans flash blanc ; clic, toucher ou Échap pour passer. Audit : tous les modes lancés et joués sans erreur console.

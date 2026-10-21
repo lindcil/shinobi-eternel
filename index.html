@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v5.4 Quatrième Grande Guerre</title>
+<title>Shinobi Éternel II — v5.4.1 Chocs plus riches</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11281,6 +11281,10 @@ const Net = {
       const sr = (lq ? 8 : 26) * dt * (0.6 + I); for (let k = 0; k < sr; k++) for (const [S, col, sg] of [[P.A, C.ca, 1], [P.B, C.cb, -1]]) emit({ k: 'stream', sx: S.x, sy: S.y, ex: P.x, ey: P.y, ph: rnd(0, TAU), sg, z: C.z, c: col, s: rnd(2, 4), life: rnd(0.35, 0.6), amp: rnd(14, 34) * (0.6 + I) });
       // poussière et débris au sol
       if (Math.random() < (lq ? 0.25 : 0.7) * (0.4 + I)) { const a = rnd(0, TAU); emit({ k: Math.random() < 0.3 ? 'rock' : 'dust', x: P.x + Math.cos(a) * rnd(10, 60), y: P.y + Math.sin(a) * rnd(6, 26), z: 0, vx: Math.cos(a) * rnd(60, 260), vy: Math.sin(a) * rnd(30, 110), vz: rnd(60, 300), g: 900, c: '#8b7a66', s: rnd(4, 12), life: rnd(0.5, 1) }); }
+      // v2 : feux follets en orbite, éclats tournoyants, fissures au sol
+      if (Math.random() < (lq ? 0.35 : 1) * (0.5 + I)) emit({ k: 'orbit', x: P.x, y: P.y, z: C.z, a: rnd(0, TAU), r0: 60 + 70 * I, c: Math.random() < 0.5 ? C.ca : C.cb, s: rnd(2, 4.2), life: rnd(0.5, 0.9), sp: rnd(5, 9) * (Math.random() < 0.5 ? 1 : -1) });
+      if (Math.random() < (lq ? 0.08 : 0.28) * I) { const a = rnd(0, TAU), s = rnd(160, 420); emit({ k: 'shard', x: P.x, y: P.y, z: C.z, vx: Math.cos(a) * s, vy: Math.sin(a) * s * 0.7, vz: rnd(80, 300), g: 520, c: Math.random() < 0.5 ? C.ca : C.cb, s: rnd(5, 10), life: rnd(0.5, 0.8), rot: rnd(0, TAU), vr: rnd(-14, 14) }); }
+      if (I > 0.6 && !C.crack) { C.crack = 1; for (let k = 0; k < (lq ? 4 : 8); k++) emit({ k: 'crack', x: P.x, y: P.y, z: 0, a: k / (lq ? 4 : 8) * TAU + rnd(-0.3, 0.3), len: rnd(50, 130), j: rnd(0, 1000), life: 2.2, c: '#1a120c' }); }
       // anneaux pulsés
       C.ring += dt * (1.4 + I * 2.2); if (C.ring >= 1) { C.ring -= 1; emit({ k: 'ring', x: P.x, y: P.y, z: C.z, c: Math.random() < 0.5 ? C.ca : C.cb, r0: 14, r1: 90 + 120 * I, w: 3 + 4 * I, life: 0.45 }); }
       // cœur du contact : deux demi-halos colorés qui se repoussent
@@ -11294,6 +11298,8 @@ const Net = {
     ctx.save(); for (let i = live.length - 1; i >= 0; i--) { const p = live[i]; p.t += dt; if (p.t >= p.life) { live[i] = live[live.length - 1]; live.pop(); put(p); continue; } const q = p.t / p.life, al = 1 - q;
       if (p.k === 'stream') { const e = q * q * (3 - 2 * q); const x = p.sx + (p.ex - p.sx) * e, y = p.sy + (p.ey - p.sy) * e; const sw = Math.sin(p.ph + q * 9) * p.amp * (1 - e) * p.sg; const ang = Math.atan2(p.ey - p.sy, p.ex - p.sx) + Math.PI / 2; const [a, b, zm] = scr(x + Math.cos(ang) * sw, y + Math.sin(ang) * sw * 0.6, p.z * (0.6 + 0.4 * e));
         ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = hex(p.c, 0.75 * Math.sin(q * Math.PI)); ctx.beginPath(); ctx.arc(a, b, p.s * zm * 1.4, 0, TAU); ctx.fill(); continue; }
+      if (p.k === 'orbit') { const rr = p.r0 * (1 - q * 0.85), an = p.a + p.sp * p.t; const [a, b, zm] = scr(p.x + Math.cos(an) * rr, p.y + Math.sin(an) * rr * 0.55, p.z + Math.sin(an * 2) * 8); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = hex(p.c, 0.8 * Math.sin(q * Math.PI)); ctx.beginPath(); ctx.arc(a, b, p.s * zm, 0, TAU); ctx.fill(); continue; }
+      if (p.k === 'crack') { const [a, b, zm] = scr(p.x, p.y, 0); const L = p.len * Math.min(1, q * 5) * zm; ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = hex(p.c, 0.55 * Math.min(1, (1 - q) * 2)); ctx.lineWidth = 2.4 * zm; ctx.beginPath(); ctx.moveTo(a, b); let x = a, y = b; for (let j = 1; j <= 4; j++) { const an = p.a + Math.sin(p.j + j * 1.7) * 0.45; x = a + Math.cos(an) * L * j / 4; y = b + Math.sin(an) * L * j / 4 * 0.55; ctx.lineTo(x, y); } ctx.stroke(); continue; }
       if (p.k === 'ring' || p.k === 'glow') { const e = 1 - Math.pow(1 - q, 3); const r = p.r0 + (p.r1 - p.r0) * e; const [a, b, zm] = scr(p.x, p.y, p.z);
         if (p.k === 'glow') { ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(a, b, 0, a, b, r * zm); g.addColorStop(0, hex(p.c, (soft ? 0.4 : 0.8) * al)); g.addColorStop(1, hex(p.c, 0)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(a, b, r * zm, 0, TAU); ctx.fill(); continue; }
         ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = hex(p.c, 0.85 * al); ctx.lineWidth = Math.max(1, p.w * al * zm); ctx.beginPath(); ctx.ellipse(a, b, r * zm, r * zm * (p.flat ? 0.35 : 0.62), 0, 0, TAU); ctx.stroke(); continue; }
@@ -11301,6 +11307,7 @@ const Net = {
       const [a, b, zm] = scr(p.x, p.y, p.z);
       if (p.k === 'dust') { ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = hex(p.c, 0.2 * al); ctx.beginPath(); ctx.arc(a, b, p.s * zm * (1 + q * 0.6), 0, TAU); ctx.fill(); continue; }
       if (p.k === 'rock') { ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = hex('#4a3e34', al); ctx.fillRect(a - p.s * zm * 0.3, b - p.s * zm * 0.3, p.s * zm * 0.6, p.s * zm * 0.6); continue; }
+      if (p.k === 'shard') { p.rot += p.vr * dt; ctx.globalCompositeOperation = 'lighter'; ctx.save(); ctx.translate(a, b); ctx.rotate(p.rot); ctx.fillStyle = hex(p.c, al); const z2 = p.s * zm; ctx.beginPath(); ctx.moveTo(0, -z2); ctx.lineTo(z2 * 0.45, z2 * 0.6); ctx.lineTo(-z2 * 0.45, z2 * 0.6); ctx.closePath(); ctx.fill(); ctx.restore(); continue; }
       ctx.globalCompositeOperation = 'lighter'; if (p.k === 'spark') { const [c2, d2] = scr(p.x - p.vx * 0.03, p.y - p.vy * 0.03, p.z - p.vz * 0.03); ctx.strokeStyle = hex(p.c, al); ctx.lineWidth = p.s * zm * 0.7; ctx.beginPath(); ctx.moveTo(c2, d2); ctx.lineTo(a, b); ctx.stroke(); }
       else { ctx.fillStyle = hex(p.c, al); ctx.beginPath(); ctx.arc(a, b, p.s * zm * (1 - q * 0.5), 0, TAU); ctx.fill(); } }
     ctx.restore();
@@ -11570,6 +11577,7 @@ try { SE3.NOTES.unshift({ v: '4.9 — Chocs vivants', d: '20 octobre 2026', tag:
       for (const id of ids) { const T = TECH[id]; tree(id, { title: T.n, k: '星' }); } }); SE41.rebuild(); } } catch (e) { console.warn('se54 cst', e); }
   try { SE3.NOTES.unshift({ v: '5.4 — Quatrième Grande Guerre', d: '21 octobre 2026', tag: 'Le front s’ouvre.', s: [['Histoire', ['Nouveau chapitre : Quatrième Grande Guerre — Front 1 (Zetsu blancs, Sept Épéistes, Hanzō et Kakuzu réanimés).']], ['Constellations', ['20 nouvelles constellations pour des techniques secrètes et de rang 5.']]] }); } catch (e) { }
 })();
+/* SE_VERSION = '5.4.1' — Chocs plus riches (traînées, éclats, fissures) */
 
 </script>
 
