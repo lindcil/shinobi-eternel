@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Shinobi Éternel II — v5.1 Tactique & tactile</title>
+<title>Shinobi Éternel II — v5.2 Rencontres & Edo Tensei</title>
 <meta name="theme-color" content="#0d0a14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -8681,6 +8681,17 @@ const Net = {
       }), 60) }] }]); }, 1],
     ['Rencontre de l’Akatsuki', '暁', '#d63c3c', () => { say([{ who: 'Itachi Uchiha', k: '鴉', c: '#d63c3c', t: 'Kisame. C’est lui.' }, { who: 'Kisame Hoshigaki', k: '鮫', c: '#3f6aa0', t: 'Héhé… Samehada a faim. Désolé gamin, tu viens avec nous.' }], () => {
       const out = []; for (const [id, typ] of [['itachi', 'deserteur'], ['kisame', 'samourai']]) { const v = pack(typ, 1, { elite: 1, hp: 8 })[0]; if (v && SE33 && SE33.applyMS) { if (!v.slots) v.slots = [null, null, null, null]; SE33.applyMS(v, id); v.look = Object.assign({}, v.look, { outfit: '#121018', akatsuki: 1 }); v.name = SE33.MS[id].n + ' (Akatsuki)'; v._aka = 1; out.push(v); } } banner('Akatsuki', 'ÉVÉNEMENT RARE', '#d63c3c'); }); }, 1],
+
+    // ---- v5.2 Rencontres canon
+    ['Jiraiya, l’Ermite des Crapauds', '蝦', '#d63c3c', () => { const p = P(); say([{ who: 'Jiraiya', k: '蝦', c: '#d63c3c', t: 'Hé, petit ! Tu tombes bien, je cherchais un modèle… euh, un élève.' }, { who: 'Jiraiya', k: '蝦', c: '#d63c3c', t: 'Tiens. Un peu d’argent de poche, et un conseil : le chakra, ça se dose.' }], () => { p.ryo = (p.ryo || 0) + 150; toast('Jiraiya', '+150 ryō', 'Cadeau de l’Ermite.', '#d63c3c', '蝦'); }); }],
+    ['Tsunade, la Princesse Limace', '綱', '#7ad07a', () => { say([{ who: 'Tsunade', k: '綱', c: '#7ad07a', t: 'Tu tiens à peine debout. Ne bouge pas.' }], () => { const u = hero(); if (u) { u.hp = u.maxHp; if (u.maxCh) u.ch = u.maxCh; FX.ring(u.x, u.y, '#7ad07a', 10, 120, 0.6, 6); } banner('Tsunade', 'SOINS COMPLETS', '#7ad07a'); }); }],
+    ['Kabuto Yakushi', '蛇', '#a8e070', () => { say([{ who: 'Kabuto Yakushi', k: '蛇', c: '#a8e070', t: 'Intéressant… Tes cellules feraient un bel échantillon.' }], () => { const b = pack('medic', 1, { elite: 1, name: 'Kabuto Yakushi', hp: 7 })[0]; if (b) { b.look = Object.assign({}, b.look, { hair: '#d8d8e0', outfit: '#5a3a6a', scarf: '#a8e070', glasses: 1 }); b.atk *= 1.3; } pack('serpent35', 2); banner('Kabuto Yakushi', 'RENCONTRE', '#a8e070'); }); }],
+    ['Zetsu', '絶', '#e8e8e0', () => { say([{ who: 'Zetsu noir', k: '絶', c: '#2a2a2a', t: 'On t’observe depuis un moment.' }, { who: 'Zetsu blanc', k: '絶', c: '#e8e8e0', t: 'Et on est nombreux, hihi !' }], () => { for (const v of pack('bandit', 5, { name: 'Zetsu blanc' })) v.look = Object.assign({}, v.look, { hair: '#e8e8e0', outfit: '#e8e8e0', scarf: '#c8c8c0' }); banner('Zetsu', 'RENCONTRE', '#e8e8e0'); }); }],
+    ['Maito Gai', '熱', '#3fae6a', () => { say([{ who: 'Maito Gai', k: '熱', c: '#3fae6a', t: 'La fougue de la jeunesse brûle en toi ! Montre-moi tes pompes… non, ta vitesse !' }], () => { const u = hero(); if (u) { u.spd = (u.spd || 200) * 1.25; setTimeout(() => { try { u.spd /= 1.25; } catch (e) {} }, 30000); } banner('Maito Gai', 'VITESSE +25 % (30 s)', '#3fae6a'); }); }],
+    ['Orochimaru', '蛇', '#8a5ad0', () => { say([{ who: 'Orochimaru', k: '蛇', c: '#8a5ad0', t: 'Ce corps… jeune, souple. Il me plaît.' }], () => { const v = pack('deserteur', 1, { elite: 1, hp: 9 })[0]; if (v && SE33 && SE33.applyMS) { if (!v.slots) v.slots = [null, null, null, null]; SE33.applyMS(v, 'orochimaru'); v.name = 'Orochimaru'; } banner('Orochimaru', 'RENCONTRE RARE', '#8a5ad0'); }); }, 1],
+    // ---- v5.2 Edo Tensei : 4 réanimés canon
+    ['Edo Tensei', '穢', '#8a7a6a', () => { const R = [['Hashirama Senju', '柱', { hair: '#2a1a12', outfit: '#8a2a2a', scarf: '#3a7a3a' }, 'bois'], ['Tobirama Senju', '扉', { hair: '#f2f2f2', outfit: '#2a3a6a', scarf: '#e8e8f0' }, 'eau'], ['Hanzō la Salamandre', '山', { hair: '#3a3a3a', outfit: '#3a3a42', scarf: '#8a8a40', mask: 1 }, 'poison'], ['Kakuzu', '角', { hair: '#2a2a2a', outfit: '#121018', scarf: '#3a7a4a', mask: 1, akatsuki: 1 }, 'terre']]; const [n, k, look, el] = pick(R);
+      say([{ who: 'Kabuto Yakushi', k: '穢', c: '#8a7a6a', t: 'Réincarnation des âmes… Edo Tensei !' }, { who: n, k, c: '#8a7a6a', t: 'Encore ramené de force. Pardonne-moi, mon corps ne m’obéit pas.' }], () => { const b = pack('samourai', 1, { elite: 1, name: n + ' (Edo)', size: 1.15, hp: 11 })[0]; if (b) { b.look = Object.assign({}, b.look, look, { edo: 1 }); b.el = el; b._edo = 1; b.atk *= 1.4; } banner(n, 'EDO TENSEI', '#8a7a6a'); }); }, 1],
   ].map(([n, k, c, f, rare], i) => ({ id: i, n, k, c, f, rare: !!rare, w: rare ? 1 : 2 }));
   SE35.EVENTS = EVENTS;
   SE35.rates = () => { const tot = EVENTS.reduce((s, e) => s + e.w, 0); return EVENTS.map((e) => ({ n: e.n, p: e.w / tot })); };
@@ -11367,13 +11378,48 @@ try { SE3.NOTES.unshift({ v: '4.9 — Chocs vivants', d: '20 octobre 2026', tag:
   const hook = () => { if (typeof aiUpdate !== 'function' || aiUpdate.__tac) return; const up = aiUpdate;
     aiUpdate = function (u, dt) { const ai = u && u.ai; const had = ai && ai.target; const r = up.apply(this, arguments);
       try { if (!ai || ai.type === 'decoy' || ai.leader) return r; const tgt = ai.target;
-        if (tgt && !had && !ai.alerted && G && G.units) { ai.alerted = 1; let n = 0; for (const o of G.units) { if (n >= 4) break; if (o === u || !o.ai || o.team !== u.team || o.ai.target || !alive(o)) continue; if (Math.hypot(o.x - u.x, o.y - u.y) < 360) { o.ai.target = tgt; o.ai.alerted = 1; o.ai.lastSeen = { x: tgt.x, y: tgt.y, t: G.t }; n++; } } if (n) bark(u, 'spot', 0.8); }
-        if (tgt && !u.boss && ai.type !== 'beast' && !ai.retreated && u.hp > 0 && u.hp / u.maxHp < 0.25) { ai.retreated = G.t + 1.6; bark(u, 'lost', 0.6); }
+        if (tgt && !had && !ai.alerted && G && G.units) { ai.alerted = 1; let n = 0; for (const o of G.units) { if (n >= 4) break; if (o === u || !o.ai || o.team !== u.team || o.ai.target || !alive(o)) continue; if (Math.hypot(o.x - u.x, o.y - u.y) < 360) { o.ai.target = tgt; o.ai.alerted = 1; o.ai.lastSeen = { x: tgt.x, y: tgt.y, t: G.t }; n++; } } if (n) { bark(u, 'spot', 0.8); u._tacCue = { k: 0, t: G.t + 1.4 }; } }
+        if (tgt && !u.boss && ai.type !== 'beast' && !ai.retreated && u.hp > 0 && u.hp / u.maxHp < 0.25) { ai.retreated = G.t + 1.6; bark(u, 'lost', 0.6); u._tacCue = { k: 1, t: G.t + 1.6 }; }
         if (tgt && ai.retreated && G.t < ai.retreated && !u.act) moveAway(u, tgt.x, tgt.y, 1); } catch (e) { }
       return r; }; aiUpdate.__tac = 1; };
-  hook(); addEventListener('load', hook);
+  const hookD = () => { if (typeof drawUnit !== 'function' || drawUnit.__tac) return; const d0 = drawUnit;
+    drawUnit = function (ctx, gl, u) { const r = d0.apply(this, arguments); try { const c = u && u._tacCue; if (c && G.t < c.t && u.hp > 0) { const s = u.size || 1, x = u.x, y = u.y - 78 * s - Math.sin(G.t * 9) * 3, a = Math.min(1, (c.t - G.t) * 2); ctx.save(); ctx.globalAlpha = a; ctx.lineJoin = 'round';
+        if (c.k === 0) { ctx.fillStyle = '#ffc23a'; ctx.strokeStyle = '#3a1a00'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x - 5, y - 18); ctx.lineTo(x + 5, y - 18); ctx.lineTo(x + 2, y - 4); ctx.lineTo(x - 2, y - 4); ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.beginPath(); ctx.arc(x, y + 2, 3.2, 0, 7); ctx.stroke(); ctx.fill(); }
+        else { ctx.strokeStyle = '#b06bff'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.arc(x, y - 6, 9, -0.3, Math.PI + 0.6); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x - 14, y - 4); ctx.lineTo(x - 8, y + 4); ctx.lineTo(x - 2, y - 3); ctx.stroke(); }
+        ctx.restore(); } } catch (e) { } return r; }; drawUnit.__tac = 1; };
+  hook(); hookD(); addEventListener('load', () => { hook(); hookD(); });
 })();
-/* SE_VERSION = '5.1' */
+/* SE_VERSION = '5.2' — Rencontres & Edo Tensei
+   - « Réduire les flashs » appliqué partout : tout flash plein écran (Six Voies, Bijūdama, Susanoo…) est plafonné et adouci.
+   - Edo Tensei : les réanimés se reforment une fois (corps de papier) avant de tomber ; fissures dessinées sur le modèle.
+   - Codex filtrable (recherche + « possédé seulement »), rappel des touches à l'écran (F2). */
+(function () {
+  if (window.__SE52) return; window.__SE52 = 1;
+  const rfOn = () => { try { const s = P() && P().settings; return !s || s.rf45 !== false; } catch (e) { return true; } };
+  // 1. flashs plafonnés
+  try { let fa = G.flashA || 0, fc = G.flashC || '#ffffff';
+    Object.defineProperty(G, 'flashA', { configurable: true, get: () => fa, set: (v) => { fa = rfOn() ? Math.min(+v || 0, 0.22) : v; } });
+    Object.defineProperty(G, 'flashC', { configurable: true, get: () => fc, set: (v) => { fc = (rfOn() && /^#?f{3,6}$/i.test(String(v).replace('#', '#'))) ? '#ffd9a0' : v; } });
+  } catch (e) { }
+  // 2. Edo Tensei : reformation unique
+  setInterval(() => { try { if (!G || !G.units) return; for (const u of G.units) { if (!u._edo || u._edoR || !(u.hp > 0)) continue; if (u.hp / u.maxHp < 0.15) { u._edoR = 1; u.hp = u.maxHp * 0.5; try { FX.text(u.x, u.y - 90, 'Le corps se reforme', '#c8b89a', 14); FX.ring(u.x, u.y, '#8a7a6a', 10, 110, 0.6, 6); } catch (e) { } } } } catch (e) { } }, 200);
+  const hookDraw = () => { if (typeof drawUnit !== 'function' || drawUnit.__se52) return; const d0 = drawUnit;
+    drawUnit = function (ctx, gl, u) { const r = d0.apply(this, arguments); try { if (u && u._edo && u.hp > 0) { const s = u.size || 1; ctx.save(); ctx.strokeStyle = 'rgba(40,30,20,.75)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(u.x - 5 * s, u.y - 52 * s); ctx.lineTo(u.x - 1 * s, u.y - 44 * s); ctx.lineTo(u.x - 4 * s, u.y - 38 * s); ctx.moveTo(u.x + 4 * s, u.y - 30 * s); ctx.lineTo(u.x + 7 * s, u.y - 22 * s); ctx.stroke(); ctx.restore(); } } catch (e) { } return r; }; drawUnit.__se52 = 1; };
+  hookDraw(); addEventListener('load', hookDraw);
+  // 3. Codex filtrable
+  try { const base = UI.tab_codex; UI.tab_codex = function () { base.apply(this, arguments); try { const f = document.querySelector('#tabbody .filters'); if (!f) return; const q = this.codexQ || '', own = !!this.codexOwn;
+      f.insertAdjacentHTML('afterend', `<div class="cx52"><input id="cx52q" placeholder="🔍" value="${q.replace(/"/g, '')}"><label><input type="checkbox" id="cx52o" ${own ? 'checked' : ''}> ✔</label></div>`);
+      const apply = () => { const t = (this.codexQ || '').toLowerCase(); document.querySelectorAll('#tabbody .codexgrid .tcard, #tabbody .codexlist li, #tabbody .clangrid article').forEach((el) => { const unk = el.classList.contains('unknown') || el.classList.contains('unk') || el.classList.contains('locked'); el.style.display = ((!t || el.textContent.toLowerCase().includes(t)) && !(this.codexOwn && unk)) ? '' : 'none'; }); };
+      const qi = document.getElementById('cx52q'); qi.oninput = () => { this.codexQ = qi.value; apply(); }; document.getElementById('cx52o').onchange = (e) => { this.codexOwn = e.target.checked; apply(); }; apply(); } catch (e) { } }; } catch (e) { }
+  // 4. Rappel des touches (F2)
+  const css = document.createElement('style'); css.textContent = '.cx52{display:flex;gap:10px;align-items:center;margin:8px 0}.cx52 input#cx52q{flex:1;padding:6px 10px;border-radius:8px;border:1px solid #5a4a6a;background:#140f1c;color:#fff}#keys52{position:fixed;left:12px;top:12px;z-index:60;display:flex;gap:6px;pointer-events:none;opacity:.85;font:600 12px system-ui}#keys52 b{display:inline-flex;align-items:center;gap:4px;background:rgba(20,14,28,.8);border:1px solid #ffb347;border-radius:8px;padding:4px 7px;color:#ffe0a8}#keys52 i{font-style:normal;color:#c79bff}@media (pointer:coarse){#keys52{display:none}}';
+  document.head.appendChild(css);
+  let box = null, on = true, shownAt = 0;
+  const build = () => { try { const u = G.players && G.players[0]; if (!u || !u.ctrl || !/^kb/.test(u.ctrl.primary || u.ctrl.kind)) return ''; const S = SCHEMES[u.ctrl.primary || u.ctrl.kind]; const L = codeLabel; return `<b><i>✥</i>${L(S.up)}${L(S.left)}${L(S.down)}${L(S.right)}</b><b><i>⚔</i>${L(S.atk[0])}</b><b><i>➶</i>${L(S.dash[0])}</b><b><i>印</i>${S.j.map((j) => L(j[0])).join(' ')}</b><b><i>秘</i>${L(S.sec[0])}</b><b><i>眼</i>${L(S.eye[0])}</b>`; } catch (e) { return ''; } };
+  setInterval(() => { try { const inGame = G && G.players && G.players.length && !G.over && G.mode; if (!inGame) { if (box) box.remove(); box = null; shownAt = 0; return; } if (!shownAt) shownAt = performance.now(); const vis = on && (performance.now() - shownAt < 25000 || window.__keys52pin); if (!vis) { if (box) box.remove(); box = null; return; } if (!box) { box = document.createElement('div'); box.id = 'keys52'; document.body.appendChild(box); box.innerHTML = build(); } } catch (e) { } }, 500);
+  addEventListener('keydown', (e) => { if (e.code === 'F2') { e.preventDefault(); window.__keys52pin = !window.__keys52pin; shownAt = performance.now(); on = true; } });
+  try { SE3.NOTES.unshift({ v: '5.2 — Rencontres & Edo Tensei', d: '21 octobre 2026', tag: 'Les morts ne dorment plus.', s: [['Rencontres', ['6 nouvelles rencontres en monde ouvert : Jiraiya (cadeau), Tsunade (soins), Kabuto, Zetsu, Maito Gai (vitesse), Orochimaru (rare).']], ['Edo Tensei', ['Kabuto réanime Hashirama, Tobirama, Hanzō ou Kakuzu. Fissures sur le corps ; ils se reforment une fois avant de tomber.']], ['Confort', ['« Réduire les flashs » plafonne désormais tous les flashs plein écran, y compris Six Voies et Bijūdama.', 'Codex : recherche et filtre « possédé ».', 'Rappel des touches en bas à gauche au début de partie ; F2 pour l’épingler.']], ['Ennemis', ['Signal visuel : « ! » doré quand un ennemi appelle à l’aide, flèche violette quand il recule.']]] }); } catch (e) { }
+})();
 
 </script>
 
