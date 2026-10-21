@@ -1,3 +1,6 @@
+# v5.4.2 — Retour aux jeux (21 octobre 2026)
+- Menu Pause : nouveau bouton « Retour à la sélection des jeux ». Il sauvegarde puis ramène au menu des jeux, avec une confirmation si un combat est en cours.
+
 # v5.4.1 — Chocs plus riches (21 octobre 2026)
 - Les chocs gagnent des volutes en orbite, des éclats en rotation et des fissures au sol, aux couleurs de chaque camp. « Réduire les flashs » est respecté.
 
